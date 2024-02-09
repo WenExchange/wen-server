@@ -1,0 +1,64 @@
+{
+  "kind": "collectionType",
+  "collectionName": "early_users",
+  "info": {
+    "singularName": "early-user",
+    "pluralName": "early-users",
+    "displayName": "Early User",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "wallet": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "twitter_id": {
+      "type": "string",
+      "required": true
+    },
+    "twitter_name": {
+      "type": "string",
+      "required": false
+    },
+    "twitter_profile_image": {
+      "type": "string"
+    },
+    "discord_id": {
+      "type": "string",
+      "required": true
+    },
+    "own_code": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "ref_code": {
+      "type": "string"
+    },
+    "guests": {
+      "type": "integer",
+      "default": 0,
+      "required": true
+    },
+    "eth_deposited": {
+      "type": "float",
+      "default": 0,
+      "required": true
+    },
+    "usd_deposited": {
+      "type": "float",
+      "default": 0,
+      "required": true
+    },
+    "bonus": {
+      "type": "integer",
+      "default": 0,
+      "required": true
+    }
+  }
+}

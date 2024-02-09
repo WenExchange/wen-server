@@ -362,6 +362,50 @@ export interface AdminTransferTokenPermission extends Schema.CollectionType {
   };
 }
 
+export interface ApiEarlyUserEarlyUser extends Schema.CollectionType {
+  collectionName: 'early_users';
+  info: {
+    singularName: 'early-user';
+    pluralName: 'early-users';
+    displayName: 'Early User';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    wallet: Attribute.String & Attribute.Required & Attribute.Unique;
+    twitter_id: Attribute.String & Attribute.Required;
+    twitter_name: Attribute.String;
+    twitter_profile_image: Attribute.String;
+    discord_id: Attribute.String & Attribute.Required;
+    own_code: Attribute.String & Attribute.Required & Attribute.Unique;
+    ref_code: Attribute.String;
+    guests: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
+    eth_deposited: Attribute.Float &
+      Attribute.Required &
+      Attribute.DefaultTo<0>;
+    usd_deposited: Attribute.Float &
+      Attribute.Required &
+      Attribute.DefaultTo<0>;
+    bonus: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::early-user.early-user',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::early-user.early-user',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface PluginUploadFile extends Schema.CollectionType {
   collectionName: 'files';
   info: {
@@ -791,6 +835,7 @@ declare module '@strapi/types' {
       'admin::api-token-permission': AdminApiTokenPermission;
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
+      'api::early-user.early-user': ApiEarlyUserEarlyUser;
       'plugin::upload.file': PluginUploadFile;
       'plugin::upload.folder': PluginUploadFolder;
       'plugin::content-releases.release': PluginContentReleasesRelease;

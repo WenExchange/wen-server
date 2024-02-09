@@ -1,5 +1,6 @@
 'use strict';
 require("dotenv").config();
+const CryptoJS = require("crypto-js");
 const voucher_codes = require('voucher-code-generator');
 const { TwitterApi } = require("twitter-api-v2");
 const axios = require("axios");
@@ -23,13 +24,15 @@ module.exports = {
         discord_id,
         ref_code,
       } = ctx.request.body.data;
-
+      
+      const bytes = CryptoJS.AES.decrypt( wallet, process.env.WEN_SECRET);
+const originalWallet = bytes.toString(CryptoJS.enc.Utf8);
       // find user 
       const earlyUser = await strapi.entityService.findMany(
         "api::early-user.early-user",
         {
           filters: {
-            wallet
+            wallet: originalWallet
           }
         }
       );
@@ -52,7 +55,7 @@ module.exports = {
         "api::early-user.early-user",
         {
           data: {
-            wallet,
+            wallet: originalWallet,
             twitter_id,
             twitter_name,
             twitter_image,

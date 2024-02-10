@@ -389,6 +389,10 @@ export interface ApiEarlyUserEarlyUser extends Schema.CollectionType {
       Attribute.Required &
       Attribute.DefaultTo<0>;
     bonus: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
+    community_incentive: Attribute.Integer & Attribute.DefaultTo<0>;
+    invite_point: Attribute.Integer &
+      Attribute.Required &
+      Attribute.DefaultTo<0>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

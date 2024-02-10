@@ -20,10 +20,16 @@ module.exports = {
         wallet,
         twitter_id,
         twitter_name,
-        twitter_image,
+        twitter_profile_image,
         discord_id,
         ref_code,
       } = ctx.request.body.data;
+      console.log({ wallet,
+        twitter_id,
+        twitter_name,
+        twitter_profile_image,
+        discord_id,
+        ref_code,});
       
       const bytes = CryptoJS.AES.decrypt( wallet, process.env.WEN_SECRET);
 const originalWallet = bytes.toString(CryptoJS.enc.Utf8);
@@ -32,8 +38,11 @@ const originalWallet = bytes.toString(CryptoJS.enc.Utf8);
         "api::early-user.early-user",
         {
           filters: {
-            wallet: originalWallet
-          }
+            wallet: {
+              "$eq": originalWallet
+            }
+          },
+          
         }
       );
 
@@ -44,13 +53,20 @@ const originalWallet = bytes.toString(CryptoJS.enc.Utf8);
         return 
       }
 
-     
 
 
+   
+      function getRandomInt(min, max) {
+        const minCeiled = Math.ceil(min);
+        const maxFloored = Math.floor(max);
+        return Math.floor(Math.random() * (maxFloored - minCeiled) + minCeiled); // The maximum is exclusive and the minimum is inclusive
+      }
+
+    
+      const invite_point = getRandomInt(3,10)* 100 
+    
       // create ref code
       const own_code = createRefCode()
-
-  
       const addredEarlyUser = await strapi.entityService.create(
         "api::early-user.early-user",
         {
@@ -58,13 +74,22 @@ const originalWallet = bytes.toString(CryptoJS.enc.Utf8);
             wallet: originalWallet,
             twitter_id,
             twitter_name,
-            twitter_image,
+            twitter_profile_image,
             discord_id,
             ref_code,
-            own_code
+            own_code,
+            invite_point: ref_code ? invite_point: 0
           },
         }
       );
+
+      //ref_code
+      if (ref_code) {
+        // rank
+      }
+
+  
+     
 
       ctx.body={
         ...addredEarlyUser
@@ -138,7 +163,7 @@ const originalWallet = bytes.toString(CryptoJS.enc.Utf8);
       };
     } catch (err) {
       console.log(err);
-      ctx.badRequest(err.message, err);
+      ctx.badRequest(err, err);
     }
   },
 

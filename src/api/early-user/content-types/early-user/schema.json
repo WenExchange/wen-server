@@ -59,6 +59,15 @@
       "type": "integer",
       "default": 0,
       "required": true
+    },
+    "community_incentive": {
+      "type": "integer",
+      "default": 0
+    },
+    "invite_point": {
+      "type": "integer",
+      "required": true,
+      "default": 0
     }
   }
 }

@@ -30,8 +30,8 @@ module.exports = ({ env }) => ({
   "users-permissions": {
     config: {
       ratelimit: {
-        interval: 1000 * 60, // 1분
-        max: 100, // 최대 100번
+        interval: 1000 * 60, // 1 minutes 
+        max: 100,  // 100 call
       },
     },
   },

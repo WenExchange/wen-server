@@ -1,0 +1,74 @@
+{
+  "kind": "collectionType",
+  "collectionName": "collections",
+  "info": {
+    "singularName": "collection",
+    "pluralName": "collections",
+    "displayName": "Collection"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "contractAddress": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "slug": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "tokenURI": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "ownerName": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "string"
+    },
+    "logoURL": {
+      "type": "string",
+      "required": true,
+      "unique": false
+    },
+    "bannerURL": {
+      "type": "string",
+      "required": true
+    },
+    "ownersCount": {
+      "type": "integer",
+      "required": true,
+      "default": 0
+    },
+    "twitter": {
+      "type": "string",
+      "required": false
+    },
+    "discord": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "totalSupply": {
+      "type": "integer"
+    },
+    "nfts": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::nft.nft",
+      "mappedBy": "collection"
+    }
+  }
+}

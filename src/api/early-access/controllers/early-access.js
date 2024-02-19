@@ -24,15 +24,47 @@ module.exports = {
         discord_id,
         ref_code,
       } = ctx.request.body.data;
-      console.log({ wallet,
-        twitter_id,
-        twitter_name,
-        twitter_profile_image,
-        discord_id,
-        ref_code,});
+     
       
       const bytes = CryptoJS.AES.decrypt( wallet, process.env.WEN_SECRET);
 const originalWallet = bytes.toString(CryptoJS.enc.Utf8);
+
+console.log({ wallet,
+  originalWallet,
+  twitter_id,
+  twitter_name,
+  twitter_profile_image,
+  discord_id,
+  ref_code,});
+
+    /** Check */
+    const prevUsers = await strapi.entityService.findMany(
+      "api::early-user.early-user",
+      {
+        filters: {
+          "$or": [{
+            twitter_id: {
+              "$eq":twitter_id
+            }
+          }, {
+            discord_id: {
+              "$eq": discord_id
+            }
+          }]
+         
+        },
+        
+      }
+    );
+
+    if (prevUsers.length > 0) {
+      ctx.body={
+        ...prevUsers[0]
+      }
+      return 
+    }
+
+
       // find user 
       const earlyUser = await strapi.entityService.findMany(
         "api::early-user.early-user",
@@ -53,8 +85,7 @@ const originalWallet = bytes.toString(CryptoJS.enc.Utf8);
         return 
       }
 
-
-
+   
    
       function getRandomInt(min, max) {
         const minCeiled = Math.ceil(min);

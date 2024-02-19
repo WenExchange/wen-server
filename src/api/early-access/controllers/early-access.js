@@ -6,6 +6,7 @@ const { TwitterApi } = require("twitter-api-v2");
 const axios = require("axios");
 const fs = require('fs/promises');
 const {createUniqueRefCode, createRefCode} = require("../../../earlyaccess/refCodeHandler")
+const DiscordManager = require("../../../discord/DiscordManager");
 /**
  * A set of functions called "actions" for `early-access`
  */
@@ -237,4 +238,40 @@ console.log({ wallet,
     }
   },
 
+  checkIsMemberOfDiscord: async (ctx, next) => {
+   
+    try {
+      const { access_token } = ctx.request.query;
+      const dm = DiscordManager.getInstance();
+
+      const user = await axios
+        .get("https://discord.com/api/users/@me", {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+          },
+        })
+        .then((res) => res.data);
+
+        const guild = await dm.getGuild(WEN_GUILD_ID)
+
+        let member = null
+        try {
+           member = await dm.getMember({guild, userId: user.id})
+        } catch (error) {
+          
+        }
+        
+        
+
+      ctx.body = {
+        ...user,
+        isMember: member ? true : false
+      };
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
 };
+
+

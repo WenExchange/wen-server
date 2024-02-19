@@ -17,10 +17,16 @@ module.exports = {
    * run jobs, or perform some special logic.
    */
    async bootstrap( { strapi }) {
-
+  
+  
     try {
+        // findBots(strapi)
+    // deleteBotUsers(strapi)
+
     } catch (error) {
-      
+      console.log( error.message)
     }
   },
 };
+
+

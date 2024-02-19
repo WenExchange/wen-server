@@ -33,6 +33,28 @@ module.exports = {
       
       const bytes = CryptoJS.AES.decrypt( wallet, process.env.WEN_SECRET);
 const originalWallet = bytes.toString(CryptoJS.enc.Utf8);
+
+    /** Check */
+    const prevUsers = await strapi.entityService.findMany(
+      "api::early-user.early-user",
+      {
+        filters: {
+          "or": [{
+            twitter_id: {
+              "$eq": twitter_id
+            }
+          }, {
+            discord_id: {
+              "$eq": discord_id
+            }
+          }]
+         
+        },
+        
+      }
+    );
+
+    
       // find user 
       const earlyUser = await strapi.entityService.findMany(
         "api::early-user.early-user",
@@ -52,6 +74,17 @@ const originalWallet = bytes.toString(CryptoJS.enc.Utf8);
         }
         return 
       }
+
+   
+
+      if (prevUsers.length > 0) {
+        ctx.body={
+          ...prevUsers[0]
+        }
+        console.log(333, prevUsers.length);
+        return 
+      }
+
 
 
 

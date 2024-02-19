@@ -1,0 +1,54 @@
+{
+  "kind": "collectionType",
+  "collectionName": "nfts",
+  "info": {
+    "singularName": "nft",
+    "pluralName": "nfts",
+    "displayName": "NFT"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "tokenId": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "collection": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::collection.collection",
+      "inversedBy": "nfts"
+    },
+    "name": {
+      "type": "string",
+      "required": true,
+      "unique": false
+    },
+    "imageURL": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "rarityScore": {
+      "type": "integer",
+      "required": true,
+      "unique": true,
+      "default": 0
+    },
+    "rarityRank": {
+      "type": "integer",
+      "required": true,
+      "unique": true,
+      "default": 0
+    },
+    "listings": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::listing.listing",
+      "mappedBy": "nft"
+    }
+  }
+}

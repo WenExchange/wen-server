@@ -36,5 +36,14 @@ module.exports = {
         middlewares: [],
       },
      },
+     {
+      method: 'GET',
+      path: '/early-access/checkIsMemberOfDiscord',
+      handler: 'early-access.checkIsMemberOfDiscord',
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+     },
   ],
 };

@@ -362,54 +362,6 @@ export interface AdminTransferTokenPermission extends Schema.CollectionType {
   };
 }
 
-export interface ApiEarlyUserEarlyUser extends Schema.CollectionType {
-  collectionName: 'early_users';
-  info: {
-    singularName: 'early-user';
-    pluralName: 'early-users';
-    displayName: 'Early User';
-    description: '';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    wallet: Attribute.String & Attribute.Required & Attribute.Unique;
-    twitter_id: Attribute.String & Attribute.Required;
-    twitter_name: Attribute.String;
-    twitter_profile_image: Attribute.String;
-    discord_id: Attribute.String & Attribute.Required;
-    own_code: Attribute.String & Attribute.Required & Attribute.Unique;
-    ref_code: Attribute.String;
-    guests: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
-    eth_deposited: Attribute.Float &
-      Attribute.Required &
-      Attribute.DefaultTo<0>;
-    usd_deposited: Attribute.Float &
-      Attribute.Required &
-      Attribute.DefaultTo<0>;
-    bonus: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
-    community_incentive: Attribute.Integer & Attribute.DefaultTo<0>;
-    invite_point: Attribute.Integer &
-      Attribute.Required &
-      Attribute.DefaultTo<0>;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'api::early-user.early-user',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'api::early-user.early-user',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
 export interface PluginUploadFile extends Schema.CollectionType {
   collectionName: 'files';
   info: {
@@ -829,6 +781,187 @@ export interface PluginI18NLocale extends Schema.CollectionType {
   };
 }
 
+export interface ApiCollectionCollection extends Schema.CollectionType {
+  collectionName: 'collections';
+  info: {
+    singularName: 'collection';
+    pluralName: 'collections';
+    displayName: 'Collection';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    contractAddress: Attribute.String & Attribute.Required & Attribute.Unique;
+    slug: Attribute.String & Attribute.Required & Attribute.Unique;
+    tokenURI: Attribute.String & Attribute.Required & Attribute.Unique;
+    name: Attribute.String & Attribute.Required;
+    ownerName: Attribute.String & Attribute.Required;
+    description: Attribute.String;
+    logoURL: Attribute.String & Attribute.Required;
+    bannerURL: Attribute.String & Attribute.Required;
+    ownersCount: Attribute.Integer &
+      Attribute.Required &
+      Attribute.DefaultTo<0>;
+    twitter: Attribute.String;
+    discord: Attribute.String;
+    website: Attribute.String;
+    totalSupply: Attribute.Integer;
+    nfts: Attribute.Relation<
+      'api::collection.collection',
+      'oneToMany',
+      'api::nft.nft'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::collection.collection',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::collection.collection',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiEarlyUserEarlyUser extends Schema.CollectionType {
+  collectionName: 'early_users';
+  info: {
+    singularName: 'early-user';
+    pluralName: 'early-users';
+    displayName: 'Early User';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    wallet: Attribute.String & Attribute.Required & Attribute.Unique;
+    twitter_id: Attribute.String & Attribute.Required;
+    twitter_name: Attribute.String;
+    twitter_profile_image: Attribute.String;
+    discord_id: Attribute.String & Attribute.Required;
+    own_code: Attribute.String & Attribute.Required & Attribute.Unique;
+    ref_code: Attribute.String;
+    guests: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
+    eth_deposited: Attribute.Float &
+      Attribute.Required &
+      Attribute.DefaultTo<0>;
+    usd_deposited: Attribute.Float &
+      Attribute.Required &
+      Attribute.DefaultTo<0>;
+    bonus: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
+    community_incentive: Attribute.Integer & Attribute.DefaultTo<0>;
+    invite_point: Attribute.Integer &
+      Attribute.Required &
+      Attribute.DefaultTo<0>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::early-user.early-user',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::early-user.early-user',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiListingListing extends Schema.CollectionType {
+  collectionName: 'listings';
+  info: {
+    singularName: 'listing';
+    pluralName: 'listings';
+    displayName: 'Listing';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    nft: Attribute.Relation<
+      'api::listing.listing',
+      'manyToOne',
+      'api::nft.nft'
+    >;
+    price: Attribute.Float & Attribute.Required & Attribute.DefaultTo<0>;
+    sellerAddress: Attribute.String & Attribute.Required;
+    buyerAddress: Attribute.String;
+    orderId: Attribute.String & Attribute.Required & Attribute.Unique;
+    saledAt: Attribute.DateTime;
+    expiredAt: Attribute.DateTime;
+    withdrawedAt: Attribute.DateTime;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::listing.listing',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::listing.listing',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiNftNft extends Schema.CollectionType {
+  collectionName: 'nfts';
+  info: {
+    singularName: 'nft';
+    pluralName: 'nfts';
+    displayName: 'NFT';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    tokenId: Attribute.String & Attribute.Required & Attribute.Unique;
+    collection: Attribute.Relation<
+      'api::nft.nft',
+      'manyToOne',
+      'api::collection.collection'
+    >;
+    name: Attribute.String & Attribute.Required;
+    imageURL: Attribute.String & Attribute.Required & Attribute.Unique;
+    rarityScore: Attribute.Integer &
+      Attribute.Required &
+      Attribute.Unique &
+      Attribute.DefaultTo<0>;
+    rarityRank: Attribute.Integer &
+      Attribute.Required &
+      Attribute.Unique &
+      Attribute.DefaultTo<0>;
+    listings: Attribute.Relation<
+      'api::nft.nft',
+      'oneToMany',
+      'api::listing.listing'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<'api::nft.nft', 'oneToOne', 'admin::user'> &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<'api::nft.nft', 'oneToOne', 'admin::user'> &
+      Attribute.Private;
+  };
+}
+
 declare module '@strapi/types' {
   export module Shared {
     export interface ContentTypes {
@@ -839,7 +972,6 @@ declare module '@strapi/types' {
       'admin::api-token-permission': AdminApiTokenPermission;
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
-      'api::early-user.early-user': ApiEarlyUserEarlyUser;
       'plugin::upload.file': PluginUploadFile;
       'plugin::upload.folder': PluginUploadFolder;
       'plugin::content-releases.release': PluginContentReleasesRelease;
@@ -848,6 +980,10 @@ declare module '@strapi/types' {
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
       'plugin::i18n.locale': PluginI18NLocale;
+      'api::collection.collection': ApiCollectionCollection;
+      'api::early-user.early-user': ApiEarlyUserEarlyUser;
+      'api::listing.listing': ApiListingListing;
+      'api::nft.nft': ApiNftNft;
     }
   }
 }

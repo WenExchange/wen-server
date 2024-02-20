@@ -1,5 +1,6 @@
 'use strict';
 require("dotenv").config();
+const dayjs = require('dayjs')
 const CryptoJS = require("crypto-js");
 const voucher_codes = require('voucher-code-generator');
 const { TwitterApi } = require("twitter-api-v2");
@@ -13,6 +14,40 @@ const DiscordManager = require("../../../discord/DiscordManager");
 
 const WEN_TWITTER_USER_ID = "1750532543798218752"
 const WEN_GUILD_ID = "1205136052289806396"
+
+
+const getTwitterKeyByTime = () => {
+  const currentSeconds = dayjs().second()
+  if(currentSeconds % 2 === 0) {
+    return {
+      clientId: process.env.TWITTER_CLIENT_ID,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET,
+      keyId: "1"
+    }
+  } else {
+    return {
+      clientId: process.env.TWITTER_CLIENT_ID_2,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET_2,
+      keyId: "2"
+    }
+  }
+}
+
+const getTwitterKeyByKeyId = (keyId) => {
+  if(keyId === "1") {
+    return {
+      clientId: process.env.TWITTER_CLIENT_ID,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET,
+      keyId: "1"
+    }
+  } else {
+    return {
+      clientId: process.env.TWITTER_CLIENT_ID_2,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET_2,
+      keyId: "2"
+    }
+  }
+}
 
 module.exports = {
   addEarlyUser: async (ctx, next) => {
@@ -137,8 +172,8 @@ console.log({ wallet,
     const { callback_url } = ctx.request.query;
     try {
       const client = new TwitterApi({
-        clientId: process.env.TWITTER_CLIENT_ID,
-        clientSecret: process.env.TWITTER_CLIENT_SECRET,
+        clientId: getTwitterKeyByTime().clientId,
+        clientSecret: getTwitterKeyByTime().clientSecret,
       });
 
       const { url, codeVerifier, state } = client.generateOAuth2AuthLink(
@@ -150,52 +185,63 @@ console.log({ wallet,
         url,
         codeVerifier,
         state,
+        keyId: getTwitterKeyByTime().keyId
       };
     } catch (err) {
       console.log(err.message);
-      ctx.badRequest(err.message, err);
+      // ctx.badRequest(err.message, err);
     }
   },
 
   followTwitter: async (ctx, next) => {
-    const { callback_url, code, codeVerifier } = ctx.request.query;
+    const { callback_url, code, codeVerifier, keyId } = ctx.request.query;
     try {
       const WEN_USER_ID = WEN_TWITTER_USER_ID;
       // const BEARER_TOKEN =
       const client = new TwitterApi({
-        clientId: process.env.TWITTER_CLIENT_ID,
-        clientSecret: process.env.TWITTER_CLIENT_SECRET,
+        clientId: getTwitterKeyByKeyId(keyId).clientId,
+        clientSecret: getTwitterKeyByKeyId(keyId).clientSecret,
       });
 
-      const result = await client
-        .loginWithOAuth2({ code, codeVerifier, redirectUri: callback_url })
-        .then(
-          ({ client: loggedClient, accessToken, refreshToken, expiresIn }) => {
-            // Example request
-            return loggedClient.v2
-              .me({
-                "user.fields": ["profile_image_url"],
-              })
-              .then((userObject) => {
-                return loggedClient.v2
-                  .follow(userObject.data.id, WEN_USER_ID)
-                  .then((res) => {
-                    return {
-                      accessToken,
-                      refreshToken,
-                      expiresIn,
-                      ...userObject.data,
-                    };
-                  });
-              });
-          }
-        );
+      let result = await client
+      .loginWithOAuth2({ code, codeVerifier, redirectUri: callback_url })
+      .then(
+        ({ client: loggedClient, accessToken, refreshToken, expiresIn }) => {
+          // Example request
+          return loggedClient.v2
+            .me({
+              "user.fields": ["profile_image_url"],
+            })
+            .then((userObject) => {
+       
+              return loggedClient.v2
+                .follow(userObject.data.id, WEN_USER_ID)
+                .then((res) => {
+                  return {
+                    accessToken,
+                    refreshToken,
+                    expiresIn,
+                    ...userObject.data,
+                  };
+                });
+            });
+        }
+      );
+   
       ctx.body = {
         ...result,
       };
     } catch (err) {
       console.log(err);
-      ctx.badRequest(err, err);
+      ctx.response.status = 400
+      ctx.response.message = "Bad request"
+      if (err.code) {
+        if (err.code === 429) {
+          ctx.response.status = 429
+          ctx.response.message = "Too many requests"
+        }
+      }
+      console.log(err.code);
     }
   },
 

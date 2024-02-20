@@ -17,9 +17,9 @@ module.exports = {
    * run jobs, or perform some special logic.
    */
    async bootstrap( { strapi }) {
-  
-  
+
     try {
+      const {findBots} = require("./utils/botCheckers")
         // findBots(strapi)
     // deleteBotUsers(strapi)
 

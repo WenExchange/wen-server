@@ -19,9 +19,8 @@ module.exports = {
    async bootstrap( { strapi }) {
 
     try {
-      // const {findBots, checkIsValidTwitterUser} = require("./utils/botCheckers")
-
-      // await checkIsValidTwitterUser({strapi,start: 2000, limit: 4000})
+      const {findBots, checkIsValidTwitterUser} = require("./utils/botCheckers")
+      // await checkIsValidTwitterUser({strapi,start: 100000, limit: 1})
       // console.log(333, users.length);
         // findBots(strapi)
     // deleteBotUsers(strapi)

@@ -26,13 +26,17 @@ const checkIsValidTwitterUser = async ({strapi, start, limit}) => {
   let errorUsers = []
   const batchUnit = 50
   for (let i = 0; i < users.length; i+= batchUnit) {
+    console.log(i);
     const user = users[i];
 
     const batchUsers = users.slice(i, i + batchUnit)
 
     const batchUserIds = batchUsers.map(user => user.twitter_id)
-    // console.log(111, "batchUserIds", batchUserIds);
+    console.log(111, "batchUserIds", batchUserIds);
+    const twitterUser =  await _twitterClient.v2.user(batchUserIds[0])
+    return 
     const twitterUsers =  await _twitterClient.v2.users(batchUserIds)
+    // console.log(111, "twitterUsers", twitterUsers);
     const _errorUsers = twitterUsers.errors
 
    if(Array.isArray(_errorUsers))     errorUsers = [...errorUsers,..._errorUsers ]

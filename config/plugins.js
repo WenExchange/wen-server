@@ -31,7 +31,7 @@ module.exports = ({ env }) => ({
     config: {
       ratelimit: {
         interval: 1000 * 60, // 1 minutes 
-        max: 100,  // 100 call
+        max: 40,  // 100 call
       },
     },
   },

@@ -73,6 +73,8 @@ console.log({ wallet,
   discord_id,
   ref_code,});
 
+  console.log(`[Warning] - ${ctx.request?.ip}`);
+
     /** Check */
     const prevUsers = await strapi.entityService.findMany(
       "api::early-user.early-user",

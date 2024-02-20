@@ -15,6 +15,8 @@ const DiscordManager = require("../../../discord/DiscordManager");
 const WEN_TWITTER_USER_ID = "1750532543798218752"
 const WEN_GUILD_ID = "1205136052289806396"
 
+const BLACKLIST = ["172.31.0.189"]
+
 
 const getTwitterKeyByTime = () => {
   const currentSeconds = dayjs().second()
@@ -74,6 +76,15 @@ console.log({ wallet,
   ref_code,});
 
   console.log(`[Warning] - ${ctx.request?.ip}`);
+  if (ctx.request?.ip) {
+    if (BLACKLIST.includes(ctx.request?.ip)) {
+      console.log(`[BLOCK ALERT ]${ctx.request?.ip}`);
+      return next()
+      
+    }
+  }
+
+
 
     /** Check */
     const prevUsers = await strapi.entityService.findMany(

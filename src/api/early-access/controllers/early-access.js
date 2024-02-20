@@ -73,13 +73,13 @@ console.log({
   ref_code,});
 
   console.log(`[Warning] - ${ctx.request?.ip}`);
-  if (ctx.request?.ip) {
-    if (BLACKLIST.includes(ctx.request?.ip)) {
-      console.log(`[BLOCK ALERT ]${ctx.request?.ip}`);
-      return next()
+  // if (ctx.request?.ip) {
+  //   if (BLACKLIST.includes(ctx.request?.ip)) {
+  //     console.log(`[BLOCK ALERT ]${ctx.request?.ip}`);
+  //     return next()
       
-    }
-  }
+  //   }
+  // }
 
 
 

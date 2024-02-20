@@ -6,7 +6,9 @@ module.exports = {
      handler: 'early-access.addEarlyUser',
      config: {
        policies: [],
-       middlewares: [],
+       middlewares: [
+        "plugin::users-permissions.rateLimit",
+       ],
      },
     },
     {
@@ -15,7 +17,9 @@ module.exports = {
       handler: 'early-access.authTwitter',
       config: {
         policies: [],
-        middlewares: [],
+        middlewares: [
+          "plugin::users-permissions.rateLimit",
+        ],
       },
      },
      {
@@ -24,7 +28,9 @@ module.exports = {
       handler: 'early-access.followTwitter',
       config: {
         policies: [],
-        middlewares: [],
+        middlewares: [
+          "plugin::users-permissions.rateLimit",
+        ],
       },
      },
      {
@@ -33,7 +39,9 @@ module.exports = {
       handler: 'early-access.addUserToDiscord',
       config: {
         policies: [],
-        middlewares: [],
+        middlewares: [
+          "plugin::users-permissions.rateLimit",
+        ],
       },
      },
      {
@@ -42,7 +50,9 @@ module.exports = {
       handler: 'early-access.checkIsMemberOfDiscord',
       config: {
         policies: [],
-        middlewares: [],
+        middlewares: [
+          "plugin::users-permissions.rateLimit",
+        ],
       },
      },
   ],

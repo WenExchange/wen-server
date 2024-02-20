@@ -7,7 +7,7 @@ module.exports = {
      config: {
        policies: [],
        middlewares: [
-        "plugin::users-permissions.rateLimit",
+        // "plugin::users-permissions.rateLimit",
        ],
      },
     },
@@ -18,7 +18,7 @@ module.exports = {
       config: {
         policies: [],
         middlewares: [
-          "plugin::users-permissions.rateLimit",
+          // "plugin::users-permissions.rateLimit",
         ],
       },
      },
@@ -29,7 +29,7 @@ module.exports = {
       config: {
         policies: [],
         middlewares: [
-          "plugin::users-permissions.rateLimit",
+          // "plugin::users-permissions.rateLimit",
         ],
       },
      },
@@ -40,7 +40,7 @@ module.exports = {
       config: {
         policies: [],
         middlewares: [
-          "plugin::users-permissions.rateLimit",
+          // "plugin::users-permissions.rateLimit",
         ],
       },
      },
@@ -51,7 +51,7 @@ module.exports = {
       config: {
         policies: [],
         middlewares: [
-          "plugin::users-permissions.rateLimit",
+          // "plugin::users-permissions.rateLimit",
         ],
       },
      },

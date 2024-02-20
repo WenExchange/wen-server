@@ -27,13 +27,13 @@ module.exports = [
       },
     },
   },
-  {
-    name: 'strapi::ip',
-    config: {
-      whitelist: [],
-      blacklist: [],
-    },
-  },
+  // {
+  //   name: 'strapi::ip',
+  //   config: {
+  //     whitelist: [],
+  //     blacklist: [],
+  //   },
+  // },
 
   'strapi::cors',
   'strapi::poweredBy',

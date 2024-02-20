@@ -27,6 +27,14 @@ module.exports = [
       },
     },
   },
+  {
+    name: 'strapi::ip',
+    config: {
+      whitelist: [],
+      blacklist: ['172.31.0.189'],
+    },
+  },
+
   'strapi::cors',
   'strapi::poweredBy',
   'strapi::query',

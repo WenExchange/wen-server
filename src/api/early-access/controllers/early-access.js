@@ -67,11 +67,8 @@ module.exports = {
       const bytes = CryptoJS.AES.decrypt( wallet, process.env.WEN_SECRET);
 const originalWallet = bytes.toString(CryptoJS.enc.Utf8);
 
-console.log({ wallet,
-  originalWallet,
-  twitter_id,
+console.log({ 
   twitter_name,
-  twitter_profile_image,
   discord_id,
   ref_code,});
 

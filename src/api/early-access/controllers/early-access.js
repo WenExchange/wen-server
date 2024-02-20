@@ -67,12 +67,14 @@ module.exports = {
       const bytes = CryptoJS.AES.decrypt( wallet, process.env.WEN_SECRET);
 const originalWallet = bytes.toString(CryptoJS.enc.Utf8);
 
+
+
 console.log({ 
   twitter_name,
   discord_id,
   ref_code,});
 
-  console.log(`[Warning] - ${ctx.request?.ip}`);
+  // console.log(`[Warning] - ${ctx.request?.ip}`);
   // if (ctx.request?.ip) {
   //   if (BLACKLIST.includes(ctx.request?.ip)) {
   //     console.log(`[BLOCK ALERT ]${ctx.request?.ip}`);
@@ -80,6 +82,20 @@ console.log({
       
   //   }
   // }
+  const dm = DiscordManager.getInstance();
+  const guild = await dm.getGuild(WEN_GUILD_ID)
+
+  let member = null
+  try {
+     member = await dm.getMember({guild, userId: discord_id})
+  } catch (error) {
+    
+  }
+
+  if (!member) {
+    console.log(`[BOT ALERT]`)
+    return next()
+  }
 
 
 

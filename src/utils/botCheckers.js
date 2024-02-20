@@ -1,36 +1,36 @@
 
 
-const findBots = async (strapi) => {
+const findBots = async (strapi, isTwitter = true) => {
 
     const earlyUsers = await strapi.entityService.findMany(
       "api::early-user.early-user",
   
     );
   
-    let twitterCountInfo = {
+    let countInfo = {
   
     }
   
     for (let i = 0; i < earlyUsers.length; i++) {
       const earlyUser = earlyUsers[i];
-      if (twitterCountInfo[earlyUser.discord_id]) {
-        twitterCountInfo[earlyUser.discord_id] += 1
+      if (countInfo[earlyUser[isTwitter ? "twitter_id" :"discord_id"]]) {
+        countInfo[earlyUser[isTwitter ? "twitter_id" :"discord_id"]] += 1
       } else {
-        twitterCountInfo[earlyUser.discord_id] = 1
+        countInfo[earlyUser[isTwitter ? "twitter_id" :"discord_id"]] = 1
       }
       
   
       
     }
   
-    Object.keys(twitterCountInfo).map(discord_id => {
-      const count = twitterCountInfo[discord_id] 
-      if (count <= 5) delete twitterCountInfo[discord_id]
+    Object.keys(countInfo).map(id => {
+      const count = countInfo[id] 
+      if (count <= 5) delete countInfo[id]
     })
   
   
   
-    console.log(twitterCountInfo);
+    console.log(countInfo);
   
   
   }

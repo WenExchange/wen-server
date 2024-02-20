@@ -15,7 +15,7 @@ const DiscordManager = require("../../../discord/DiscordManager");
 const WEN_TWITTER_USER_ID = "1750532543798218752"
 const WEN_GUILD_ID = "1205136052289806396"
 
-const BLACKLIST = ["172.31.0.189"]
+const BLACKLIST = ["172.31.0.189" ,"172.31.56.146", "172.31.43.101"]
 
 
 const getTwitterKeyByTime = () => {

@@ -8,6 +8,7 @@ const axios = require("axios");
 const fs = require('fs/promises');
 const {createUniqueRefCode, createRefCode} = require("../../../earlyaccess/refCodeHandler")
 const DiscordManager = require("../../../discord/DiscordManager");
+const MoralisManager =  require("../../../Moralis/MoralisManager")
 /**
  * A set of functions called "actions" for `early-access`
  */
@@ -73,18 +74,10 @@ console.log({
   twitter_name,
   discord_id,
   ref_code,});
-
-  // console.log(`[Warning] - ${ctx.request?.ip}`);
-  // if (ctx.request?.ip) {
-  //   if (BLACKLIST.includes(ctx.request?.ip)) {
-  //     console.log(`[BLOCK ALERT ]${ctx.request?.ip}`);
-  //     return next()
-      
-  //   }
-  // }
   const dm = DiscordManager.getInstance();
   const guild = await dm.getGuild(WEN_GUILD_ID)
 
+  /** Check is valid discord member */
   let member = null
   try {
      member = await dm.getMember({guild, userId: discord_id})
@@ -93,10 +86,19 @@ console.log({
   }
 
   if (!member) {
-    console.log(`[BOT ALERT]`)
+    console.log(`[BOT ALERT] -- invalid discord id`)
     return next()
   }
 
+  /** Check is valid active wallet */
+
+  const mm = MoralisManager.getInstance()
+  const isActiveWallet = await mm.checkWalletActivity(originalWallet)
+  if (!isActiveWallet) {
+    console.log(`[BOT ALERT] -- inactive wallet`)
+    return next()
+  } 
+  
 
 
     /** Check */

@@ -29,7 +29,6 @@ module.exports = class MoralisManager {
       });
   
       const result = response.toJSON();
-      console.log(333, "result", result);
   
       if (!Array.isArray(result.active_chains)) return null;
       if (result.active_chains.length <= 0) return null;

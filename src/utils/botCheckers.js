@@ -1,4 +1,5 @@
 const { TwitterApi } = require("twitter-api-v2");
+const DiscordManager = require("../discord/DiscordManager");
 
 const twitterClient = () => {
     return new TwitterApi(process.env.TWITTER_BEARER_TOKEN);
@@ -9,6 +10,7 @@ const getEarlyUsers = async ({strapi,start, limit}) => {
   const earlyUsers = await strapi.entityService.findMany(
     "api::early-user.early-user",
     {
+      sort: {createdAt: "asc"},
       start,
     limit
     }
@@ -17,6 +19,116 @@ const getEarlyUsers = async ({strapi,start, limit}) => {
   return earlyUsers
 }
 
+const checkIsValidIDiscordUser = async ({strapi, start, limit}) => {
+  const dm = DiscordManager.getInstance();
+  const guild = await dm.getGuild("1205136052289806396")
+
+  const users = await getEarlyUsers({strapi,start, limit})
+
+  let errorUsers = []
+  const batchUnit = 100
+  for (let i = 0; i < users.length; i+= batchUnit) {
+    console.log(i);
+    const user = users[i];
+
+    const batchUsers = users.slice(i, i + batchUnit)
+
+    const batchUserDiscordIds = batchUsers.map(user => user.discord_id)
+    console.log(111, "batchUserDiscordIds", batchUserDiscordIds);
+
+    const results = await Promise.all(batchUsers.map(user => {
+      return dm.getMember({guild, userId: user.discord_id}).then(member => {
+        console.log(`${user.id} - valid member`);
+        return null
+      }).catch(error => {
+        if (error?.rawError?.code) {
+          if (`${error?.rawError?.code}` === "10013") {
+            console.log(`${user.id} - invalid not found (will delete) `);
+            return strapi.entityService.delete(
+              "api::early-user.early-user",
+              user.id
+                  ).then(res => {
+                    console.log(`${user.id} deleted`);
+                    return user.id
+                  })
+          
+          } 
+          if (`${error?.rawError?.code}` === "50035") {
+            console.log(`${user.id} - invalid discord id (will delete) `);
+            return strapi.entityService.delete(
+              "api::early-user.early-user",
+              user.id
+                  ).then(res => {
+                    console.log(`${user.id} deleted`);
+                    return user.id
+                  })
+          
+          } 
+
+          console.log(`${user.id} - invalid member (rawError - ${JSON.stringify(error?.rawError)})`);
+      
+        }
+        console.log(`${user.id} - invalid member (catch)`);
+        return null
+      
+ 
+      })
+    }))
+
+    const filteredDeletedIds = results.filter(_ => _ !== null)
+    console.log(333, "filteredDeletedIds",filteredDeletedIds);
+
+  //   const deletedUsers = await Promise.all(filteredErrorUserIds.map(deleteUserId => {
+  //     return strapi.entityService.delete(
+  // "api::early-user.early-user",
+  // deleteUserId
+      // )
+// }))
+
+// console.log(333, `${deletedUsers.length} deleted`);
+
+  }
+
+}
+
+const deleteBotUsersByDiscordIds = async ({strapi, discord_ids}) => {
+
+  
+  const earlyUsers = await strapi.entityService.findMany(
+    "api::early-user.early-user",
+    {
+      filters: {
+        "$or": discord_ids.map(discord_id => {
+          return {
+            discord_id: {
+              "$eq":discord_id
+            }
+          }
+        })
+        
+      }
+    }
+
+  );
+  const willDeleteUserIds = await earlyUsers.map((user, index) => user.id)
+  console.log( 333, "willDeleteUserIds", willDeleteUserIds);
+
+ 
+
+  // await Promise.all(willDeleteUserIds.map(id => {
+  //   return strapi.entityService.delete(
+  //     "api::early-user.early-user",
+  //     id
+  
+  //   );
+  // }))
+
+  console.log("complete");
+
+
+}
+
+
 const checkIsValidTwitterUser = async ({strapi, start, limit}) => {
   console.log(333, "checkIsValidTwitterUser");
   const users = await getEarlyUsers({strapi,start, limit})
@@ -24,7 +136,7 @@ const checkIsValidTwitterUser = async ({strapi, start, limit}) => {
   const _twitterClient = twitterClient()
 
   let errorUsers = []
-  const batchUnit = 50
+  const batchUnit = 100
   for (let i = 0; i < users.length; i+= batchUnit) {
     console.log(i);
     const user = users[i];
@@ -130,6 +242,7 @@ const findBots = async (strapi, isTwitter = true) => {
 
   module.exports = {
     checkIsValidTwitterUser,
+    checkIsValidIDiscordUser,
     getEarlyUsers,
     findBots,
   }

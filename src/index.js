@@ -23,7 +23,7 @@ module.exports = {
       // 32000
 
       
-      // checkIsValidIDiscordUser({strapi, start: 30000, limit: 50000})
+      checkIsValidIDiscordUser({strapi, start: 100000, limit: 100000})
 
       // checkIsValidIDiscordUser({strapi, start: 3000, limit: 1000})
       // checkIsValidIDiscordUser({strapi, start: 52000, limit: 10000})

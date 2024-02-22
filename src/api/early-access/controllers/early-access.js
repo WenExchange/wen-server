@@ -71,6 +71,7 @@ const originalWallet = bytes.toString(CryptoJS.enc.Utf8);
 
 
 console.log({ 
+  originalWallet,
   twitter_name,
   discord_id,
   ref_code,});

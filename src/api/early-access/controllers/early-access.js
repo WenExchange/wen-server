@@ -223,10 +223,11 @@ console.log({
 
   authTwitter: async (ctx, next) => {
     const { callback_url } = ctx.request.query;
+    const keys = getTwitterKeyByTime()
     try {
       const client = new TwitterApi({
-        clientId: getTwitterKeyByTime().clientId,
-        clientSecret: getTwitterKeyByTime().clientSecret,
+        clientId: keys.clientId,
+        clientSecret: keys.clientSecret,
       });
 
       const { url, codeVerifier, state } = client.generateOAuth2AuthLink(
@@ -238,7 +239,7 @@ console.log({
         url,
         codeVerifier,
         state,
-        keyId: getTwitterKeyByTime().keyId
+        keyId: keys.keyId
       };
     } catch (err) {
       console.log(err.message);
@@ -249,11 +250,13 @@ console.log({
   followTwitter: async (ctx, next) => {
     const { callback_url, code, codeVerifier, keyId } = ctx.request.query;
     try {
+      
       const WEN_USER_ID = WEN_TWITTER_USER_ID;
+      const keys = getTwitterKeyByKeyId(keyId)
       // const BEARER_TOKEN =
       const client = new TwitterApi({
-        clientId: getTwitterKeyByKeyId(keyId).clientId,
-        clientSecret: getTwitterKeyByKeyId(keyId).clientSecret,
+        clientId: keys.clientId,
+        clientSecret: keys.clientSecret,
       });
 
       let result = await client

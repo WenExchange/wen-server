@@ -21,17 +21,29 @@ const BLACKLIST = ["172.31.0.189" ,"172.31.56.146", "172.31.43.101"]
 
 const getTwitterKeyByTime = () => {
   const currentSeconds = dayjs().second()
-  if(currentSeconds % 2 === 0) {
+  if(currentSeconds % 4 === 0) {
     return {
       clientId: process.env.TWITTER_CLIENT_ID,
       clientSecret: process.env.TWITTER_CLIENT_SECRET,
-      keyId: "1"
+      keyId: "3"
     }
-  } else {
+  } else if (currentSeconds % 4 === 1) {
     return {
       clientId: process.env.TWITTER_CLIENT_ID_2,
       clientSecret: process.env.TWITTER_CLIENT_SECRET_2,
-      keyId: "2"
+      keyId: "4"
+    }
+  } else if (currentSeconds % 4 === 2) {
+    return {
+      clientId: process.env.TWITTER_CLIENT_ID_3,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET_3,
+      keyId: "3"
+    }
+  } else {
+    return {
+      clientId: process.env.TWITTER_CLIENT_ID_4,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET_4,
+      keyId: "4"
     }
   }
 }
@@ -43,11 +55,23 @@ const getTwitterKeyByKeyId = (keyId) => {
       clientSecret: process.env.TWITTER_CLIENT_SECRET,
       keyId: "1"
     }
-  } else {
+  } else if (keyId === "2") {
     return {
       clientId: process.env.TWITTER_CLIENT_ID_2,
       clientSecret: process.env.TWITTER_CLIENT_SECRET_2,
       keyId: "2"
+    }
+  }else if (keyId === "3") {
+    return {
+      clientId: process.env.TWITTER_CLIENT_ID_3,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET_3,
+      keyId: "3"
+    }
+  } else {
+    return {
+      clientId: process.env.TWITTER_CLIENT_ID_4,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET_4,
+      keyId: "4"
     }
   }
 }

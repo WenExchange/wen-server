@@ -25,13 +25,13 @@ const getTwitterKeyByTime = () => {
     return {
       clientId: process.env.TWITTER_CLIENT_ID,
       clientSecret: process.env.TWITTER_CLIENT_SECRET,
-      keyId: "3"
+      keyId: "1"
     }
   } else if (currentSeconds % 4 === 1) {
     return {
       clientId: process.env.TWITTER_CLIENT_ID_2,
       clientSecret: process.env.TWITTER_CLIENT_SECRET_2,
-      keyId: "4"
+      keyId: "2"
     }
   } else if (currentSeconds % 4 === 2) {
     return {

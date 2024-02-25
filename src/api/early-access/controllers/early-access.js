@@ -330,7 +330,7 @@ console.log({
           },
         })
         .then((res) => res.data);
-      const botToken = process.env.DISCORD_BOT_TOKEN
+      const botToken = process.env.DISCORD_BOT_TOKEN_2
       const guildId = WEN_GUILD_ID;
       const url = `https://discord.com/api/guilds/${guildId}/members/${user.id}`;
 

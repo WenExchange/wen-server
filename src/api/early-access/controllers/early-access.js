@@ -52,16 +52,16 @@ const getTwitterKeyByTime = () => {
   const currentSeconds = dayjs().second()
   if(currentSeconds % 2 === 0) {
     return {
-      clientId: process.env.TWITTER_CLIENT_ID,
-      clientSecret: process.env.TWITTER_CLIENT_SECRET,
-      keyId: "1"
+      clientId: process.env.TWITTER_CLIENT_ID_2,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET_2,
+      keyId: "2"
     }
   } 
    else {
     return {
-      clientId: process.env.TWITTER_CLIENT_ID_3,
-      clientSecret: process.env.TWITTER_CLIENT_SECRET_3,
-      keyId: "3"
+      clientId: process.env.TWITTER_CLIENT_ID_4,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET_4,
+      keyId: "4"
     }
   }
 }

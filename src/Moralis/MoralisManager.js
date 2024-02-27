@@ -32,11 +32,10 @@ module.exports = class MoralisManager {
   
       if (!Array.isArray(result.active_chains)) return null;
       if (result.active_chains.length <= 0) return null;
-  
       return result.active_chains[0].first_transaction ? true : false;
     } catch (error) {
       console.log(error.message);
-      return null;
+      return false;
     }
   };
   

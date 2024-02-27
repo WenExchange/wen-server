@@ -240,6 +240,23 @@ console.log({
     }
   },
 
+  authActiveWallet:  async (ctx, next) => {
+    try {
+      const { wallet } = ctx.request.query;
+      const bytes = CryptoJS.AES.decrypt( wallet, process.env.WEN_SECRET);
+      const originalWallet = bytes.toString(CryptoJS.enc.Utf8);
+
+      const mm = MoralisManager.getInstance()
+      const isActiveWallet = await mm.checkWalletActivity(originalWallet)
+      ctx.body={
+        isActiveWallet
+      }
+
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
   authTwitter: async (ctx, next) => {
     const { callback_url } = ctx.request.query;
     const keys = getTwitterKeyByTime()

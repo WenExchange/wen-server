@@ -62,32 +62,38 @@ module.exports = class DiscordManager {
       return null;
     }
   };
-
+  
   /** Send Messages */
-  logUpdateRolDiscordChannel({ guild, channelId, discordId, tier }) {
-    if (!channelId) return;
-    if (!guild) return;
-    if (!discordId) return;
-
-    const embed = this.getEmbed({
-      embeds: [
-        {
-          description: `🐱 MEOW, <@${discordId}> has been updated to **${tier.title}**`,
-          footer: {
-            text: "Powered by SeiRoboCat",
-            icon_url:
-              "https://d39vv1wnkaoyb6.cloudfront.net/logo_f2c0a836c6.jpeg",
-          },
-        },
-      ],
+  async logWenBotDiscordChannel({  data }) {
+    const guild = await this.getGuild("1205136052289806396")
+    const channelId = "1212042486785245214"
+    
+    const embed = new EmbedBuilder()
+    .setColor(0x4aff36)
+    .setTitle('Just Claimed Blast Native Yield!🌾')
+    .setImage('https://d1kb1oeulsx0pq.cloudfront.net/banner_67fc7cc3dc.jpeg')
+    .setTimestamp()
+    .addFields(
+      { name: 'Claimed ETH', value: `${data.claimedETH} ETH` },
+      { name: 'Used Gas', value: `${data.claimedETH} ETH` },
+      { name: 'Wen Trade Pool Balance', value: `${data.contractEthBalance} ETH` },
+      { name: 'Transaction', value: `https://testnet.blastscan.io/tx/${data.txHash}` },
+    )
+    .setFooter({
+      text: "Powered by Wen Exchange",
+      iconURL: "https://d1kb1oeulsx0pq.cloudfront.net/logo_64eb3dad15.png",
     });
-    this.getChannel({
+
+    const trackerChannel = await this.getChannel({
       guild,
       channelId,
-    }).then((trackerChannel) => {
-      if (trackerChannel) {
-        trackerChannel.send({ embeds: [embed] });
-      }
-    });
+    })
+    trackerChannel.send({ embeds: [embed] });
   }
+
+  
 };
+
+
+
+

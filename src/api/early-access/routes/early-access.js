@@ -10,7 +10,20 @@ module.exports = {
         // "plugin::users-permissions.rateLimit",
        ],
      },
-    },
+    }, 
+     {
+      method: 'GET',
+      path: '/early-access/authActiveWallet',
+      handler: 'early-access.authActiveWallet',
+      config: {
+        policies: [],
+        middlewares: [
+         // "plugin::users-permissions.rateLimit",
+        ],
+      },
+     },
+
+    
     {
       method: 'GET',
       path: '/early-access/authTwitter',

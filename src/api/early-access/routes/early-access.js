@@ -10,7 +10,20 @@ module.exports = {
         // "plugin::users-permissions.rateLimit",
        ],
      },
-    },
+    }, 
+     {
+      method: 'GET',
+      path: '/early-access/authActiveWallet',
+      handler: 'early-access.authActiveWallet',
+      config: {
+        policies: [],
+        middlewares: [
+         // "plugin::users-permissions.rateLimit",
+        ],
+      },
+     },
+
+    
     {
       method: 'GET',
       path: '/early-access/authTwitter',
@@ -26,6 +39,17 @@ module.exports = {
       method: 'GET',
       path: '/early-access/followTwitter',
       handler: 'early-access.followTwitter',
+      config: {
+        policies: [],
+        middlewares: [
+          // "plugin::users-permissions.rateLimit",
+        ],
+      },
+     },
+     {
+      method: 'GET',
+      path: '/early-access/authDiscord',
+      handler: 'early-access.authDiscord',
       config: {
         policies: [],
         middlewares: [

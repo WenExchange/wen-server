@@ -8,6 +8,7 @@ const axios = require("axios");
 const fs = require('fs/promises');
 const {createUniqueRefCode, createRefCode} = require("../../../earlyaccess/refCodeHandler")
 const DiscordManager = require("../../../discord/DiscordManager");
+const MoralisManager =  require("../../../Moralis/MoralisManager")
 /**
  * A set of functions called "actions" for `early-access`
  */
@@ -20,20 +21,51 @@ const BLACKLIST = ["172.31.0.189" ,"172.31.56.146", "172.31.43.101"]
 
 const getTwitterKeyByTime = () => {
   const currentSeconds = dayjs().second()
-  if(currentSeconds % 2 === 0) {
+  if(currentSeconds % 4 === 0) {
     return {
       clientId: process.env.TWITTER_CLIENT_ID,
       clientSecret: process.env.TWITTER_CLIENT_SECRET,
       keyId: "1"
     }
-  } else {
+  } else if (currentSeconds % 4 === 1) {
     return {
       clientId: process.env.TWITTER_CLIENT_ID_2,
       clientSecret: process.env.TWITTER_CLIENT_SECRET_2,
       keyId: "2"
     }
+  } else if (currentSeconds % 4 === 2) {
+    return {
+      clientId: process.env.TWITTER_CLIENT_ID_3,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET_3,
+      keyId: "3"
+    }
+  } else {
+    return {
+      clientId: process.env.TWITTER_CLIENT_ID_4,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET_4,
+      keyId: "4"
+    }
   }
 }
+
+// const getTwitterKeyByTime = () => {
+//   const currentSeconds = dayjs().second()
+//   if(currentSeconds % 2 === 0) {
+//     return {
+//       clientId: process.env.TWITTER_CLIENT_ID_2,
+//       clientSecret: process.env.TWITTER_CLIENT_SECRET_2,
+//       keyId: "2"
+//     }
+//   } 
+//    else {
+//     return {
+//       clientId: process.env.TWITTER_CLIENT_ID_4,
+//       clientSecret: process.env.TWITTER_CLIENT_SECRET_4,
+//       keyId: "4"
+//     }
+//   }
+// }
+
 
 const getTwitterKeyByKeyId = (keyId) => {
   if(keyId === "1") {
@@ -42,11 +74,23 @@ const getTwitterKeyByKeyId = (keyId) => {
       clientSecret: process.env.TWITTER_CLIENT_SECRET,
       keyId: "1"
     }
-  } else {
+  } else if (keyId === "2") {
     return {
       clientId: process.env.TWITTER_CLIENT_ID_2,
       clientSecret: process.env.TWITTER_CLIENT_SECRET_2,
       keyId: "2"
+    }
+  }else if (keyId === "3") {
+    return {
+      clientId: process.env.TWITTER_CLIENT_ID_3,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET_3,
+      keyId: "3"
+    }
+  } else {
+    return {
+      clientId: process.env.TWITTER_CLIENT_ID_4,
+      clientSecret: process.env.TWITTER_CLIENT_SECRET_4,
+      keyId: "4"
     }
   }
 }
@@ -70,21 +114,14 @@ const originalWallet = bytes.toString(CryptoJS.enc.Utf8);
 
 
 console.log({ 
+  originalWallet,
   twitter_name,
   discord_id,
   ref_code,});
-
-  // console.log(`[Warning] - ${ctx.request?.ip}`);
-  // if (ctx.request?.ip) {
-  //   if (BLACKLIST.includes(ctx.request?.ip)) {
-  //     console.log(`[BLOCK ALERT ]${ctx.request?.ip}`);
-  //     return next()
-      
-  //   }
-  // }
   const dm = DiscordManager.getInstance();
   const guild = await dm.getGuild(WEN_GUILD_ID)
 
+  /** Check is valid discord member */
   let member = null
   try {
      member = await dm.getMember({guild, userId: discord_id})
@@ -93,10 +130,19 @@ console.log({
   }
 
   if (!member) {
-    console.log(`[BOT ALERT]`)
+    console.log(`[BOT ALERT] -- invalid discord id`)
     return next()
   }
 
+  /** Check is valid active wallet */
+
+  const mm = MoralisManager.getInstance()
+  const isActiveWallet = await mm.checkWalletActivity(originalWallet)
+  if (!isActiveWallet) {
+    console.log(`[BOT ALERT] -- inactive wallet`)
+    return next()
+  } 
+  
 
 
     /** Check */
@@ -194,12 +240,30 @@ console.log({
     }
   },
 
+  authActiveWallet:  async (ctx, next) => {
+    try {
+      const { wallet } = ctx.request.query;
+      const bytes = CryptoJS.AES.decrypt( wallet, process.env.WEN_SECRET);
+      const originalWallet = bytes.toString(CryptoJS.enc.Utf8);
+
+      const mm = MoralisManager.getInstance()
+      const isActiveWallet = await mm.checkWalletActivity(originalWallet)
+      ctx.body={
+        isActiveWallet
+      }
+
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
   authTwitter: async (ctx, next) => {
     const { callback_url } = ctx.request.query;
+    const keys = getTwitterKeyByTime()
     try {
       const client = new TwitterApi({
-        clientId: getTwitterKeyByTime().clientId,
-        clientSecret: getTwitterKeyByTime().clientSecret,
+        clientId: keys.clientId,
+        clientSecret: keys.clientSecret,
       });
 
       const { url, codeVerifier, state } = client.generateOAuth2AuthLink(
@@ -211,7 +275,7 @@ console.log({
         url,
         codeVerifier,
         state,
-        keyId: getTwitterKeyByTime().keyId
+        keyId: keys.keyId
       };
     } catch (err) {
       console.log(err.message);
@@ -222,11 +286,13 @@ console.log({
   followTwitter: async (ctx, next) => {
     const { callback_url, code, codeVerifier, keyId } = ctx.request.query;
     try {
+      
       const WEN_USER_ID = WEN_TWITTER_USER_ID;
+      const keys = getTwitterKeyByKeyId(keyId)
       // const BEARER_TOKEN =
       const client = new TwitterApi({
-        clientId: getTwitterKeyByKeyId(keyId).clientId,
-        clientSecret: getTwitterKeyByKeyId(keyId).clientSecret,
+        clientId: keys.clientId,
+        clientSecret: keys.clientSecret,
       });
 
       let result = await client
@@ -271,6 +337,34 @@ console.log({
     }
   },
 
+  authDiscord: async (ctx, next) => {
+    const { code, redirect_uri } = ctx.request.query;
+    try {
+
+           const tokenResponse = await axios
+        .post("https://discord.com/api/oauth2/token", {
+          client_id: process.env.DISCORD_CLIENT_ID_2,
+          client_secret: process.env.DISCORD_CLIENT_SECRET_2,
+          code,
+          grant_type: "authorization_code",
+          redirect_uri,
+          scope: "identify guilds.join"
+        }, {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          }
+        })
+        .then((res) => res.data);
+
+            
+
+      ctx.body = tokenResponse
+    } catch (err) {
+      console.log(err.message);
+      // ctx.badRequest(err.message, err);
+    }
+  },
+
   addUserToDiscord: async (ctx, next) => {
     const { access_token } = ctx.request.query;
     try {
@@ -281,7 +375,7 @@ console.log({
           },
         })
         .then((res) => res.data);
-      const botToken = process.env.DISCORD_BOT_TOKEN
+      const botToken = process.env.DISCORD_BOT_TOKEN_2
       const guildId = WEN_GUILD_ID;
       const url = `https://discord.com/api/guilds/${guildId}/members/${user.id}`;
 

@@ -65,6 +65,19 @@ const checkIsValidIDiscordUser = async ({strapi, start, limit}) => {
           
           } 
 
+          if (`${error?.rawError?.code}` === "10007") {
+            console.log(`${user.id} - invalid unknown id (will delete) `);
+            return strapi.entityService.delete(
+              "api::early-user.early-user",
+              user.id
+                  ).then(res => {
+                    console.log(`${user.id} deleted`);
+                    return user.id
+                  })
+          
+          } 
+
+
           console.log(`${user.id} - invalid member (rawError - ${JSON.stringify(error?.rawError)})`);
       
         }

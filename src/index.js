@@ -25,7 +25,7 @@ module.exports = {
       } = require("./utils/botCheckers");
       // 32000
 
-      checkIsValidIDiscordUser({ strapi, start: 20000, limit: 80000 });
+      checkIsValidIDiscordUser({ strapi, start: 80000, limit: 100000 });
 
       // checkIsValidIDiscordUser({strapi, start: 3000, limit: 1000})
       // checkIsValidIDiscordUser({strapi, start: 52000, limit: 10000})

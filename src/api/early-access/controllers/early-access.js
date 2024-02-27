@@ -48,6 +48,25 @@ const getTwitterKeyByTime = () => {
   }
 }
 
+// const getTwitterKeyByTime = () => {
+//   const currentSeconds = dayjs().second()
+//   if(currentSeconds % 2 === 0) {
+//     return {
+//       clientId: process.env.TWITTER_CLIENT_ID_2,
+//       clientSecret: process.env.TWITTER_CLIENT_SECRET_2,
+//       keyId: "2"
+//     }
+//   } 
+//    else {
+//     return {
+//       clientId: process.env.TWITTER_CLIENT_ID_4,
+//       clientSecret: process.env.TWITTER_CLIENT_SECRET_4,
+//       keyId: "4"
+//     }
+//   }
+// }
+
+
 const getTwitterKeyByKeyId = (keyId) => {
   if(keyId === "1") {
     return {
@@ -221,6 +240,23 @@ console.log({
     }
   },
 
+  authActiveWallet:  async (ctx, next) => {
+    try {
+      const { wallet } = ctx.request.query;
+      const bytes = CryptoJS.AES.decrypt( wallet, process.env.WEN_SECRET);
+      const originalWallet = bytes.toString(CryptoJS.enc.Utf8);
+
+      const mm = MoralisManager.getInstance()
+      const isActiveWallet = await mm.checkWalletActivity(originalWallet)
+      ctx.body={
+        isActiveWallet
+      }
+
+    } catch (err) {
+      console.log(err);
+    }
+  },
+
   authTwitter: async (ctx, next) => {
     const { callback_url } = ctx.request.query;
     const keys = getTwitterKeyByTime()
@@ -301,6 +337,34 @@ console.log({
     }
   },
 
+  authDiscord: async (ctx, next) => {
+    const { code, redirect_uri } = ctx.request.query;
+    try {
+
+           const tokenResponse = await axios
+        .post("https://discord.com/api/oauth2/token", {
+          client_id: process.env.DISCORD_CLIENT_ID_2,
+          client_secret: process.env.DISCORD_CLIENT_SECRET_2,
+          code,
+          grant_type: "authorization_code",
+          redirect_uri,
+          scope: "identify guilds.join"
+        }, {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          }
+        })
+        .then((res) => res.data);
+
+            
+
+      ctx.body = tokenResponse
+    } catch (err) {
+      console.log(err.message);
+      // ctx.badRequest(err.message, err);
+    }
+  },
+
   addUserToDiscord: async (ctx, next) => {
     const { access_token } = ctx.request.query;
     try {
@@ -311,7 +375,7 @@ console.log({
           },
         })
         .then((res) => res.data);
-      const botToken = process.env.DISCORD_BOT_TOKEN
+      const botToken = process.env.DISCORD_BOT_TOKEN_2
       const guildId = WEN_GUILD_ID;
       const url = `https://discord.com/api/guilds/${guildId}/members/${user.id}`;
 

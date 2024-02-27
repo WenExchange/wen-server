@@ -320,6 +320,34 @@ console.log({
     }
   },
 
+  authDiscord: async (ctx, next) => {
+    const { code, redirect_uri } = ctx.request.query;
+    try {
+
+           const tokenResponse = await axios
+        .post("https://discord.com/api/oauth2/token", {
+          client_id: process.env.DISCORD_CLIENT_ID_2,
+          client_secret: process.env.DISCORD_CLIENT_SECRET_2,
+          code,
+          grant_type: "authorization_code",
+          redirect_uri,
+          scope: "identify guilds.join"
+        }, {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          }
+        })
+        .then((res) => res.data);
+
+            
+
+      ctx.body = tokenResponse
+    } catch (err) {
+      console.log(err.message);
+      // ctx.badRequest(err.message, err);
+    }
+  },
+
   addUserToDiscord: async (ctx, next) => {
     const { access_token } = ctx.request.query;
     try {

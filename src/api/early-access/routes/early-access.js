@@ -35,6 +35,17 @@ module.exports = {
      },
      {
       method: 'GET',
+      path: '/early-access/authDiscord',
+      handler: 'early-access.authDiscord',
+      config: {
+        policies: [],
+        middlewares: [
+          // "plugin::users-permissions.rateLimit",
+        ],
+      },
+     },
+     {
+      method: 'GET',
       path: '/early-access/addUserToDiscord',
       handler: 'early-access.addUserToDiscord',
       config: {

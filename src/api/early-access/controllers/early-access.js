@@ -343,8 +343,8 @@ console.log({
 
            const tokenResponse = await axios
         .post("https://discord.com/api/oauth2/token", {
-          client_id: process.env.DISCORD_CLIENT_ID_2,
-          client_secret: process.env.DISCORD_CLIENT_SECRET_2,
+          client_id: process.env.DISCORD_CLIENT_ID_3,
+          client_secret: process.env.DISCORD_CLIENT_SECRET_3,
           code,
           grant_type: "authorization_code",
           redirect_uri,
@@ -375,7 +375,7 @@ console.log({
           },
         })
         .then((res) => res.data);
-      const botToken = process.env.DISCORD_BOT_TOKEN_2
+      const botToken = process.env.DISCORD_BOT_TOKEN_3
       const guildId = WEN_GUILD_ID;
       const url = `https://discord.com/api/guilds/${guildId}/members/${user.id}`;
 

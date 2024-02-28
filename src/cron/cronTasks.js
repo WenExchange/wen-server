@@ -15,13 +15,8 @@ module.exports = {
         const data = successYield(object);
 
         const dm = DiscordManager.getInstance();
-        await dm.logWenBotDiscordChannel({data})
-        await logTelegram({data})
-
-
-
-
-
+        dm.logWenBotDiscordChannel({data}).catch(error => console.error(error.message))
+        logTelegram({data}).catch(error => console.error(error.message))
       } catch (error) {
         console.error(error.message);
       }
@@ -40,8 +35,8 @@ module.exports = {
         const data = successYield(object);
 
         const dm = DiscordManager.getInstance();
-        await dm.logWenBotDiscordChannel({data})
-        await logTelegram({data})
+        dm.logWenBotDiscordChannel({data}).catch(error => console.error(error.message))
+        logTelegram({data}).catch(error => console.error(error.message))
 
       } catch (error) {
         console.error(error.message);

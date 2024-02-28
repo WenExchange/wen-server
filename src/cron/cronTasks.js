@@ -15,7 +15,8 @@ module.exports = {
         const data = successYield(object);
 
         const dm = DiscordManager.getInstance();
-        dm.logWenBotDiscordChannel({data})
+        await dm.logWenBotDiscordChannel({data})
+        await logTelegram({data})
 
 
 

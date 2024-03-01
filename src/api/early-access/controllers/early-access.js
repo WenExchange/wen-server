@@ -343,8 +343,8 @@ console.log({
 
            const tokenResponse = await axios
         .post("https://discord.com/api/oauth2/token", {
-          client_id: process.env.DISCORD_CLIENT_ID,
-          client_secret: process.env.DISCORD_CLIENT_SECRET,
+          client_id: process.env.DISCORD_CLIENT_ID_2,
+          client_secret: process.env.DISCORD_CLIENT_SECRET_2,
           code,
           grant_type: "authorization_code",
           redirect_uri,

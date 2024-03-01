@@ -16,12 +16,13 @@ module.exports = {
    * This gives you an opportunity to set up your data model,
    * run jobs, or perform some special logic.
    */
-  bootstrap( { strapi }) {
+ async bootstrap( { strapi }) {
 
     try {
-      const {findBots, checkIsValidTwitterUser, checkIsValidIDiscordUser} = require("./utils/botCheckers")
+      const {findBots, checkIsValidTwitterUser, checkIsValidIDiscordUser, checkOGPass, checkOGPassWithWalletList, checkOGPassWithTwitterId} = require("./utils/botCheckers")
       // 32000
-
+      // checkOGPassWithWalletList({strapi})
+      // checkOGPassWithTwitterId({strapi})
       
       // checkIsValidIDiscordUser({strapi, start: 30000, limit: 60000})
 

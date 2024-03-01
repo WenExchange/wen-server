@@ -861,6 +861,7 @@ export interface ApiEarlyUserEarlyUser extends Schema.CollectionType {
     invite_point: Attribute.Integer &
       Attribute.Required &
       Attribute.DefaultTo<0>;
+    is_wl: Attribute.Boolean & Attribute.DefaultTo<false>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

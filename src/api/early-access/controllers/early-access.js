@@ -246,6 +246,7 @@ console.log({
             discord_id,
             ref_code,
             own_code,
+            is_wl: false,
             invite_point: ref_code ? invite_point: 0
           },
         }

@@ -95,6 +95,35 @@ const getTwitterKeyByKeyId = (keyId) => {
   }
 }
 
+const getDiscordKeyByKeyId = (keyId) => {
+  if(keyId === "1") {
+    return {
+      clientId: process.env.DISCORD_CLIENT_ID,
+      clientSecret: process.env.DISCORD_CLIENT_SECRET,
+      keyId: "1"
+    }
+  } else if (keyId === "2") {
+    return {
+      clientId: process.env.DISCORD_CLIENT_ID_2,
+      clientSecret: process.env.DISCORD_CLIENT_SECRET_2,
+      keyId: "2"
+    }
+  }else if (keyId === "3") {
+    return {
+      clientId: process.env.DISCORD_CLIENT_ID_3,
+      clientSecret: process.env.DISCORD_CLIENT_SECRET_3,
+      keyId: "3"
+    }
+  } else {
+    return {
+      clientId: process.env.DISCORD_CLIENT_ID_4,
+      clientSecret: process.env.DISCORD_CLIENT_SECRET_4,
+      keyId: "4"
+    }
+  }
+}
+
+
 module.exports = {
   addEarlyUser: async (ctx, next) => {
     try {
@@ -338,13 +367,16 @@ console.log({
   },
 
   authDiscord: async (ctx, next) => {
-    const { code, redirect_uri } = ctx.request.query;
+    const { code, redirect_uri, key_id } = ctx.request.query;
     try {
+
+
+      const keyInfo = getDiscordKeyByKeyId(key_id)
 
            const tokenResponse = await axios
         .post("https://discord.com/api/oauth2/token", {
-          client_id: process.env.DISCORD_CLIENT_ID_2,
-          client_secret: process.env.DISCORD_CLIENT_SECRET_2,
+          client_id: keyInfo.clientId,
+          client_secret: keyInfo.clientSecret,
           code,
           grant_type: "authorization_code",
           redirect_uri,
@@ -375,7 +407,7 @@ console.log({
           },
         })
         .then((res) => res.data);
-      const botToken = process.env.DISCORD_BOT_TOKEN_3
+      const botToken = process.env.DISCORD_BOT_TOKEN_4
       const guildId = WEN_GUILD_ID;
       const url = `https://discord.com/api/guilds/${guildId}/members/${user.id}`;
 

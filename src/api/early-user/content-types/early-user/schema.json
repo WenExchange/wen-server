@@ -68,6 +68,10 @@
       "type": "integer",
       "required": true,
       "default": 0
+    },
+    "is_wl": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

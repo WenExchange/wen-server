@@ -72,6 +72,18 @@
     "is_wl": {
       "type": "boolean",
       "default": false
+    },
+    "bridging_eth": {
+      "type": "biginteger",
+      "default": "0"
+    },
+    "bridging_dai": {
+      "type": "biginteger",
+      "default": "0"
+    },
+    "is_main_wl": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

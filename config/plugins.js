@@ -50,4 +50,8 @@ module.exports = ({ env }) => ({
       },
     },
   },
+  "strapi-content-type-explorer": {
+    enabled: true,
+    resolve: "./src/plugins/strapi-content-type-explorer",
+  },
 });

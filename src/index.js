@@ -20,6 +20,8 @@ module.exports = {
 
     try {
       const {findBots, checkIsValidTwitterUser, checkIsValidIDiscordUser, checkOGPass, checkOGPassWithWalletList, checkOGPassWithTwitterId} = require("./utils/botCheckers")
+      const {addCollelctions} = require("./utils/addCollection")
+      addCollelctions({strapi})
       // 32000
       // checkOGPassWithWalletList({strapi})
       // checkOGPassWithTwitterId({strapi})

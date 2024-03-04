@@ -15,7 +15,7 @@
     "contract_address": {
       "type": "string",
       "required": true,
-      "unique": true
+      "unique": false
     },
     "slug": {
       "type": "string",
@@ -94,6 +94,16 @@
     },
     "change_24h": {
       "type": "float"
+    },
+    "token_type": {
+      "type": "string"
+    },
+    "royalty": {
+      "type": "float",
+      "default": 0
+    },
+    "royalty_receiver": {
+      "type": "string"
     }
   }
 }

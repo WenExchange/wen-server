@@ -793,7 +793,7 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     draftAndPublish: true;
   };
   attributes: {
-    contract_address: Attribute.String & Attribute.Required & Attribute.Unique;
+    contract_address: Attribute.String & Attribute.Required;
     slug: Attribute.String & Attribute.Required & Attribute.Unique;
     token_uri: Attribute.String & Attribute.Required & Attribute.Unique;
     name: Attribute.String & Attribute.Required;
@@ -820,6 +820,9 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     volume_24h: Attribute.BigInteger & Attribute.DefaultTo<'0'>;
     volume_7d: Attribute.BigInteger & Attribute.DefaultTo<'0'>;
     change_24h: Attribute.Float;
+    token_type: Attribute.String;
+    royalty: Attribute.Float & Attribute.DefaultTo<0>;
+    royalty_receiver: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -953,7 +956,6 @@ export interface ApiNftNft extends Schema.CollectionType {
       'oneToMany',
       'api::nft-trade-log.nft-trade-log'
     >;
-    traits: Attribute.JSON;
     rarity_score: Attribute.Float & Attribute.DefaultTo<0>;
     rarity_rank: Attribute.Integer;
     price: Attribute.BigInteger;
@@ -961,6 +963,7 @@ export interface ApiNftNft extends Schema.CollectionType {
     owner: Attribute.String;
     top_offer_price: Attribute.BigInteger;
     expired_at: Attribute.DateTime;
+    attributes: Attribute.JSON;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

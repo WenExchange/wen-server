@@ -39,9 +39,6 @@
       "target": "api::nft-trade-log.nft-trade-log",
       "mappedBy": "nft"
     },
-    "traits": {
-      "type": "json"
-    },
     "rarity_score": {
       "type": "float",
       "default": 0
@@ -63,6 +60,9 @@
     },
     "expired_at": {
       "type": "datetime"
+    },
+    "attributes": {
+      "type": "json"
     }
   }
 }

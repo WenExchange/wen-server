@@ -4,18 +4,14 @@
   "info": {
     "singularName": "nft",
     "pluralName": "nfts",
-    "displayName": "NFT"
+    "displayName": "NFT",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
   },
   "pluginOptions": {},
   "attributes": {
-    "tokenId": {
-      "type": "string",
-      "required": true,
-      "unique": true
-    },
     "collection": {
       "type": "relation",
       "relation": "manyToOne",
@@ -27,28 +23,46 @@
       "required": true,
       "unique": false
     },
-    "imageURL": {
+    "image_url": {
       "type": "string",
       "required": true,
-      "unique": true
+      "unique": false
     },
-    "rarityScore": {
+    "token_id": {
       "type": "integer",
-      "required": true,
-      "unique": true,
-      "default": 0
+      "default": 0,
+      "required": true
     },
-    "rarityRank": {
-      "type": "integer",
-      "required": true,
-      "unique": true,
-      "default": 0
-    },
-    "listings": {
+    "nft_trade_logs": {
       "type": "relation",
       "relation": "oneToMany",
-      "target": "api::listing.listing",
+      "target": "api::nft-trade-log.nft-trade-log",
       "mappedBy": "nft"
+    },
+    "traits": {
+      "type": "json"
+    },
+    "rarity_score": {
+      "type": "float",
+      "default": 0
+    },
+    "rarity_rank": {
+      "type": "integer"
+    },
+    "price": {
+      "type": "biginteger"
+    },
+    "last_sale_price": {
+      "type": "biginteger"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "top_offer_price": {
+      "type": "biginteger"
+    },
+    "expired_at": {
+      "type": "datetime"
     }
   }
 }

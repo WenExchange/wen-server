@@ -1,9 +1,23 @@
-'use strict';
+"use strict";
 
 /**
  * collection router
  */
 
-const { createCoreRouter } = require('@strapi/strapi').factories;
+const { createCoreRouter } = require("@strapi/strapi").factories;
 
-module.exports = createCoreRouter('api::collection.collection');
+module.exports = {
+  routes: [
+    {
+      method: "POST",
+      path: "collection/fee",
+      handler: "collection.getFeesFromCollections",
+      config: {
+        policies: [],
+        middlewares: [
+          // "plugin::users-permissions.rateLimit",
+        ],
+      },
+    },
+  ],
+};

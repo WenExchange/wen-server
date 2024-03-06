@@ -98,12 +98,18 @@
     "token_type": {
       "type": "string"
     },
-    "royalty": {
-      "type": "float",
+    "royalty_fee_point": {
+      "type": "integer",
       "default": 0
     },
-    "royalty_receiver": {
+    "royalty_fee_receiver": {
       "type": "string"
+    },
+    "protocol_fee_receiver": {
+      "type": "string"
+    },
+    "protocol_fee_point": {
+      "type": "integer"
     }
   }
 }

@@ -12,15 +12,15 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "contract_address": {
-      "type": "string",
-      "required": true,
-      "unique": false
-    },
     "slug": {
       "type": "string",
       "required": true,
       "unique": true
+    },
+    "contract_address": {
+      "type": "string",
+      "required": true,
+      "unique": false
     },
     "token_uri": {
       "type": "string",
@@ -80,16 +80,16 @@
       "type": "integer"
     },
     "floor_price": {
-      "type": "biginteger"
+      "type": "float"
     },
     "volume_24h": {
-      "type": "biginteger",
-      "default": "0",
+      "type": "float",
+      "default": 0,
       "required": false
     },
     "volume_7d": {
-      "type": "biginteger",
-      "default": "0",
+      "type": "float",
+      "default": 0,
       "required": false
     },
     "change_24h": {

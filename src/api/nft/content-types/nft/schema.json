@@ -8,7 +8,7 @@
     "description": ""
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
@@ -47,21 +47,21 @@
       "type": "integer"
     },
     "price": {
-      "type": "biginteger"
+      "type": "float"
     },
     "last_sale_price": {
-      "type": "biginteger"
+      "type": "float"
     },
     "owner": {
       "type": "string"
     },
     "top_offer_price": {
-      "type": "biginteger"
+      "type": "float"
     },
     "expired_at": {
       "type": "datetime"
     },
-    "attributes": {
+    "traits": {
       "type": "json"
     }
   }

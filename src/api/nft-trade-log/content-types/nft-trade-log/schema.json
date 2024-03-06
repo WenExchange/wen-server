@@ -4,7 +4,8 @@
   "info": {
     "singularName": "nft-trade-log",
     "pluralName": "nft-trade-logs",
-    "displayName": "NFTTradeLog"
+    "displayName": "NFTTradeLog",
+    "description": ""
   },
   "options": {
     "draftAndPublish": false
@@ -34,7 +35,7 @@
       "type": "string"
     },
     "price": {
-      "type": "biginteger"
+      "type": "float"
     },
     "expired_at": {
       "type": "datetime"

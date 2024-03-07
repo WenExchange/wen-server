@@ -110,6 +110,10 @@
     },
     "protocol_fee_point": {
       "type": "integer"
+    },
+    "volume_total": {
+      "type": "float",
+      "default": 0
     }
   }
 }

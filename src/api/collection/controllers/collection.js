@@ -1,7 +1,4 @@
 "use strict";
-require("dotenv").config();
-const dayjs = require("dayjs");
-const CryptoJS = require("crypto-js");
 
 /**
  * collection controller
@@ -9,4 +6,4 @@ const CryptoJS = require("crypto-js");
 
 const { createCoreController } = require("@strapi/strapi").factories;
 
-module.exports = createCoreController('api::collection.collection')
+module.exports = createCoreController("api::collection.collection");

@@ -11,7 +11,7 @@ module.exports = {
       
 
       const {
-        nfts,
+        trade_infos,
 
 
       } = ctx.request.body.data;

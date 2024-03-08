@@ -932,6 +932,43 @@ export interface ApiEarlyUserEarlyUser extends Schema.CollectionType {
   };
 }
 
+export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
+  collectionName: 'exchange_users';
+  info: {
+    singularName: 'exchange-user';
+    pluralName: 'exchange-users';
+    displayName: 'ExchangeUser';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    address: Attribute.String;
+    maker_nonce: Attribute.Integer & Attribute.DefaultTo<0>;
+    hash_nonce: Attribute.Integer & Attribute.DefaultTo<0>;
+    request_logs: Attribute.Relation<
+      'api::exchange-user.exchange-user',
+      'oneToMany',
+      'api::request-log.request-log'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::exchange-user.exchange-user',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::exchange-user.exchange-user',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiNftNft extends Schema.CollectionType {
   collectionName: 'nfts';
   info: {
@@ -1018,6 +1055,45 @@ export interface ApiNftTradeLogNftTradeLog extends Schema.CollectionType {
   };
 }
 
+export interface ApiRequestLogRequestLog extends Schema.CollectionType {
+  collectionName: 'request_logs';
+  info: {
+    singularName: 'request-log';
+    pluralName: 'request-logs';
+    displayName: 'RequestLog';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    request_uuid: Attribute.String & Attribute.Required;
+    type: Attribute.String & Attribute.Required;
+    exchange_user: Attribute.Relation<
+      'api::request-log.request-log',
+      'manyToOne',
+      'api::exchange-user.exchange-user'
+    >;
+    original_nonce: Attribute.Integer;
+    new_nonce: Attribute.Integer;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::request-log.request-log',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::request-log.request-log',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 declare module '@strapi/types' {
   export module Shared {
     export interface ContentTypes {
@@ -1039,8 +1115,10 @@ declare module '@strapi/types' {
       'api::collection.collection': ApiCollectionCollection;
       'api::collection-stat-log.collection-stat-log': ApiCollectionStatLogCollectionStatLog;
       'api::early-user.early-user': ApiEarlyUserEarlyUser;
+      'api::exchange-user.exchange-user': ApiExchangeUserExchangeUser;
       'api::nft.nft': ApiNftNft;
       'api::nft-trade-log.nft-trade-log': ApiNftTradeLogNftTradeLog;
+      'api::request-log.request-log': ApiRequestLogRequestLog;
     }
   }
 }

@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "request_logs",
+  "info": {
+    "singularName": "request-log",
+    "pluralName": "request-logs",
+    "displayName": "RequestLog",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "request_uuid": {
+      "type": "string",
+      "required": true
+    },
+    "type": {
+      "type": "string",
+      "required": true
+    },
+    "exchange_user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::exchange-user.exchange-user",
+      "inversedBy": "request_logs"
+    },
+    "original_nonce": {
+      "type": "integer"
+    },
+    "new_nonce": {
+      "type": "integer"
+    }
+  }
+}

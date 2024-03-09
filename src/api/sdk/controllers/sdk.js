@@ -15,7 +15,7 @@ const SCHEMA_ERC721 = "ERC721";
 //Request Log Type
 const UPDATE_MAKER_NONCE = "UPDATE_MAKER_NONCE";
 const POST_BATCH = "POST_BATCH";
-
+const GET_BATCH_SIGNED_ORDERS = "GET_BATCH_SIGNED_ORDERS";
 function createUuidv4() {
   let uuid = crypto.randomUUID();
   return uuid;
@@ -358,6 +358,136 @@ module.exports = {
       return;
     }
   },
+  getBatchSignedOrders: async (ctx, next) => {
+    try {
+      const data = ctx.request.body.data;
+      console.log(data);
+
+      // 1. check if the user exist.
+      const userData = await strapi.entityService.findMany(
+        "api::exchange-user.exchange-user",
+        {
+          filters: {
+            address: {
+              $eq: data.buyer,
+            },
+          },
+        }
+      );
+      if (userData.length != 1) {
+        ctx.body = {
+          code: ERROR_RESPONSE,
+          msg: `address ${data.buyerr} doesn't exist on db`,
+        };
+        return;
+      }
+
+      /// 2. check if all the collection in the list exist
+      let collectionIdMap = new Map();
+      if (data) {
+        for (let item of data.data) {
+          const r = await strapi.entityService.findMany(
+            "api::collection.collection",
+            {
+              filters: {
+                contract_address: {
+                  $eq: item.contractAddress,
+                },
+              },
+            }
+          );
+          if (r.length != 1) {
+            ctx.body = {
+              code: ERROR_RESPONSE,
+              msg: `contract ${item.contractAddress} doesn't exist on collection table`,
+            };
+            return;
+          } else {
+            collectionIdMap[item.contractAddress] = r[0].id;
+          }
+        }
+      }
+
+      /// 3. get token data
+      // TODO change to wenETH
+      const token = await getTokenData("eth");
+
+      /// 4. get response data
+      let commonData = [];
+      for (let item of data.data) {
+        if (item.callFuncName == "buyERC721Ex") {
+          const r = await strapi.db.query("api::order.order").findMany({
+            where: {
+              token_id: item.tokenId,
+              collection: collectionIdMap[item.contractAddress],
+              is_valid: true,
+            },
+            orderBy: { createdAt: "DESC" }, // 가장최근 Data TODO
+            populate: { collection: true, batch_signed_order: true },
+          });
+          if (r.length === 0) {
+            ctx.body = {
+              code: ERROR_RESPONSE,
+              msg: `No order for ${item.contractAddress} token_id : ${item.tokenId}`,
+            };
+            return;
+          }
+          const orderObj = JSON.parse(r[0].batch_signed_order.exchange_data);
+          const validationResult = await _validateOrder(orderObj);
+
+          if (!validationResult.result) {
+            ctx.body = {
+              code: ERROR_RESPONSE,
+              msg: `validation failed : reason ${validationResult.reason} order id : ${r[0].order_id}`,
+            };
+            return;
+          }
+
+          // 5. get NFT Price
+          const NFTPrice = await getNftPrice(
+            orderObj,
+            item.tokenId,
+            item.contractAddress.toLowerCase()
+          );
+          // If validation result is true add data.
+          commonData.push({
+            contractAddress: item.contractAddress,
+            tokenId: item.tokenId,
+            orderHash: r[0].batch_signed_order.order_hash,
+            quantity: 1, // TODO ERC 1155
+            tokenContract: token,
+            schema: SCHEMA_ERC721,
+            buyer: data.buyer,
+            toAddress: orderObj.maker,
+            exchangeData: r[0].batch_signed_order.exchange_data,
+            price: NFTPrice.price,
+          });
+        }
+      }
+      const requestUuid = createUuidv4();
+      await createRequestLog(
+        requestUuid,
+        GET_BATCH_SIGNED_ORDERS,
+        {},
+        userData[0].id
+      );
+      ctx.body = {
+        code: SUCCESS_RESPONSE,
+        data: { commonData: commonData },
+        requestUuid: requestUuid,
+      };
+      return;
+
+      console.log("list : ", commonData);
+    } catch (error) {
+      console.log(error);
+      ctx.body = {
+        code: ERROR_RESPONSE,
+        msg: error.msg,
+      };
+      return;
+    }
+  },
 };
 
 // {
@@ -393,6 +523,14 @@ module.exports = {
 //   hash: '0x6b64b86c6a4524d8ba22ffab1b05178045fe5d6367ea791faf00f027a309a646'
 // }
 
+async function getTokenData(symbol) {
+  const r = await strapi.db.query("api::token.token").findOne({
+    where: {
+      symbol: symbol,
+    },
+  });
+}
+
 async function createRequestLog(uuid, type, data, userId) {
   // 3. request log 를 찍는다.
   const r = await strapi.entityService.create("api::request-log.request-log", {
@@ -405,4 +543,56 @@ async function createRequestLog(uuid, type, data, userId) {
   });
 
   return r;
+}
+
+async function _validateOrder(order) {
+  // console.log("order! ", order);
+  // 1. Listing Time < currentTime < expirationTime
+  const now = Math.floor(new Date().getTime() / 1000);
+  const isTimeValid = now > order.listingTime && now < order.expirationTime;
+  if (!isTimeValid) {
+    return { result: false, reason: "time is invalid" };
+  }
+
+  return { result: true };
+
+  // 2. If the maker is still owner of the item
+  //TODO: 여기서 확인을 해야하는 건지 확실하지 않음
+}
+
+async function getNftPrice(order, tokenId, contractAddress) {
+  const basicCollections = order.basicCollections;
+  const collections = order.collections;
+
+  if (basicCollections) {
+    for (let collection of basicCollections) {
+      if (collection.nftAddress === contractAddress) {
+        for (let item of collection.items) {
+          if (item.nftId === tokenId) {
+            return { result: true, price: item.erc20TokenAmount };
+          } else {
+            console.log("nono", item.nftId);
+          }
+        }
+      } else {
+        console.log("11", collection.nftAddress, contractAddress);
+      }
+    }
+  } else {
+    console.log("131");
+  }
+
+  if (collections) {
+    for (let collection of collections) {
+      if (collection.nftAddress === contractAddress) {
+        for (let item of collection.items) {
+          if (item.nftId === tokenId) {
+            return { result: true, price: item.erc20TokenAmount };
+          }
+        }
+      }
+    }
+  }
+
+  return { result: false, reason: "not found" };
 }

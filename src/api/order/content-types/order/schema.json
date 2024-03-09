@@ -41,6 +41,10 @@
       "relation": "manyToOne",
       "target": "api::collection.collection",
       "inversedBy": "orders"
+    },
+    "is_valid": {
+      "type": "boolean",
+      "default": true
     }
   }
 }

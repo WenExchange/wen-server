@@ -1135,6 +1135,7 @@ export interface ApiOrderOrder extends Schema.CollectionType {
       'manyToOne',
       'api::collection.collection'
     >;
+    is_valid: Attribute.Boolean & Attribute.DefaultTo<true>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

@@ -20,6 +20,15 @@ module.exports = {
     },
     {
       method: "POST",
+      path: "/sdk/batchSignedOrders",
+      handler: "sdk.getBatchSignedOrders",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: "POST",
       path: "/sdk/orders/postBatch",
       handler: "sdk.postOrderBatch",
       config: {

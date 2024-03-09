@@ -1136,6 +1136,13 @@ export interface ApiOrderOrder extends Schema.CollectionType {
       'api::collection.collection'
     >;
     is_valid: Attribute.Boolean & Attribute.DefaultTo<true>;
+    contract_address: Attribute.String;
+    sale_kind: Attribute.Integer;
+    side: Attribute.Integer;
+    maker: Attribute.String;
+    taker: Attribute.String;
+    expiration_time: Attribute.String;
+    listing_time: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

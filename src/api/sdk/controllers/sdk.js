@@ -7,8 +7,18 @@
 const SUCCESS_RESPONSE = 0;
 const ERROR_RESPONSE = 1234;
 
+// GENERAL
+
+const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
+const DEFAULT_PAGE_SIZE = 40;
+
+//From SDK
 const SIGNATURE_TYPE_EIP712 = 0;
 const SIGNATURE_TYPE_PRESIGNED = 1;
+const SALEKIND_BatchSignedERC721Order = 3;
+const SALEKIND_ContractOffer = 7;
+const ORDERSIDE_BUY = 0;
+const ORDERSIDE_SELL = 1;
 
 const SCHEMA_ERC721 = "ERC721";
 
@@ -280,6 +290,12 @@ module.exports = {
                   quantity: 1, //TODO : ERC1155 지원하려면 바뀌어야함.
                   order_hash: data.hash + "_" + orderIndex++,
                   collection: collectionIdMap[collection.nftAddress],
+                  contract_address: collection.nftAddress,
+                  sale_kind: SALEKIND_BatchSignedERC721Order,
+                  maker: r[0].address,
+                  side: ORDERSIDE_SELL,
+                  listing_time: data.listingTime.toString(),
+                  expiration_time: data.expirationTime.toString(),
                 },
               });
 
@@ -291,6 +307,7 @@ module.exports = {
             }
           }
         } catch (error) {
+          console.log(error);
           failList.push({
             assetContract: mCollection.nftAddress,
             assetTokenId: mItem.nftId,
@@ -318,6 +335,12 @@ module.exports = {
                   quantity: 1, //TODO : ERC1155 지원하려면 바뀌어야함.
                   order_hash: data.hash + "_" + orderIndex++,
                   collection: collectionIdMap[collection.nftAddress],
+                  contract_address: collection.nftAddress,
+                  sale_kind: SALEKIND_BatchSignedERC721Order,
+                  maker: r[0].address,
+                  side: ORDERSIDE_SELL,
+                  listing_time: data.listingTime.toString(),
+                  expiration_time: data.expirationTime.toString(),
                 },
               });
 
@@ -477,8 +500,6 @@ module.exports = {
         requestUuid: requestUuid,
       };
       return;
-
-      console.log("list : ", commonData);
     } catch (error) {
       console.log(error);
       ctx.body = {
@@ -487,6 +508,155 @@ module.exports = {
       };
       return;
     }
+  },
+
+  getOrdersList: async (ctx, next) => {
+    console.log(111);
+    let {
+      asset_contract_address,
+      token_ids,
+      sale_kind,
+      side,
+      maker,
+      taker,
+      payment_token,
+      order_by,
+      direction,
+      listed_before,
+      listed_after,
+      page,
+    } = ctx.request.query;
+
+    if (asset_contract_address == null || asset_contract_address == undefined) {
+      ctx.body = {
+        code: ERROR_RESPONSE,
+        msg: `asset_contract_address is not defined in query.`,
+      };
+      return;
+    }
+
+    if (page == null || page == undefined) {
+      page = 1;
+    }
+    if (order_by == null || order_by == undefined) {
+      order_by = "price";
+    }
+
+    if (direction == null || direction == undefined) {
+      direction = "desc";
+    }
+    //query list
+    let andQueryList = [];
+
+    // query 객체의 각 속성에 대해 루프
+    for (const [key, value] of Object.entries(ctx.request.query)) {
+      if (value !== null && value !== undefined) {
+        // 해당 속성이 비어있지 않다면 배열에 추가
+        const queryObject = {};
+        if (key === "asset_contract_address") {
+          queryObject["contract_address"] = value;
+        } else if (key === "listed_before") {
+          queryObject["createdAt"] = { $lt: value };
+        } else if (key === "listed_after") {
+          queryObject["createdAt"] = { $gt: value };
+        } else if (
+          key === "chain" ||
+          key === "order_by" ||
+          key === "direction"
+        ) {
+          // 이 경우에는 key 추가 x
+        } else {
+          queryObject[key] = value;
+        }
+        andQueryList.push(queryObject);
+      }
+    }
+
+    //isValid = true 인 order만
+    andQueryList.push({ is_valid: true });
+    const order = {};
+    order[order_by] = direction;
+    const r = await strapi.db.query("api::order.order").findPage({
+      where: { $and: andQueryList },
+      pageSize: DEFAULT_PAGE_SIZE,
+      page: page,
+      orderBy: [order],
+    });
+
+    const results = r.results;
+    const orderList = [];
+
+    for (let result of results) {
+      orderList.push({
+        contractAddress: result.contract_address,
+        // Asset token id
+        tokenId: result.token_id,
+        // Asset schema
+        schema: result.schema,
+        // The order trading Standards.
+        // standard: Standard | string; DODO: schema
+        // The order maker's wallet address.
+        maker: result.maker,
+        // Listing time.
+        listingTime: result.listing_time,
+        // Expiration time.
+        expirationTime: result.expiration_time,
+        // Priced in paymentToken, and the unit is wei.
+        price: result.price,
+        // The contract address of the paymentToken.
+        paymentToken: ETH_ADDRESS,
+        // Kind of sell order. 0 for fixed-price sales, and 3 for batchSignedERC721 sell order.
+        saleKind: result.sale_kind,
+        // Side of the order. 0 for buy order, and 1 for sell order.
+        side: result.side,
+        // Order hash.
+        orderHash: result.order_hash,
+      });
+    }
+
+    ctx.body = {
+      data: { orders: orderList },
+      pagination: r.pagination,
+      code: SUCCESS_RESPONSE,
+    };
+    return;
+    //return 해야하는 값의 느낌
+    // export interface OrderInformation {
+    //   // Asset contract address.
+    //   contractAddress: string;
+    //   // Asset token id
+    //   tokenId: string;
+    //   // Asset schema
+    //   schema: AssetSchema | string;
+    //   // The order trading Standards.
+    //   standard: Standard | string;
+    //   // The order maker's wallet address.
+    //   maker: string;
+    //   // Listing time.
+    //   listingTime: number | string;
+    //   // Expiration time.
+    //   expirationTime: number | string;
+    //   // Priced in paymentToken, and the unit is ether.
+    //   price: number | string;
+    //   // The contract address of the paymentToken.
+    //   paymentToken: string;
+    //   // Kind of sell order. 0 for fixed-price sales, and 3 for batchSignedERC721 sell order.
+    //   saleKind: SaleKind | number | string;
+    //   // Side of the order. 0 for buy order, and 1 for sell order.
+    //   side: OrderSide | number | string;
+    //   // Order hash.
+    //   orderHash?: string;
+    // }
+    // export interface Order extends OrderInformation {
+    //   // The asset quantity of order.
+    //   quantity: string;
+    //   // Priced in the native token(e.g. ETH), and the unit is ether.
+    //   priceBase: number;
+    //   // Priced in USD.
+    //   priceUSD: number;
+    //   // The order taker's wallet address
+    //   taker: string;
+    // }
   },
 };
 
@@ -529,6 +699,7 @@ async function getTokenData(symbol) {
       symbol: symbol,
     },
   });
+  return r;
 }
 
 async function createRequestLog(uuid, type, data, userId) {

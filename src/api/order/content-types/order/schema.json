@@ -45,6 +45,27 @@
     "is_valid": {
       "type": "boolean",
       "default": true
+    },
+    "contract_address": {
+      "type": "string"
+    },
+    "sale_kind": {
+      "type": "integer"
+    },
+    "side": {
+      "type": "integer"
+    },
+    "maker": {
+      "type": "string"
+    },
+    "taker": {
+      "type": "string"
+    },
+    "expiration_time": {
+      "type": "string"
+    },
+    "listing_time": {
+      "type": "string"
     }
   }
 }

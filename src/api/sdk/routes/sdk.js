@@ -36,5 +36,14 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: "GET", // But If you query nonce, order nonces goes up.
+      path: "/sdk/orders/list",
+      handler: "sdk.getOrdersList",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

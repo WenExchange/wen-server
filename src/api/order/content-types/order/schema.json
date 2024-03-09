@@ -1,0 +1,46 @@
+{
+  "kind": "collectionType",
+  "collectionName": "orders",
+  "info": {
+    "singularName": "order",
+    "pluralName": "orders",
+    "displayName": "Order",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "order_id": {
+      "type": "string"
+    },
+    "batch_signed_order": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::batch-signed-order.batch-signed-order",
+      "inversedBy": "orders"
+    },
+    "schema": {
+      "type": "string"
+    },
+    "price": {
+      "type": "biginteger"
+    },
+    "token_id": {
+      "type": "integer"
+    },
+    "quantity": {
+      "type": "integer"
+    },
+    "order_hash": {
+      "type": "string"
+    },
+    "collection": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::collection.collection",
+      "inversedBy": "orders"
+    }
+  }
+}

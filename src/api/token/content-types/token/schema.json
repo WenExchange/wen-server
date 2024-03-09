@@ -1,0 +1,33 @@
+{
+  "kind": "collectionType",
+  "collectionName": "tokens",
+  "info": {
+    "singularName": "token",
+    "pluralName": "tokens",
+    "displayName": "Token"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "symbol": {
+      "type": "string"
+    },
+    "decimal": {
+      "type": "integer"
+    },
+    "icon": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "token_id": {
+      "type": "string"
+    }
+  }
+}

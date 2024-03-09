@@ -781,6 +781,47 @@ export interface PluginI18NLocale extends Schema.CollectionType {
   };
 }
 
+export interface ApiBatchSignedOrderBatchSignedOrder
+  extends Schema.CollectionType {
+  collectionName: 'batch_signed_orders';
+  info: {
+    singularName: 'batch-signed-order';
+    pluralName: 'batch-signed-orders';
+    displayName: 'BatchSignedOrder';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    exchange_data: Attribute.Text;
+    exchange_user: Attribute.Relation<
+      'api::batch-signed-order.batch-signed-order',
+      'manyToOne',
+      'api::exchange-user.exchange-user'
+    >;
+    orders: Attribute.Relation<
+      'api::batch-signed-order.batch-signed-order',
+      'oneToMany',
+      'api::order.order'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::batch-signed-order.batch-signed-order',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::batch-signed-order.batch-signed-order',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiCollectionCollection extends Schema.CollectionType {
   collectionName: 'collections';
   info: {
@@ -826,6 +867,11 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     protocol_fee_receiver: Attribute.String;
     protocol_fee_point: Attribute.Integer & Attribute.DefaultTo<0>;
     volume_total: Attribute.Float & Attribute.DefaultTo<0>;
+    orders: Attribute.Relation<
+      'api::collection.collection',
+      'oneToMany',
+      'api::order.order'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -952,6 +998,11 @@ export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
       'oneToMany',
       'api::request-log.request-log'
     >;
+    batch_signed_orders: Attribute.Relation<
+      'api::exchange-user.exchange-user',
+      'oneToMany',
+      'api::batch-signed-order.batch-signed-order'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -1056,6 +1107,52 @@ export interface ApiNftTradeLogNftTradeLog extends Schema.CollectionType {
   };
 }
 
+export interface ApiOrderOrder extends Schema.CollectionType {
+  collectionName: 'orders';
+  info: {
+    singularName: 'order';
+    pluralName: 'orders';
+    displayName: 'Order';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    order_id: Attribute.String;
+    batch_signed_order: Attribute.Relation<
+      'api::order.order',
+      'manyToOne',
+      'api::batch-signed-order.batch-signed-order'
+    >;
+    schema: Attribute.String;
+    price: Attribute.BigInteger;
+    token_id: Attribute.Integer;
+    quantity: Attribute.Integer;
+    order_hash: Attribute.String;
+    collection: Attribute.Relation<
+      'api::order.order',
+      'manyToOne',
+      'api::collection.collection'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::order.order',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::order.order',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiRequestLogRequestLog extends Schema.CollectionType {
   collectionName: 'request_logs';
   info: {
@@ -1095,6 +1192,41 @@ export interface ApiRequestLogRequestLog extends Schema.CollectionType {
   };
 }
 
+export interface ApiTokenToken extends Schema.CollectionType {
+  collectionName: 'tokens';
+  info: {
+    singularName: 'token';
+    pluralName: 'tokens';
+    displayName: 'Token';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    name: Attribute.String;
+    symbol: Attribute.String;
+    decimal: Attribute.Integer;
+    icon: Attribute.String;
+    address: Attribute.String;
+    token_id: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::token.token',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::token.token',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 declare module '@strapi/types' {
   export module Shared {
     export interface ContentTypes {
@@ -1113,13 +1245,16 @@ declare module '@strapi/types' {
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
       'plugin::i18n.locale': PluginI18NLocale;
+      'api::batch-signed-order.batch-signed-order': ApiBatchSignedOrderBatchSignedOrder;
       'api::collection.collection': ApiCollectionCollection;
       'api::collection-stat-log.collection-stat-log': ApiCollectionStatLogCollectionStatLog;
       'api::early-user.early-user': ApiEarlyUserEarlyUser;
       'api::exchange-user.exchange-user': ApiExchangeUserExchangeUser;
       'api::nft.nft': ApiNftNft;
       'api::nft-trade-log.nft-trade-log': ApiNftTradeLogNftTradeLog;
+      'api::order.order': ApiOrderOrder;
       'api::request-log.request-log': ApiRequestLogRequestLog;
+      'api::token.token': ApiTokenToken;
     }
   }
 }

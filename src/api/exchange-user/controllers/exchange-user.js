@@ -17,9 +17,6 @@ module.exports = createCoreController('api::exchange-user.exchange-user',({ stra
                     address,
                     message
                   } = ctx.request.body.data;
-      
-                //   const messageHash = ethers.utils.id(message);
-                //   const messageBytes = ethers.utils.arrayify(messageHash);
                   const recoveredAddress = ethers.verifyMessage(message, signature);
       
       
@@ -53,7 +50,7 @@ const isoString = dayjs(currentTimestamp).toISOString();
                   } else {
                     user = await strapi.entityService.create('api::exchange-user.exchange-user', {
                         data: {
-                         address,
+                         address: address.toLowerCase(),
                          signature,
                          at_last_login: isoString
                         },

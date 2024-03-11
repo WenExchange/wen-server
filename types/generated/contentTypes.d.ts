@@ -1025,6 +1025,44 @@ export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
   };
 }
 
+export interface ApiFeaturedItemFeaturedItem extends Schema.CollectionType {
+  collectionName: 'featured_items';
+  info: {
+    singularName: 'featured-item';
+    pluralName: 'featured-items';
+    displayName: 'FeaturedItem';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    collection: Attribute.Relation<
+      'api::featured-item.featured-item',
+      'oneToOne',
+      'api::collection.collection'
+    >;
+    name: Attribute.String;
+    description: Attribute.String;
+    icon: Attribute.Media;
+    banner: Attribute.Media;
+    link: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::featured-item.featured-item',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::featured-item.featured-item',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiNftNft extends Schema.CollectionType {
   collectionName: 'nfts';
   info: {
@@ -1263,6 +1301,7 @@ declare module '@strapi/types' {
       'api::collection-stat-log.collection-stat-log': ApiCollectionStatLogCollectionStatLog;
       'api::early-user.early-user': ApiEarlyUserEarlyUser;
       'api::exchange-user.exchange-user': ApiExchangeUserExchangeUser;
+      'api::featured-item.featured-item': ApiFeaturedItemFeaturedItem;
       'api::nft.nft': ApiNftNft;
       'api::nft-trade-log.nft-trade-log': ApiNftTradeLogNftTradeLog;
       'api::order.order': ApiOrderOrder;

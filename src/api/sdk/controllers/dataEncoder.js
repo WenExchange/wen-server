@@ -137,7 +137,7 @@ function createOrderData(orderList, taker) {
   // 하나의 batchSigned이기 때문에 같음.
   let order = orderList[0];
 
-  console.log("HERE!!! , ", order);
+  //   console.log("HERE!!! , ", order);
   let exData = JSON.parse(order.batch_signed_order.exchange_data);
   let encodedData1 = encodeData1(
     0,
@@ -160,6 +160,8 @@ function createOrderData(orderList, taker) {
     order.collection.protocol_fee_receiver
   );
 
+  console.log("exData : ", exData);
+
   let collectionsItemIndexList = {};
   for (let order of orderList) {
     const { collectionContract, itemIndex, totalItemsCount, items } =
@@ -175,16 +177,7 @@ function createOrderData(orderList, taker) {
         items: [],
       };
     }
-    console.log(
-      "items!!!! :  ",
-      items,
-      collectionContract,
-      itemIndex,
-      totalItemsCount,
-      exData,
-      order.contract_address,
-      order.token_id
-    );
+
     collectionsItemIndexList[collectionContract]["itemsIndex"].push(itemIndex);
 
     collectionsItemIndexList[collectionContract]["items"] = items;
@@ -202,33 +195,66 @@ function createOrderData(orderList, taker) {
   }
 
   let collectionData = [];
+  console.log("exData.basicCollections", exData.basicCollections);
+  console.log("collectionsItemIndexList", collectionsItemIndexList);
   // 객체의 모든 키(key)를 순회하는 for...in 루프
-  for (const key in collectionsItemIndexList) {
-    const data = collectionsItemIndexList[key];
-    const itemIndexList = collectionsItemIndexList[key].itemsIndex;
+  for (const exDataCollection of exData.basicCollections) {
+    if (exDataCollection.nftAddress in collectionsItemIndexList) {
+      let coll;
+      console.log(
+        "collectionsItemIndexList ",
+        collectionsItemIndexList[exDataCollection.nftAddress]
+      );
+      const data = collectionsItemIndexList[exDataCollection.nftAddress];
+      const itemIndexList =
+        collectionsItemIndexList[exDataCollection.nftAddress].itemsIndex;
 
-    const { filledIndexListPart1, filledIndexListPart2 } =
-      generateFilledIndexListParts(itemIndexList);
+      const { filledIndexListPart1, filledIndexListPart2 } =
+        generateFilledIndexListParts(itemIndexList);
 
-    const formattedItemsList = createFormattedItemsList(data.items);
+      const formattedItemsList = createFormattedItemsList(data.items);
 
-    const collection = {
-      filledIndexListPart1,
-      nftAddress: data.nftAddress,
-      collectionType: data.collectionType,
-      itemsCount: data.itemsCount,
-      filledCount: itemIndexList.length,
-      filledIndexListPart2,
-      platformFeePercentage: data.platformFeePercentage,
-      royaltyFeePercentage: data.royaltyFeePercentage,
-      royaltyFeeRecipient: data.royaltyFeeRecipient,
-      // 아래서 index 구할 때 토큰 아이디랑 가격도 같이 해서 가져오면 됨
-      items: formattedItemsList,
-    };
+      coll = {
+        filledIndexListPart1,
+        nftAddress: data.nftAddress,
+        collectionType: data.collectionType,
+        itemsCount: data.itemsCount,
+        filledCount: itemIndexList.length,
+        filledIndexListPart2,
+        platformFeePercentage: data.platformFeePercentage,
+        royaltyFeePercentage: exDataCollection.royaltyFee,
+        royaltyFeeRecipient: exDataCollection.royaltyFeeRecipient,
+        // 아래서 index 구할 때 토큰 아이디랑 가격도 같이 해서 가져오면 됨
+        items: formattedItemsList,
+      };
 
-    // console.log("collection data : ", collection);
-    collectionData.push(collection);
+      collectionData.push(coll);
+    } else {
+      const formattedItemsList = createFormattedItemsList(
+        exDataCollection.items
+      );
+      const { filledIndexListPart1, filledIndexListPart2 } =
+        generateFilledIndexListParts([]);
+      const collection = {
+        filledIndexListPart1,
+        nftAddress: exDataCollection.nftAddress,
+        collectionType: 0,
+        itemsCount: exDataCollection.items.length,
+        filledCount: 0,
+        filledIndexListPart2,
+        platformFeePercentage: order.collection.protocol_fee_point,
+        royaltyFeePercentage: exDataCollection.royaltyFee,
+        royaltyFeeRecipient: exDataCollection.royaltyFeeRecipient,
+        // 아래서 index 구할 때 토큰 아이디랑 가격도 같이 해서 가져오면 됨
+        items: formattedItemsList,
+      };
+
+      // console.log("collection data : ", collection);
+      collectionData.push(collection);
+    }
   }
+
+  console.log("hehe", collectionData);
 
   const collectionBytes = encodeCollectionsToBytes(collectionData);
 

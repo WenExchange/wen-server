@@ -721,8 +721,8 @@ module.exports = {
       console.log("orders data");
       txData = createOrdersData(orderList, data.buyer).parameterData;
     }
-    console.log("orderData : ", txData);
-    console.log("txValue : ", txValue.toString());
+    // console.log("orderData : ", txData);
+    // console.log("txValue : ", txValue.toString());
 
     ctx.body = {
       data: {

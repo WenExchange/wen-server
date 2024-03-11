@@ -5,6 +5,8 @@ const web3 = new Web3();
 const SELECTOR_fillBatchSignedERC721Order = "0xa4d73041";
 const SELECTOR_fillBatchSignedERC721Orders = "0x149b8ce6";
 
+const ETH_ADDRESS = "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+
 function splitAddressToTakerParts(address) {
   const normalizedAddress = address.toLowerCase().replace("0x", "");
   const takerPart1 = normalizedAddress.slice(0, 16);
@@ -134,6 +136,8 @@ function encodeCollectionsToBytes(collections) {
 function createOrderData(orderList, taker) {
   // 하나의 batchSigned이기 때문에 같음.
   let order = orderList[0];
+
+  console.log("HERE!!! , ", order);
   let exData = JSON.parse(order.batch_signed_order.exchange_data);
   let encodedData1 = encodeData1(
     0,
@@ -151,13 +155,11 @@ function createOrderData(orderList, taker) {
     exData.paymentToken
   );
 
-  console.log("order!!! collection", order.collection);
   let encodedData3 = encodeData3(
     takerPart2,
     order.collection.protocol_fee_receiver
   );
 
-  console.log("ex data", exData);
   let collectionsItemIndexList = {};
   for (let order of orderList) {
     const { collectionContract, itemIndex, totalItemsCount, items } =
@@ -199,14 +201,12 @@ function createOrderData(orderList, taker) {
       order.collection.royalty_fee_receiver;
   }
 
-  console.log("collections Item Index List!!!");
-
   let collectionData = [];
   // 객체의 모든 키(key)를 순회하는 for...in 루프
   for (const key in collectionsItemIndexList) {
     const data = collectionsItemIndexList[key];
-
     const itemIndexList = collectionsItemIndexList[key].itemsIndex;
+
     const { filledIndexListPart1, filledIndexListPart2 } =
       generateFilledIndexListParts(itemIndexList);
 
@@ -258,8 +258,14 @@ function createOrderData(orderList, taker) {
 function createOrdersData(orderList, taker) {
   // GetSignedOrderObject
   // BatchSigned 별로 나누어야함.
+
+  let firstRoyaltyFeeReciepient;
+
   let orderBySigned = {};
   for (let order of orderList) {
+    if (!firstRoyaltyFeeReciepient) {
+      firstRoyaltyFeeReciepient = order.collection.royalty_fee_receiver;
+    }
     if (!orderBySigned[order.batch_signed_order.id]) {
       orderBySigned[order.batch_signed_order.id] = {
         orders: [],
@@ -272,30 +278,63 @@ function createOrdersData(orderList, taker) {
   for (const key in orderBySigned) {
     const _orderList = orderBySigned[key].orders;
     const paramData = createOrderData(_orderList, taker).data;
-    signedList.push({
-      data1: paramData.encodedData1,
-      data2: paramData.encodedData2,
-      data3: paramData.encodedData3,
-      r: paramData.r, // 실제 bytes32 값
-      s: paramData.s, // 실제 bytes32 값
-      collections: paramData.bytes, // 실제 bytes 데이터
-    });
+    signedList.push([
+      paramData.encodedData1,
+      paramData.encodedData2,
+      paramData.encodedData3,
+      paramData.r, // 실제 bytes32 값
+      paramData.s, // 실제 bytes32 값
+      paramData.bytes, // 실제 bytes 데이터
+    ]);
   }
 
-  const additional1 = "";
-  const additional2 = "";
+  const { additional1, additional2 } = createAdditionalValues(
+    "0",
+    ETH_ADDRESS,
+    "0",
+    firstRoyaltyFeeReciepient
+  );
 
-  createFillBatchSignedOrders({
+  const parameterData = createFillBatchSignedOrders({
     signedList,
     additional1,
     additional2,
   });
 
-  //   console.log("parameterData", parameterData);
+  console.log("parameterData", parameterData);
 
-  //   return { parameterData };
+  return { parameterData };
 }
 
+function createAdditionalValues(
+  withdrawETHAmountStr,
+  erc20TokenStr,
+  revertIfIncompleteStr,
+  royaltyFeeRecipientStr
+) {
+  // 스트링을 BigInt로 변환
+  const withdrawETHAmount = BigInt(withdrawETHAmountStr);
+  const erc20Token = BigInt(erc20TokenStr);
+  const revertIfIncomplete = BigInt(revertIfIncompleteStr);
+  const royaltyFeeRecipient = BigInt(royaltyFeeRecipientStr);
+
+  // Shift 값
+  const shift160Bits = BigInt(160);
+  const shift248Bits = BigInt(248); // revertIfIncomplete를 위한 shift 값
+
+  // additional1 생성
+  const additional1 = (withdrawETHAmount << shift160Bits) | erc20Token;
+
+  // additional2 생성
+  // 여기서 revertIfIncomplete는 가장 상위 8비트에 위치해야 하므로, 총 256비트 중에서 248비트를 shift합니다.
+  const additional2 =
+    (revertIfIncomplete << shift248Bits) | royaltyFeeRecipient;
+
+  return {
+    additional1: BigInt(additional1),
+    additional2: BigInt(additional2),
+  };
+}
 function findItemIndexInCollections(collectionsData, nftAddress, nftId) {
   // Loop through each collection in basicCollections
   for (let i = 0; i < collectionsData.basicCollections.length; i++) {
@@ -347,8 +386,8 @@ function generateFilledIndexListParts(indexList) {
 
   // 결과 반환
   return {
-    filledIndexListPart1: filledIndexListPart1.toUpperCase(),
-    filledIndexListPart2: filledIndexListPart2.toUpperCase(),
+    filledIndexListPart1: filledIndexListPart1,
+    filledIndexListPart2: filledIndexListPart2,
   };
 }
 
@@ -403,16 +442,14 @@ function createFillBatchSignedOrders(param) {
   ];
 
   const parametersValues = [
-    [param.signedList],
+    param.signedList,
     param.additional1, // additional1의 값
     param.additional2, // additional2의 값
   ];
 
-  const encodedData = web3.eth.abi.encodeParameters(
-    parametersTypes,
-    parametersValues
-  );
-  return SELECTOR_fillBatchSignedERC721Orders + encodedData.substring(2);
+  const data = web3.eth.abi.encodeParameters(parametersTypes, parametersValues);
+
+  return SELECTOR_fillBatchSignedERC721Orders + data.substring(2);
 }
 
 // console.log(
@@ -439,4 +476,5 @@ function createFillBatchSignedOrders(param) {
 
 module.exports = {
   createOrderData,
+  createOrdersData,
 };

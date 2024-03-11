@@ -1031,6 +1031,7 @@ export interface ApiFeaturedItemFeaturedItem extends Schema.CollectionType {
     singularName: 'featured-item';
     pluralName: 'featured-items';
     displayName: 'FeaturedItem';
+    description: '';
   };
   options: {
     draftAndPublish: false;
@@ -1046,6 +1047,7 @@ export interface ApiFeaturedItemFeaturedItem extends Schema.CollectionType {
     icon: Attribute.Media;
     banner: Attribute.Media;
     link: Attribute.String;
+    order: Attribute.Integer & Attribute.DefaultTo<100>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

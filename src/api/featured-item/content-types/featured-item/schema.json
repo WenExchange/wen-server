@@ -4,7 +4,8 @@
   "info": {
     "singularName": "featured-item",
     "pluralName": "featured-items",
-    "displayName": "FeaturedItem"
+    "displayName": "FeaturedItem",
+    "description": ""
   },
   "options": {
     "draftAndPublish": false
@@ -23,23 +24,29 @@
       "type": "string"
     },
     "icon": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
       "allowedTypes": [
         "images",
         "videos"
-      ],
-      "type": "media",
-      "multiple": false
+      ]
     },
     "banner": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
       "allowedTypes": [
         "images",
         "videos"
-      ],
-      "type": "media",
-      "multiple": false
+      ]
     },
     "link": {
       "type": "string"
+    },
+    "order": {
+      "type": "integer",
+      "default": 100
     }
   }
 }

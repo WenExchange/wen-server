@@ -788,9 +788,10 @@ export interface ApiBatchSignedOrderBatchSignedOrder
     singularName: 'batch-signed-order';
     pluralName: 'batch-signed-orders';
     displayName: 'BatchSignedOrder';
+    description: '';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     exchange_data: Attribute.Text;
@@ -806,7 +807,6 @@ export interface ApiBatchSignedOrderBatchSignedOrder
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
       'api::batch-signed-order.batch-signed-order',
       'oneToOne',
@@ -985,12 +985,13 @@ export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
     singularName: 'exchange-user';
     pluralName: 'exchange-users';
     displayName: 'ExchangeUser';
+    description: '';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
-    address: Attribute.String;
+    address: Attribute.String & Attribute.Unique;
     maker_nonce: Attribute.Integer & Attribute.DefaultTo<0>;
     hash_nonce: Attribute.Integer & Attribute.DefaultTo<0>;
     request_logs: Attribute.Relation<
@@ -1003,9 +1004,12 @@ export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
       'oneToMany',
       'api::batch-signed-order.batch-signed-order'
     >;
+    signature: Attribute.String;
+    username: Attribute.String;
+    icon_url: Attribute.String;
+    at_last_login: Attribute.DateTime;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
       'api::exchange-user.exchange-user',
       'oneToOne',

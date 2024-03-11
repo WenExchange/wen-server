@@ -4,10 +4,11 @@
   "info": {
     "singularName": "batch-signed-order",
     "pluralName": "batch-signed-orders",
-    "displayName": "BatchSignedOrder"
+    "displayName": "BatchSignedOrder",
+    "description": ""
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {

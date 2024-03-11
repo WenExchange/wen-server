@@ -4,15 +4,17 @@
   "info": {
     "singularName": "exchange-user",
     "pluralName": "exchange-users",
-    "displayName": "ExchangeUser"
+    "displayName": "ExchangeUser",
+    "description": ""
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
     "address": {
-      "type": "string"
+      "type": "string",
+      "unique": true
     },
     "maker_nonce": {
       "type": "integer",
@@ -33,6 +35,18 @@
       "relation": "oneToMany",
       "target": "api::batch-signed-order.batch-signed-order",
       "mappedBy": "exchange_user"
+    },
+    "signature": {
+      "type": "string"
+    },
+    "username": {
+      "type": "string"
+    },
+    "icon_url": {
+      "type": "string"
+    },
+    "at_last_login": {
+      "type": "datetime"
     }
   }
 }

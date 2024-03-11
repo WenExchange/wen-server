@@ -66,6 +66,11 @@
     },
     "listing_time": {
       "type": "string"
+    },
+    "standard": {
+      "type": "string",
+      "default": "wen-ex-v1",
+      "required": false
     }
   }
 }

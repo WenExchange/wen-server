@@ -1143,6 +1143,7 @@ export interface ApiOrderOrder extends Schema.CollectionType {
     taker: Attribute.String;
     expiration_time: Attribute.String;
     listing_time: Attribute.String;
+    standard: Attribute.String & Attribute.DefaultTo<'wen-ex-v1'>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

@@ -1,5 +1,7 @@
 "use strict";
 
+const { createOrderData, createOrdersData } = require("./dataEncoder");
+
 /**
  * A set of functions called "actions" for `sdk`
  */
@@ -19,6 +21,11 @@ const SALEKIND_BatchSignedERC721Order = 3;
 const SALEKIND_ContractOffer = 7;
 const ORDERSIDE_BUY = 0;
 const ORDERSIDE_SELL = 1;
+
+//From Wen
+const WEN_STANDARD = "wen-ex-v1";
+// TODO: NEED TO CHAGNE TO REAL ADDRESS
+const CONTRACT_ADDRESS_WEN_EX = "0xD75104c9C2aeC1594944c8F3a2858C62DEeaE91b";
 
 const SCHEMA_ERC721 = "ERC721";
 
@@ -41,7 +48,6 @@ module.exports = {
       const uuid = createUuidv4();
 
       // 1. 현재 maker 의 nonce 값을 가져온다.
-      // contractAddress 로 값을 찾아온다.
       const r = await strapi.entityService.findMany(
         "api::exchange-user.exchange-user",
         {
@@ -296,6 +302,7 @@ module.exports = {
                   side: ORDERSIDE_SELL,
                   listing_time: data.listingTime.toString(),
                   expiration_time: data.expirationTime.toString(),
+                  standard: WEN_STANDARD,
                 },
               });
 
@@ -511,7 +518,6 @@ module.exports = {
   },
 
   getOrdersList: async (ctx, next) => {
-    console.log(111);
     let {
       asset_contract_address,
       token_ids,
@@ -526,6 +532,14 @@ module.exports = {
       listed_after,
       page,
     } = ctx.request.query;
+
+    let tokenList;
+    if (token_ids) {
+      const parts = token_ids.split(",");
+      // 배열의 각 요소를 숫자로 변환
+      const numbers = parts.map(Number);
+      tokenList = numbers;
+    }
 
     if (asset_contract_address == null || asset_contract_address == undefined) {
       ctx.body = {
@@ -562,7 +576,8 @@ module.exports = {
         } else if (
           key === "chain" ||
           key === "order_by" ||
-          key === "direction"
+          key === "direction" ||
+          key === "token_ids"
         ) {
           // 이 경우에는 key 추가 x
         } else {
@@ -571,17 +586,35 @@ module.exports = {
         andQueryList.push(queryObject);
       }
     }
+    let orQueryList = [];
+    if (tokenList) {
+      for (let tokenId of tokenList) {
+        const queryObject = { token_id: tokenId };
+        orQueryList.push(queryObject);
+      }
+    }
 
+    console.log("orlist", orQueryList);
     //isValid = true 인 order만
     andQueryList.push({ is_valid: true });
     const order = {};
     order[order_by] = direction;
-    const r = await strapi.db.query("api::order.order").findPage({
-      where: { $and: andQueryList },
-      pageSize: DEFAULT_PAGE_SIZE,
-      page: page,
-      orderBy: [order],
-    });
+    let r;
+    if (orQueryList.length == 0) {
+      r = await strapi.db.query("api::order.order").findPage({
+        where: { $and: andQueryList },
+        pageSize: DEFAULT_PAGE_SIZE,
+        page: page,
+        orderBy: [order],
+      });
+    } else {
+      r = await strapi.db.query("api::order.order").findPage({
+        where: { $and: andQueryList, $or: orQueryList },
+        pageSize: DEFAULT_PAGE_SIZE,
+        page: page,
+        orderBy: [order],
+      });
+    }
 
     const results = r.results;
     const orderList = [];
@@ -594,7 +627,7 @@ module.exports = {
         // Asset schema
         schema: result.schema,
         // The order trading Standards.
-        // standard: Standard | string; DODO: schema
+        standard: result.standard,
         // The order maker's wallet address.
         maker: result.maker,
         // Listing time.
@@ -620,43 +653,86 @@ module.exports = {
       code: SUCCESS_RESPONSE,
     };
     return;
-    //return 해야하는 값의 느낌
-    // export interface OrderInformation {
-    //   // Asset contract address.
-    //   contractAddress: string;
-    //   // Asset token id
-    //   tokenId: string;
-    //   // Asset schema
-    //   schema: AssetSchema | string;
-    //   // The order trading Standards.
-    //   standard: Standard | string;
-    //   // The order maker's wallet address.
-    //   maker: string;
-    //   // Listing time.
-    //   listingTime: number | string;
-    //   // Expiration time.
-    //   expirationTime: number | string;
-    //   // Priced in paymentToken, and the unit is ether.
-    //   price: number | string;
-    //   // The contract address of the paymentToken.
-    //   paymentToken: string;
-    //   // Kind of sell order. 0 for fixed-price sales, and 3 for batchSignedERC721 sell order.
-    //   saleKind: SaleKind | number | string;
-    //   // Side of the order. 0 for buy order, and 1 for sell order.
-    //   side: OrderSide | number | string;
-    //   // Order hash.
-    //   orderHash?: string;
-    // }
-    // export interface Order extends OrderInformation {
-    //   // The asset quantity of order.
-    //   quantity: string;
-    //   // Priced in the native token(e.g. ETH), and the unit is ether.
-    //   priceBase: number;
-    //   // Priced in USD.
-    //   priceUSD: number;
-    //   // The order taker's wallet address
-    //   taker: string;
-    // }
+  },
+  encodeTradeDataByHash: async (ctx, next) => {
+    const data = ctx.request.body.data;
+    console.log("encode!!!!!! ", data);
+    const hashListWithNonce = [];
+    const orderList = [];
+
+    for (let order of data.hashList) {
+      hashListWithNonce.push(splitStringConditional(order.orderHash));
+    }
+
+    // 1. check if the sender is user
+    try {
+      checkIfUserExist(data.buyer);
+    } catch (error) {
+      ctx.body = {
+        code: ERROR_RESPONSE,
+        msg: `${data.buyer} doesn't exist on db`,
+      };
+      return;
+    }
+
+    // 2. get order data with orderHash
+    let txValue = BigInt(0);
+    for (let order of data.hashList) {
+      const r = await strapi.db.query("api::order.order").findOne({
+        where: {
+          order_hash: order.orderHash,
+        },
+        populate: {
+          batch_signed_order: true,
+          collection: true,
+        },
+      });
+      if (r == null) {
+        ctx.body = {
+          code: ERROR_RESPONSE,
+          msg: `order hash ${order.orderHash} doesn't exist on db`,
+        };
+        return;
+      } else {
+        orderList.push(r);
+        txValue += BigInt(r.price);
+      }
+    }
+    // check if this is FillBatchSignedOrder or FillBatchSignedOrders(from various Signined Order)
+    let isOrder = true;
+    let currentBatchSignedOrderId;
+    for (let order of orderList) {
+      if (currentBatchSignedOrderId) {
+        if (currentBatchSignedOrderId == order.batch_signed_order.id) {
+          currentBatchSignedOrderId = order.batch_signed_order.id;
+        } else {
+          isOrder = false;
+          break;
+        }
+      } else {
+        currentBatchSignedOrderId = order.batch_signed_order.id;
+      }
+    }
+
+    let txData;
+    if (isOrder) {
+      txData = createOrderData(orderList, data.buyer).parameterData;
+    } else {
+      txData = createOrdersData(orderList, data.buyer).parameterData;
+    }
+    console.log("orderData : ", txData);
+    console.log("txValue : ", txValue.toString());
+
+    ctx.body = {
+      data: {
+        to: CONTRACT_ADDRESS_WEN_EX,
+        value: txValue.toString(),
+        data: txData,
+      },
+      code: SUCCESS_RESPONSE,
+    };
+
+    return;
   },
 };
 
@@ -700,6 +776,19 @@ async function getTokenData(symbol) {
     },
   });
   return r;
+}
+
+async function checkIfUserExist(userAddress) {
+  const r = await strapi.db.query("api::exchange-user.exchange-user").findOne({
+    where: {
+      address: userAddress,
+    },
+  });
+
+  console.log(userAddress);
+  if (r == null) {
+    throw Error();
+  }
 }
 
 async function createRequestLog(uuid, type, data, userId) {
@@ -766,4 +855,23 @@ async function getNftPrice(order, tokenId, contractAddress) {
   }
 
   return { result: false, reason: "not found" };
+}
+
+function splitStringConditional(inputString) {
+  // '_'를 포함하는지 확인
+  if (inputString.includes("_")) {
+    // '_'를 기준으로 분리
+    const [data, numberPart] = inputString.split("_");
+    // 분리된 데이터와 숫자를 객체로 반환
+    return {
+      data,
+      number: parseInt(numberPart, 10), // 숫자로 변환
+    };
+  } else {
+    // '_'가 없는 경우 원래 문자열과 함께 null을 반환
+    return {
+      data: inputString,
+      number: null,
+    };
+  }
 }

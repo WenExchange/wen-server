@@ -666,7 +666,7 @@ module.exports = {
 
     // 1. check if the sender is user
     try {
-      checkIfUserExist(data.buyer);
+      checkIfUserExist(data.buyer.toLowerCase());
     } catch (error) {
       ctx.body = {
         code: ERROR_RESPONSE,
@@ -718,6 +718,7 @@ module.exports = {
     if (isOrder) {
       txData = createOrderData(orderList, data.buyer).parameterData;
     } else {
+      console.log("orders data");
       txData = createOrdersData(orderList, data.buyer).parameterData;
     }
     console.log("orderData : ", txData);

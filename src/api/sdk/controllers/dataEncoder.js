@@ -241,6 +241,15 @@ function createOrderData(orderList, taker) {
     bytes: collectionBytes,
   });
 
+  console.log("wtf!! ", {
+    encodedData1,
+    encodedData2,
+    encodedData3,
+    r: exData.r,
+    s: exData.s,
+    bytes: collectionBytes,
+  });
+
   return {
     parameterData,
     data: {

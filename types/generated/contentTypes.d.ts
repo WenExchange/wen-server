@@ -788,9 +788,10 @@ export interface ApiBatchSignedOrderBatchSignedOrder
     singularName: 'batch-signed-order';
     pluralName: 'batch-signed-orders';
     displayName: 'BatchSignedOrder';
+    description: '';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     exchange_data: Attribute.Text;
@@ -806,7 +807,6 @@ export interface ApiBatchSignedOrderBatchSignedOrder
     >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
       'api::batch-signed-order.batch-signed-order',
       'oneToOne',
@@ -985,12 +985,13 @@ export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
     singularName: 'exchange-user';
     pluralName: 'exchange-users';
     displayName: 'ExchangeUser';
+    description: '';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
-    address: Attribute.String;
+    address: Attribute.String & Attribute.Unique;
     maker_nonce: Attribute.Integer & Attribute.DefaultTo<0>;
     hash_nonce: Attribute.Integer & Attribute.DefaultTo<0>;
     request_logs: Attribute.Relation<
@@ -1003,9 +1004,12 @@ export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
       'oneToMany',
       'api::batch-signed-order.batch-signed-order'
     >;
+    signature: Attribute.String;
+    username: Attribute.String;
+    icon_url: Attribute.String;
+    at_last_login: Attribute.DateTime;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
       'api::exchange-user.exchange-user',
       'oneToOne',
@@ -1014,6 +1018,46 @@ export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::exchange-user.exchange-user',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiFeaturedItemFeaturedItem extends Schema.CollectionType {
+  collectionName: 'featured_items';
+  info: {
+    singularName: 'featured-item';
+    pluralName: 'featured-items';
+    displayName: 'FeaturedItem';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    collection: Attribute.Relation<
+      'api::featured-item.featured-item',
+      'oneToOne',
+      'api::collection.collection'
+    >;
+    name: Attribute.String;
+    description: Attribute.String;
+    icon: Attribute.Media;
+    banner: Attribute.Media;
+    link: Attribute.String;
+    order: Attribute.Integer & Attribute.DefaultTo<100>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::featured-item.featured-item',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::featured-item.featured-item',
       'oneToOne',
       'admin::user'
     > &
@@ -1259,6 +1303,7 @@ declare module '@strapi/types' {
       'api::collection-stat-log.collection-stat-log': ApiCollectionStatLogCollectionStatLog;
       'api::early-user.early-user': ApiEarlyUserEarlyUser;
       'api::exchange-user.exchange-user': ApiExchangeUserExchangeUser;
+      'api::featured-item.featured-item': ApiFeaturedItemFeaturedItem;
       'api::nft.nft': ApiNftNft;
       'api::nft-trade-log.nft-trade-log': ApiNftTradeLogNftTradeLog;
       'api::order.order': ApiOrderOrder;

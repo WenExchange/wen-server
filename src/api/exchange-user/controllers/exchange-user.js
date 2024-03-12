@@ -18,7 +18,7 @@ module.exports = createCoreController('api::exchange-user.exchange-user',({ stra
                     message
                   } = ctx.request.body.data;
                   const recoveredAddress = ethers.verifyMessage(message, signature);
-      
+    
       
                   if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
                       return ctx.body = {
@@ -59,7 +59,7 @@ const isoString = dayjs(currentTimestamp).toISOString();
 
 
 
-ctx.body = {
+ return ctx.body = {
                           success: true,
                           user
                       }                  

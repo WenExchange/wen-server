@@ -1,6 +1,7 @@
 "use strict";
 
 const { createOrderData, createOrdersData } = require("./dataEncoder");
+const { getNFTOwner } = require("./blockchainHelper");
 
 /**
  * A set of functions called "actions" for `sdk`
@@ -224,7 +225,48 @@ module.exports = {
           }
         }
       }
-      // 3. Get Total Item Count (Order Count)
+
+      // 3. Check if sender owns the NFT
+      if (data.basicCollections) {
+        for (let collection of data.basicCollections) {
+          for (let item of collection.items) {
+            {
+              let nftOwner = await getNFTOwner(
+                collection.nftAddress,
+                item.nftId
+              );
+              if (nftOwner.toLowerCase() != data.maker.toLowerCase()) {
+                ctx.body = {
+                  code: ERROR_RESPONSE,
+                  msg: `${data.maker} is not owner of ${collection.nftAddress} item id ${item.nftId}`,
+                };
+                return;
+              }
+            }
+          }
+        }
+      }
+      if (data.collections) {
+        for (let collection of data.collections) {
+          for (let item of collection.items) {
+            {
+              let nftOwner = await getNFTOwner(
+                collection.nftAddress,
+                item.nftId
+              );
+              if (nftOwner.toLowerCase() != data.maker.toLowerCase()) {
+                ctx.body = {
+                  code: ERROR_RESPONSE,
+                  msg: `${data.maker} is not owner of ${collection.nftAddress} item id ${item.nftId}`,
+                };
+                return;
+              }
+            }
+          }
+        }
+      }
+
+      // 4. Get Total Item Count (Order Count)
       let totalItemCount = 0;
       if (data.basicCollections) {
         for (let item of data.basicCollections) {
@@ -331,6 +373,8 @@ module.exports = {
               mItem = item;
               let orderUuid = createUuidv4();
               console.log("item price : ", item.erc20TokenAmount);
+
+              //query existing orders and update to new order
 
               await strapi.entityService.create("api::order.order", {
                 data: {

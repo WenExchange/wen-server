@@ -115,6 +115,12 @@
     "volume_total": {
       "type": "float",
       "default": 0
+    },
+    "orders": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::order.order",
+      "mappedBy": "collection"
     }
   }
 }

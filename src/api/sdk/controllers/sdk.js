@@ -1,5 +1,8 @@
 "use strict";
 
+const { createOrderData, createOrdersData } = require("./dataEncoder");
+const { getNFTOwner } = require("./blockchainHelper");
+
 /**
  * A set of functions called "actions" for `sdk`
  */
@@ -7,15 +10,36 @@
 const SUCCESS_RESPONSE = 0;
 const ERROR_RESPONSE = 1234;
 
+// GENERAL
+
+const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
+const DEFAULT_PAGE_SIZE = 40;
+
+//From SDK
+const SIGNATURE_TYPE_EIP712 = 0;
+const SIGNATURE_TYPE_PRESIGNED = 1;
+const SALEKIND_BatchSignedERC721Order = 3;
+const SALEKIND_ContractOffer = 7;
+const ORDERSIDE_BUY = 0;
+const ORDERSIDE_SELL = 1;
+
+//From Wen
+const WEN_STANDARD = "wen-ex-v1";
+// TODO: NEED TO CHAGNE TO REAL ADDRESS
+const CONTRACT_ADDRESS_WEN_EX = "0xD75104c9C2aeC1594944c8F3a2858C62DEeaE91b";
+
+const SCHEMA_ERC721 = "ERC721";
+
 //Request Log Type
 const UPDATE_MAKER_NONCE = "UPDATE_MAKER_NONCE";
-
+const POST_BATCH = "POST_BATCH";
+const GET_BATCH_SIGNED_ORDERS = "GET_BATCH_SIGNED_ORDERS";
 function createUuidv4() {
   let uuid = crypto.randomUUID();
   return uuid;
 }
 
-https: module.exports = {
+module.exports = {
   getOrdersNonce: async (ctx, next) => {
     try {
       const { maker, schema, count } = ctx.request.query;
@@ -25,7 +49,6 @@ https: module.exports = {
       const uuid = createUuidv4();
 
       // 1. 현재 maker 의 nonce 값을 가져온다.
-      // contractAddress 로 값을 찾아온다.
       const r = await strapi.entityService.findMany(
         "api::exchange-user.exchange-user",
         {
@@ -50,15 +73,15 @@ https: module.exports = {
           }
         );
         // 3. request log 를 찍는다.
-        await strapi.entityService.create("api::request-log.request-log", {
-          data: {
-            request_uuid: uuid,
-            type: UPDATE_MAKER_NONCE,
+        await createRequestLog(
+          uuid,
+          UPDATE_MAKER_NONCE,
+          {
             original_nonce: makerNonce,
             new_nonce: makerNonce + parseInt(count),
-            exchange_user: r[0].id,
           },
-        });
+          r[0].id
+        );
       } else {
         ctx.body = {
           code: ERROR_RESPONSE,
@@ -129,42 +152,632 @@ https: module.exports = {
   postOrderBatch: async (ctx, next) => {
     try {
       // ctx.body = "ok";
-      console.log(ctx.request.body.data.basicCollections[0].items[0]);
-      const data = ctx.request.body.data.basicCollections.items;
+      // console.log(ctx.request.body.data);
+      const data = ctx.request.body.data;
 
-      //   exchange: string;
-      // maker: string;
-      // listingTime: number;
-      // expirationTime: number;
-      // startNonce: number;
-      // paymentToken: string;
-      // platformFeeRecipient: string;
-      // basicCollections: Collection[];
-      // collections: Collection[];
-      // hashNonce: string;
-      // chain: string;
+      // 1. check if the user exist.
+      // contractAddress 로 값을 찾아온다.
+      const r = await strapi.entityService.findMany(
+        "api::exchange-user.exchange-user",
+        {
+          filters: {
+            address: {
+              $eq: data.maker,
+            },
+          },
+        }
+      );
+      console.log(r[0].address);
+      if (r.length != 1) {
+        ctx.body = {
+          code: ERROR_RESPONSE,
+          msg: `address ${data.maker} doesn't exist on db`,
+        };
+        return;
+      }
 
-      // //signed
-      // v: number;
-      // r: string;
-      // s: string;
-      // hash: string;
+      /// 2. check if all the collection in the list exist
+      let collectionIdMap = new Map();
+      if (data.basicCollections) {
+        for (let item of data.basicCollections) {
+          const r = await strapi.entityService.findMany(
+            "api::collection.collection",
+            {
+              filters: {
+                contract_address: {
+                  $eq: item.nftAddress,
+                },
+              },
+            }
+          );
+          if (r.length != 1) {
+            ctx.body = {
+              code: ERROR_RESPONSE,
+              msg: `contract ${item.nftAddress} doesn't exist on collection table`,
+            };
+            return;
+          } else {
+            collectionIdMap[item.nftAddress] = r[0].id;
+          }
+        }
+      }
 
-      // //collection
-      // nftAddress: string;
-      // platformFee: number;
-      // royaltyFeeRecipient: string;
-      // royaltyFee: number;
-      // items: OrderItem[];
+      if (data.collections) {
+        for (let item of data.collections) {
+          const r = await strapi.entityService.findMany(
+            "api::collection.collection",
+            {
+              filters: {
+                contract_address: {
+                  $eq: item.nftAddress,
+                },
+              },
+            }
+          );
+          if (r.length != 1) {
+            ctx.body = {
+              code: ERROR_RESPONSE,
+              msg: `contract ${item.nftAddress} doesn't exist on collection table`,
+            };
+            return;
+          } else {
+            collectionIdMap[item.nftAddress] = r[0].id;
+          }
+        }
+      }
 
-      // //orderItem
-      // erc20TokenAmount: string;
-      // nftId: string;
+      // 3. Check if sender owns the NFT
+      if (data.basicCollections) {
+        for (let collection of data.basicCollections) {
+          for (let item of collection.items) {
+            {
+              let nftOwner = await getNFTOwner(
+                collection.nftAddress,
+                item.nftId
+              );
+              if (nftOwner.toLowerCase() != data.maker.toLowerCase()) {
+                ctx.body = {
+                  code: ERROR_RESPONSE,
+                  msg: `${data.maker} is not owner of ${collection.nftAddress} item id ${item.nftId}`,
+                };
+                return;
+              }
+            }
+          }
+        }
+      }
+      if (data.collections) {
+        for (let collection of data.collections) {
+          for (let item of collection.items) {
+            {
+              let nftOwner = await getNFTOwner(
+                collection.nftAddress,
+                item.nftId
+              );
+              if (nftOwner.toLowerCase() != data.maker.toLowerCase()) {
+                ctx.body = {
+                  code: ERROR_RESPONSE,
+                  msg: `${data.maker} is not owner of ${collection.nftAddress} item id ${item.nftId}`,
+                };
+                return;
+              }
+            }
+          }
+        }
+      }
 
+      // 4. Get Total Item Count (Order Count)
+      let totalItemCount = 0;
+      if (data.basicCollections) {
+        for (let item of data.basicCollections) {
+          totalItemCount += item.items.length;
+        }
+      }
+
+      if (data.collections) {
+        for (let item of data.collections) {
+          totalItemCount += item.items.length;
+        }
+      }
+
+      const exchangeDataObject = {
+        basicCollections: data.basicCollections,
+        collections: data.collections,
+        startNonce: data.startNonce,
+        nonce: data.startNonce + totalItemCount - 1,
+        hashNonce: data.hashNonce,
+        platformFeeRecipient: data.platformFeeRecipient,
+        v: data.v,
+        r: data.r,
+        s: data.s,
+        listingTime: data.listingTime,
+        expirationTime: data.expirationTime,
+        maker: data.maker,
+        hash: data.hash,
+        paymentToken: data.paymentToken,
+        signatureType: SIGNATURE_TYPE_EIP712,
+      };
+
+      console.log(
+        "exchangeDataObject , :",
+        exchangeDataObject.basicCollections[0]
+      );
+
+      // 3. Upload batch signed order
+      const batchSignedOrder = await strapi.entityService.create(
+        "api::batch-signed-order.batch-signed-order",
+        {
+          data: {
+            exchange_data: JSON.stringify(exchangeDataObject),
+            exchange_user: r[0].id,
+          },
+        }
+      );
+      const successList = [];
+      const failList = [];
+
+      let orderIndex = data.startNonce;
+      let mCollection;
+      let mItem;
+      if (data.basicCollections) {
+        try {
+          for (let collection of data.basicCollections) {
+            mCollection = collection;
+            for (let item of collection.items) {
+              mItem = item;
+              let orderUuid = createUuidv4();
+              console.log("item price : ", item.erc20TokenAmount);
+
+              await strapi.entityService.create("api::order.order", {
+                data: {
+                  order_id: orderUuid,
+                  batch_signed_order: batchSignedOrder.id,
+                  schema: SCHEMA_ERC721,
+                  price: item.erc20TokenAmount,
+                  token_id: item.nftId,
+                  quantity: 1, //TODO : ERC1155 지원하려면 바뀌어야함.
+                  order_hash: data.hash + "_" + orderIndex++,
+                  collection: collectionIdMap[collection.nftAddress],
+                  contract_address: collection.nftAddress,
+                  sale_kind: SALEKIND_BatchSignedERC721Order,
+                  maker: r[0].address,
+                  side: ORDERSIDE_SELL,
+                  listing_time: data.listingTime.toString(),
+                  expiration_time: data.expirationTime.toString(),
+                  standard: WEN_STANDARD,
+                },
+              });
+
+              successList.push({
+                assetContract: collection.nftAddress,
+                assetTokenId: item.nftId,
+                orderId: orderUuid,
+              });
+            }
+          }
+        } catch (error) {
+          console.log(error);
+          failList.push({
+            assetContract: mCollection.nftAddress,
+            assetTokenId: mItem.nftId,
+          });
+        }
+      }
+
+      if (data.collections) {
+        // TODO : Collections 와 BasicCollections 의 구분을 만들어야하지 않을까?
+        try {
+          for (let collection of data.collections) {
+            mCollection = collection;
+            for (let item of collection.items) {
+              mItem = item;
+              let orderUuid = createUuidv4();
+              console.log("item price : ", item.erc20TokenAmount);
+
+              //query existing orders and update to new order
+
+              await strapi.entityService.create("api::order.order", {
+                data: {
+                  order_id: orderUuid,
+                  batch_signed_order: batchSignedOrder.id,
+                  schema: SCHEMA_ERC721,
+                  price: item.erc20TokenAmount,
+                  token_id: item.nftId,
+                  quantity: 1, //TODO : ERC1155 지원하려면 바뀌어야함.
+                  order_hash: data.hash + "_" + orderIndex++,
+                  collection: collectionIdMap[collection.nftAddress],
+                  contract_address: collection.nftAddress,
+                  sale_kind: SALEKIND_BatchSignedERC721Order,
+                  maker: r[0].address,
+                  side: ORDERSIDE_SELL,
+                  listing_time: data.listingTime.toString(),
+                  expiration_time: data.expirationTime.toString(),
+                },
+              });
+
+              successList.push({
+                assetContract: collection.nftAddress,
+                assetTokenId: item.nftId,
+                orderId: orderUuid,
+              });
+            }
+          }
+        } catch (error) {
+          failList.push({
+            assetContract: mCollection.nftAddress,
+            assetTokenId: mItem.nftId,
+          });
+        }
+      }
+
+      // 5. create Log
+      const requestUuid = createUuidv4();
+      await createRequestLog(
+        requestUuid,
+        POST_BATCH,
+        { successList, failList },
+        r[0].id
+      );
+
+      ctx.body = {
+        data: { successList, failList },
+        code: SUCCESS_RESPONSE,
+      };
       return;
     } catch (err) {
-      ctx.body = err;
+      ctx.body = {
+        code: ERROR_RESPONSE,
+        msg: err.msg,
+      };
+      return;
     }
+  },
+  getBatchSignedOrders: async (ctx, next) => {
+    try {
+      const data = ctx.request.body.data;
+      console.log(data);
+
+      // 1. check if the user exist.
+      const userData = await strapi.entityService.findMany(
+        "api::exchange-user.exchange-user",
+        {
+          filters: {
+            address: {
+              $eq: data.buyer,
+            },
+          },
+        }
+      );
+      if (userData.length != 1) {
+        ctx.body = {
+          code: ERROR_RESPONSE,
+          msg: `address ${data.buyerr} doesn't exist on db`,
+        };
+        return;
+      }
+
+      /// 2. check if all the collection in the list exist
+      let collectionIdMap = new Map();
+      if (data) {
+        for (let item of data.data) {
+          const r = await strapi.entityService.findMany(
+            "api::collection.collection",
+            {
+              filters: {
+                contract_address: {
+                  $eq: item.contractAddress,
+                },
+              },
+            }
+          );
+          if (r.length != 1) {
+            ctx.body = {
+              code: ERROR_RESPONSE,
+              msg: `contract ${item.contractAddress} doesn't exist on collection table`,
+            };
+            return;
+          } else {
+            collectionIdMap[item.contractAddress] = r[0].id;
+          }
+        }
+      }
+
+      /// 3. get token data
+      // TODO change to wenETH
+      const token = await getTokenData("eth");
+
+      /// 4. get response data
+      let commonData = [];
+      for (let item of data.data) {
+        if (item.callFuncName == "buyERC721Ex") {
+          const r = await strapi.db.query("api::order.order").findMany({
+            where: {
+              token_id: item.tokenId,
+              collection: collectionIdMap[item.contractAddress],
+              is_valid: true,
+            },
+            orderBy: { createdAt: "DESC" }, // 가장최근 Data TODO
+            populate: { collection: true, batch_signed_order: true },
+          });
+          if (r.length === 0) {
+            ctx.body = {
+              code: ERROR_RESPONSE,
+              msg: `No order for ${item.contractAddress} token_id : ${item.tokenId}`,
+            };
+            return;
+          }
+          const orderObj = JSON.parse(r[0].batch_signed_order.exchange_data);
+          const validationResult = await _validateOrder(orderObj);
+
+          if (!validationResult.result) {
+            ctx.body = {
+              code: ERROR_RESPONSE,
+              msg: `validation failed : reason ${validationResult.reason} order id : ${r[0].order_id}`,
+            };
+            return;
+          }
+
+          // 5. get NFT Price
+          const NFTPrice = await getNftPrice(
+            orderObj,
+            item.tokenId,
+            item.contractAddress.toLowerCase()
+          );
+          // If validation result is true add data.
+          commonData.push({
+            contractAddress: item.contractAddress,
+            tokenId: item.tokenId,
+            orderHash: r[0].batch_signed_order.order_hash,
+            quantity: 1, // TODO ERC 1155
+            tokenContract: token,
+            schema: SCHEMA_ERC721,
+            buyer: data.buyer,
+            toAddress: orderObj.maker,
+            exchangeData: r[0].batch_signed_order.exchange_data,
+            price: NFTPrice.price,
+          });
+        }
+      }
+      const requestUuid = createUuidv4();
+      await createRequestLog(
+        requestUuid,
+        GET_BATCH_SIGNED_ORDERS,
+        {},
+        userData[0].id
+      );
+      ctx.body = {
+        code: SUCCESS_RESPONSE,
+        data: { commonData: commonData },
+        requestUuid: requestUuid,
+      };
+      return;
+    } catch (error) {
+      console.log(error);
+      ctx.body = {
+        code: ERROR_RESPONSE,
+        msg: error.msg,
+      };
+      return;
+    }
+  },
+
+  getOrdersList: async (ctx, next) => {
+    let {
+      asset_contract_address,
+      token_ids,
+      sale_kind,
+      side,
+      maker,
+      taker,
+      payment_token,
+      order_by,
+      direction,
+      listed_before,
+      listed_after,
+      page,
+    } = ctx.request.query;
+
+    let tokenList;
+    if (token_ids) {
+      const parts = token_ids.split(",");
+      // 배열의 각 요소를 숫자로 변환
+      const numbers = parts.map(Number);
+      tokenList = numbers;
+    }
+
+    if (asset_contract_address == null || asset_contract_address == undefined) {
+      ctx.body = {
+        code: ERROR_RESPONSE,
+        msg: `asset_contract_address is not defined in query.`,
+      };
+      return;
+    }
+
+    if (page == null || page == undefined) {
+      page = 1;
+    }
+    if (order_by == null || order_by == undefined) {
+      order_by = "price";
+    }
+
+    if (direction == null || direction == undefined) {
+      direction = "desc";
+    }
+    //query list
+    let andQueryList = [];
+
+    // query 객체의 각 속성에 대해 루프
+    for (const [key, value] of Object.entries(ctx.request.query)) {
+      if (value !== null && value !== undefined) {
+        // 해당 속성이 비어있지 않다면 배열에 추가
+        const queryObject = {};
+        if (key === "asset_contract_address") {
+          queryObject["contract_address"] = value;
+        } else if (key === "listed_before") {
+          queryObject["createdAt"] = { $lt: value };
+        } else if (key === "listed_after") {
+          queryObject["createdAt"] = { $gt: value };
+        } else if (
+          key === "chain" ||
+          key === "order_by" ||
+          key === "direction" ||
+          key === "token_ids"
+        ) {
+          // 이 경우에는 key 추가 x
+        } else {
+          queryObject[key] = value;
+        }
+        andQueryList.push(queryObject);
+      }
+    }
+    let orQueryList = [];
+    if (tokenList) {
+      for (let tokenId of tokenList) {
+        const queryObject = { token_id: tokenId };
+        orQueryList.push(queryObject);
+      }
+    }
+
+    console.log("orlist", orQueryList);
+    //isValid = true 인 order만
+    andQueryList.push({ is_valid: true });
+    const order = {};
+    order[order_by] = direction;
+    let r;
+    if (orQueryList.length == 0) {
+      r = await strapi.db.query("api::order.order").findPage({
+        where: { $and: andQueryList },
+        pageSize: DEFAULT_PAGE_SIZE,
+        page: page,
+        orderBy: [order],
+      });
+    } else {
+      r = await strapi.db.query("api::order.order").findPage({
+        where: { $and: andQueryList, $or: orQueryList },
+        pageSize: DEFAULT_PAGE_SIZE,
+        page: page,
+        orderBy: [order],
+      });
+    }
+
+    const results = r.results;
+    const orderList = [];
+
+    for (let result of results) {
+      orderList.push({
+        contractAddress: result.contract_address,
+        // Asset token id
+        tokenId: result.token_id,
+        // Asset schema
+        schema: result.schema,
+        // The order trading Standards.
+        standard: result.standard,
+        // The order maker's wallet address.
+        maker: result.maker,
+        // Listing time.
+        listingTime: result.listing_time,
+        // Expiration time.
+        expirationTime: result.expiration_time,
+        // Priced in paymentToken, and the unit is wei.
+        price: result.price,
+        // The contract address of the paymentToken.
+        paymentToken: ETH_ADDRESS,
+        // Kind of sell order. 0 for fixed-price sales, and 3 for batchSignedERC721 sell order.
+        saleKind: result.sale_kind,
+        // Side of the order. 0 for buy order, and 1 for sell order.
+        side: result.side,
+        // Order hash.
+        orderHash: result.order_hash,
+      });
+    }
+
+    ctx.body = {
+      data: { orders: orderList },
+      pagination: r.pagination,
+      code: SUCCESS_RESPONSE,
+    };
+    return;
+  },
+  encodeTradeDataByHash: async (ctx, next) => {
+    const data = ctx.request.body.data;
+    console.log("encode!!!!!! ", data);
+    const hashListWithNonce = [];
+    const orderList = [];
+
+    for (let order of data.hashList) {
+      hashListWithNonce.push(splitStringConditional(order.orderHash));
+    }
+
+    // 1. check if the sender is user
+    try {
+      checkIfUserExist(data.buyer.toLowerCase());
+    } catch (error) {
+      ctx.body = {
+        code: ERROR_RESPONSE,
+        msg: `${data.buyer} doesn't exist on db`,
+      };
+      return;
+    }
+
+    // 2. get order data with orderHash
+    let txValue = BigInt(0);
+    for (let order of data.hashList) {
+      const r = await strapi.db.query("api::order.order").findOne({
+        where: {
+          order_hash: order.orderHash,
+        },
+        populate: {
+          batch_signed_order: true,
+          collection: true,
+        },
+      });
+      if (r == null) {
+        ctx.body = {
+          code: ERROR_RESPONSE,
+          msg: `order hash ${order.orderHash} doesn't exist on db`,
+        };
+        return;
+      } else {
+        orderList.push(r);
+        txValue += BigInt(r.price);
+      }
+    }
+    // check if this is FillBatchSignedOrder or FillBatchSignedOrders(from various Signined Order)
+    let isOrder = true;
+    let currentBatchSignedOrderId;
+    for (let order of orderList) {
+      if (currentBatchSignedOrderId) {
+        if (currentBatchSignedOrderId == order.batch_signed_order.id) {
+          currentBatchSignedOrderId = order.batch_signed_order.id;
+        } else {
+          isOrder = false;
+          break;
+        }
+      } else {
+        currentBatchSignedOrderId = order.batch_signed_order.id;
+      }
+    }
+
+    let txData;
+    if (isOrder) {
+      txData = createOrderData(orderList, data.buyer).parameterData;
+    } else {
+      console.log("orders data");
+      txData = createOrdersData(orderList, data.buyer).parameterData;
+    }
+    // console.log("orderData : ", txData);
+    // console.log("txValue : ", txValue.toString());
+
+    ctx.body = {
+      data: {
+        to: CONTRACT_ADDRESS_WEN_EX,
+        value: txValue.toString(),
+        data: txData,
+      },
+      code: SUCCESS_RESPONSE,
+    };
+
+    return;
   },
 };
 
@@ -200,3 +813,110 @@ https: module.exports = {
 //   s: '0x7a9aba21cb08285249ec00199bdc2553539b1dfb4c1a2c9f949aa8cd5932060e',
 //   hash: '0x6b64b86c6a4524d8ba22ffab1b05178045fe5d6367ea791faf00f027a309a646'
 // }
+
+async function getTokenData(symbol) {
+  const r = await strapi.db.query("api::token.token").findOne({
+    where: {
+      symbol: symbol,
+    },
+  });
+  return r;
+}
+
+async function checkIfUserExist(userAddress) {
+  const r = await strapi.db.query("api::exchange-user.exchange-user").findOne({
+    where: {
+      address: userAddress,
+    },
+  });
+
+  console.log(userAddress);
+  if (r == null) {
+    throw Error();
+  }
+}
+
+async function createRequestLog(uuid, type, data, userId) {
+  // 3. request log 를 찍는다.
+  const r = await strapi.entityService.create("api::request-log.request-log", {
+    data: {
+      request_uuid: uuid,
+      type: type,
+      data: JSON.stringify(data),
+      exchange_user: userId,
+    },
+  });
+
+  return r;
+}
+
+async function _validateOrder(order) {
+  // console.log("order! ", order);
+  // 1. Listing Time < currentTime < expirationTime
+  const now = Math.floor(new Date().getTime() / 1000);
+  const isTimeValid = now > order.listingTime && now < order.expirationTime;
+  if (!isTimeValid) {
+    return { result: false, reason: "time is invalid" };
+  }
+
+  return { result: true };
+
+  // 2. If the maker is still owner of the item
+  //TODO: 여기서 확인을 해야하는 건지 확실하지 않음
+}
+
+async function getNftPrice(order, tokenId, contractAddress) {
+  const basicCollections = order.basicCollections;
+  const collections = order.collections;
+
+  if (basicCollections) {
+    for (let collection of basicCollections) {
+      if (collection.nftAddress === contractAddress) {
+        for (let item of collection.items) {
+          if (item.nftId === tokenId) {
+            return { result: true, price: item.erc20TokenAmount };
+          } else {
+            console.log("nono", item.nftId);
+          }
+        }
+      } else {
+        console.log("11", collection.nftAddress, contractAddress);
+      }
+    }
+  } else {
+    console.log("131");
+  }
+
+  if (collections) {
+    for (let collection of collections) {
+      if (collection.nftAddress === contractAddress) {
+        for (let item of collection.items) {
+          if (item.nftId === tokenId) {
+            return { result: true, price: item.erc20TokenAmount };
+          }
+        }
+      }
+    }
+  }
+
+  return { result: false, reason: "not found" };
+}
+
+function splitStringConditional(inputString) {
+  // '_'를 포함하는지 확인
+  if (inputString.includes("_")) {
+    // '_'를 기준으로 분리
+    const [data, numberPart] = inputString.split("_");
+    // 분리된 데이터와 숫자를 객체로 반환
+    return {
+      data,
+      number: parseInt(numberPart, 10), // 숫자로 변환
+    };
+  } else {
+    // '_'가 없는 경우 원래 문자열과 함께 null을 반환
+    return {
+      data: inputString,
+      number: null,
+    };
+  }
+}

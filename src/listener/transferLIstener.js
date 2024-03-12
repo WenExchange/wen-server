@@ -8,6 +8,15 @@ const wenExContractAddress = "0xD75104c9C2aeC1594944c8F3a2858C62DEeaE91b";
 const SELECTOR_fillBatchSignedERC721Order = "0xa4d73041";
 const SELECTOR_fillBatchSignedERC721Orders = "0x149b8ce6";
 
+const LOG_TYPE_SALE = "SALE";
+const LOG_TYPE_TRANSFER = "TRANSFER";
+const LOG_TYPE_LISTING = "LISTING";
+const LOG_TYPE_OFFER = "OFFER";
+const LOG_TYPE_COLLECTION_OFFER = "COLLECTION_OFFER";
+const LOG_TYPE_CANCEL_LISTING = "CANCEL_LISTING";
+const LOG_TYPE_CANCEL_OFFER = "CANCEL_OFFER";
+
+//TODO: update myCollections
 const myCollections = [
   "0xC4d5966E0C4f37762414D03F165E7CbF2DC247FD",
   "0x89F2ce18C98594303378940a83625f91C3Acded3",
@@ -29,17 +38,17 @@ async function createTransferListener() {
       const transferTo = `0x${log.topics[2].slice(-40)}`;
       const tokenId = BigInt(log.topics[3]);
 
-      console.log(
-        "nft address : ",
-        log.address,
-        "from : ",
-        `0x${log.topics[1].slice(-40)}`,
-        "to : ",
-        `0x${log.topics[2].slice(-40)}`,
-        "token id : ",
-        BigInt(log.topics[3]),
-        log
-      );
+      //   console.log(
+      //     "nft address : ",
+      //     log.address,
+      //     "from : ",
+      //     `0x${log.topics[1].slice(-40)}`,
+      //     "to : ",
+      //     `0x${log.topics[2].slice(-40)}`,
+      //     "token id : ",
+      //     BigInt(log.topics[3]),
+      //     log
+      //   );
 
       // 1. Get NFT
       const nftData = await strapi.db.query("api::nft.nft").findOne({
@@ -52,13 +61,12 @@ async function createTransferListener() {
         },
       });
 
-
       // 2. Get Transaction details
 
       const txReceipt = await jsonRpcProvider.getTransaction(
         log.transactionHash
       );
-      console.log(txReceipt);
+      //   console.log(txReceipt);
 
       let deletingOrder;
       // 2. If Previous Owner listed on WEN ( = If it has sell-order)
@@ -82,20 +90,59 @@ async function createTransferListener() {
       if (txReceipt.to == wenExContractAddress) {
         // 3-1. If it's from Wen Exchange, set Last price
         if (
+          // TODO: 1155, collection offer 를 받아서 파는 경우에도 고려를 해줘야함
           txReceipt.data.includes(SELECTOR_fillBatchSignedERC721Order) ||
           txReceipt.data.includes(SELECTOR_fillBatchSignedERC721Orders)
         ) {
           if (deletingOrder) {
+            // 1. ORDER 를 삭제
             await strapi.entityService.update("api::nft.nft", nftData.id, {
               data: {
                 last_sale_price: deletingOrder.price,
               },
             });
+            // 2. NFT TradeLog에 추가
+            await strapi.entityService.create(
+              "api::nft-trade-log.nft-trade-log",
+              {
+                data: {
+                  type: LOG_TYPE_SALE,
+                  price: deletingOrder.price,
+                  from: transferFrom,
+                  to: transferTo,
+                  nft: nftData.id,
+                  tx_hash: log.transactionHash,
+                },
+              }
+            );
+          } else {
+            await strapi.entityService.create(
+              "api::nft-trade-log.nft-trade-log",
+              {
+                data: {
+                  type: LOG_TYPE_TRANSFER,
+                  from: transferFrom,
+                  to: transferTo,
+                  nft: nftData.id,
+                  tx_hash: log.transactionHash,
+                },
+              }
+            );
           }
         }
       } else {
         // 3-2. If it's not from Wen Exchange, don't set Last price
         // add element and mintify
+
+        await strapi.entityService.create("api::nft-trade-log.nft-trade-log", {
+          data: {
+            type: LOG_TYPE_TRANSFER,
+            from: transferFrom,
+            to: transferTo,
+            nft: nftData.id,
+            tx_hash: log.transactionHash,
+          },
+        });
       }
 
       // 4. 공통
@@ -106,9 +153,8 @@ async function createTransferListener() {
           owner: transferTo,
         },
       });
-      // 4-2. History를 변경 추가(Sale, Transfer)
     } catch (error) {
-      console.log("error");
+      console.log("error", error);
     }
   });
 }

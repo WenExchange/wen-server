@@ -1,7 +1,7 @@
 "use strict";
 
 const { createOrderData, createOrdersData } = require("./dataEncoder.js");
-const { getNFTOwner } = require("./blockchainHelper.js");
+const { getNFTOwner, recoverAddress } = require("./blockchainHelper.js");
 
 /**
  * A set of functions called "actions" for `sdk`
@@ -151,8 +151,6 @@ module.exports = {
   },
   postOrderBatch: async (ctx, next) => {
     try {
-      // ctx.body = "ok";
-      // console.log(ctx.request.body.data);
       const data = ctx.request.body.data;
 
       // 1. check if the user exist.
@@ -341,7 +339,7 @@ module.exports = {
                 };
                 return;
               }
-
+              let orderNonce = orderIndex++;
               const order = await strapi.entityService.create(
                 "api::order.order",
                 {
@@ -352,7 +350,8 @@ module.exports = {
                     price: item.erc20TokenAmount,
                     token_id: item.nftId,
                     quantity: 1, //TODO : ERC1155 지원하려면 바뀌어야함.
-                    order_hash: data.hash + "_" + orderIndex++,
+                    order_hash: data.hash + "_" + orderNonce,
+                    nonce: orderNonce,
                     collection: collectionIdMap[collection.nftAddress],
                     contract_address: collection.nftAddress,
                     sale_kind: SALEKIND_BatchSignedERC721Order,
@@ -419,6 +418,7 @@ module.exports = {
 
               //query existing orders and update to new order
 
+              let orderNonce = orderIndex++;
               const order = await strapi.entityService.create(
                 "api::order.order",
                 {
@@ -429,7 +429,8 @@ module.exports = {
                     price: item.erc20TokenAmount,
                     token_id: item.nftId,
                     quantity: 1, //TODO : ERC1155 지원하려면 바뀌어야함.
-                    order_hash: data.hash + "_" + orderIndex++,
+                    order_hash: data.hash + "_" + orderNonce,
+                    nonce: orderNonce,
                     collection: collectionIdMap[collection.nftAddress],
                     contract_address: collection.nftAddress,
                     sale_kind: SALEKIND_BatchSignedERC721Order,

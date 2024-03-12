@@ -76,6 +76,9 @@
       "relation": "manyToOne",
       "target": "api::nft.nft",
       "inversedBy": "orders"
+    },
+    "nonce": {
+      "type": "biginteger"
     }
   }
 }

@@ -1081,11 +1081,9 @@ export interface ApiNftNft extends Schema.CollectionType {
     token_id: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
     rarity_score: Attribute.Float & Attribute.DefaultTo<0>;
     rarity_rank: Attribute.Integer;
-    price: Attribute.Float;
-    last_sale_price: Attribute.Float;
+    last_sale_price: Attribute.BigInteger;
     owner: Attribute.String;
     top_offer_price: Attribute.Float;
-    expired_at: Attribute.DateTime;
     traits: Attribute.JSON;
     orders: Attribute.Relation<'api::nft.nft', 'oneToMany', 'api::order.order'>;
     sell_order: Attribute.Relation<
@@ -1184,6 +1182,7 @@ export interface ApiOrderOrder extends Schema.CollectionType {
     listing_time: Attribute.String;
     standard: Attribute.String & Attribute.DefaultTo<'wen-ex-v1'>;
     nft: Attribute.Relation<'api::order.order', 'manyToOne', 'api::nft.nft'>;
+    nonce: Attribute.BigInteger;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

@@ -40,20 +40,14 @@
     "rarity_rank": {
       "type": "integer"
     },
-    "price": {
-      "type": "float"
-    },
     "last_sale_price": {
-      "type": "float"
+      "type": "biginteger"
     },
     "owner": {
       "type": "string"
     },
     "top_offer_price": {
       "type": "float"
-    },
-    "expired_at": {
-      "type": "datetime"
     },
     "traits": {
       "type": "json"

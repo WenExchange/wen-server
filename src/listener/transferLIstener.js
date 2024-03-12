@@ -4,6 +4,9 @@ const jsonRpcProvider = new ethers.JsonRpcProvider(
   // "https://rpc.ankr.com/blast/c657bef90ad95db61eef20ff757471d11b8de5482613002038a6bf9d8bb84494" // mainnet
   "https://rpc.ankr.com/blast_testnet_sepolia/c657bef90ad95db61eef20ff757471d11b8de5482613002038a6bf9d8bb84494" // testnet
 );
+const wenExContractAddress = "0xD75104c9C2aeC1594944c8F3a2858C62DEeaE91b";
+const SELECTOR_fillBatchSignedERC721Order = "0xa4d73041";
+const SELECTOR_fillBatchSignedERC721Orders = "0x149b8ce6";
 
 const myCollections = [
   "0xC4d5966E0C4f37762414D03F165E7CbF2DC247FD",
@@ -22,6 +25,10 @@ async function createTransferListener() {
     try {
       if (!myCollections.includes(log.address)) return;
 
+      const transferFrom = `0x${log.topics[1].slice(-40)}`;
+      const transferTo = `0x${log.topics[2].slice(-40)}`;
+      const tokenId = BigInt(log.topics[3]);
+
       console.log(
         "nft address : ",
         log.address,
@@ -37,32 +44,69 @@ async function createTransferListener() {
       // 1. Get NFT
       const nftData = await strapi.db.query("api::nft.nft").findOne({
         where: {
-          token_id: BigInt(log.topics[3]).toString(),
+          token_id: tokenId.toString(),
           collection: { contract_address: log.address },
         },
+        populate: {
+          sell_order: true,
+        },
       });
+
 
       // 2. Get Transaction details
 
       const txReceipt = await jsonRpcProvider.getTransaction(
         log.transactionHash
       );
-      console.log(txReceipt.toString());
+      console.log(txReceipt);
 
+      let deletingOrder;
       // 2. If Previous Owner listed on WEN ( = If it has sell-order)
-      // order를 삭제
+      //   order를 삭제
+      if (
+        transferFrom == nftData.owner &&
+        transferFrom != transferTo &&
+        nftData.sell_order != null
+      ) {
+        // 옛날에 owner 였는데 더이상 NFT 를 소유하고 있지 않은 경우
+        // order를 삭제
+        deletingOrder = await strapi.entityService.delete(
+          "api::order.order",
+          nftData.sell_order.id
+        );
+      } else {
+        console.log("check if nftData exist, nftData.sell_order exist");
+      }
 
       // 3. Check where the transfer from
-
-      // 3-1. If it's from Wen Exchange, set Last price
-
-      // 3-2. If it's not from Wen Exchange, don't set Last price
+      if (txReceipt.to == wenExContractAddress) {
+        // 3-1. If it's from Wen Exchange, set Last price
+        if (
+          txReceipt.data.includes(SELECTOR_fillBatchSignedERC721Order) ||
+          txReceipt.data.includes(SELECTOR_fillBatchSignedERC721Orders)
+        ) {
+          if (deletingOrder) {
+            await strapi.entityService.update("api::nft.nft", nftData.id, {
+              data: {
+                last_sale_price: deletingOrder.price,
+              },
+            });
+          }
+        }
+      } else {
+        // 3-2. If it's not from Wen Exchange, don't set Last price
+        // add element and mintify
+      }
 
       // 4. 공통
       // 4-1. Owner 를 변경
+      // if the SELL order, update the sell_order of the NFT
+      await strapi.entityService.update("api::nft.nft", nftData.id, {
+        data: {
+          owner: transferTo,
+        },
+      });
       // 4-2. History를 변경 추가(Sale, Transfer)
-
-      // 3. If Owner
     } catch (error) {
       console.log("error");
     }

@@ -1112,11 +1112,6 @@ export interface ApiNftTradeLogNftTradeLog extends Schema.CollectionType {
     draftAndPublish: false;
   };
   attributes: {
-    collection: Attribute.Relation<
-      'api::nft-trade-log.nft-trade-log',
-      'oneToOne',
-      'api::collection.collection'
-    >;
     type: Attribute.String & Attribute.Required;
     from: Attribute.String & Attribute.Required;
     to: Attribute.String;
@@ -1127,6 +1122,7 @@ export interface ApiNftTradeLogNftTradeLog extends Schema.CollectionType {
       'oneToOne',
       'api::nft.nft'
     >;
+    tx_hash: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

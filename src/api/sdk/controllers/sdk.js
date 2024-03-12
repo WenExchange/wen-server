@@ -425,6 +425,7 @@ module.exports = {
       };
       return;
     } catch (err) {
+      console.log(err);
       ctx.body = {
         code: ERROR_RESPONSE,
         msg: err.msg,

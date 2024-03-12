@@ -227,6 +227,7 @@ function createOrderData(orderList, taker) {
         // 아래서 index 구할 때 토큰 아이디랑 가격도 같이 해서 가져오면 됨
         items: formattedItemsList,
       };
+      console.log("collection data 22  : ", collection, exDataCollection);
 
       collectionData.push(coll);
     } else {
@@ -249,7 +250,7 @@ function createOrderData(orderList, taker) {
         items: formattedItemsList,
       };
 
-      // console.log("collection data : ", collection);
+      console.log("collection data 11  : ", collection, exDataCollection);
       collectionData.push(collection);
     }
   }

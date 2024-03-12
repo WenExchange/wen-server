@@ -33,12 +33,6 @@
       "default": 0,
       "required": true
     },
-    "nft_trade_logs": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::nft-trade-log.nft-trade-log",
-      "mappedBy": "nft"
-    },
     "rarity_score": {
       "type": "float",
       "default": 0

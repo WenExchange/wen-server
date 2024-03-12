@@ -12,12 +12,6 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "nft": {
-      "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::nft.nft",
-      "inversedBy": "nft_trade_logs"
-    },
     "collection": {
       "type": "relation",
       "relation": "oneToOne",
@@ -39,6 +33,11 @@
     },
     "expired_at": {
       "type": "datetime"
+    },
+    "nft": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::nft.nft"
     }
   }
 }

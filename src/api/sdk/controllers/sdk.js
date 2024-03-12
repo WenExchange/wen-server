@@ -342,26 +342,40 @@ module.exports = {
                 return;
               }
 
-              await strapi.entityService.create("api::order.order", {
-                data: {
-                  order_id: orderUuid,
-                  batch_signed_order: batchSignedOrder.id,
-                  schema: SCHEMA_ERC721,
-                  price: item.erc20TokenAmount,
-                  token_id: item.nftId,
-                  quantity: 1, //TODO : ERC1155 지원하려면 바뀌어야함.
-                  order_hash: data.hash + "_" + orderIndex++,
-                  collection: collectionIdMap[collection.nftAddress],
-                  contract_address: collection.nftAddress,
-                  sale_kind: SALEKIND_BatchSignedERC721Order,
-                  maker: r[0].address,
-                  side: ORDERSIDE_SELL,
-                  listing_time: data.listingTime.toString(),
-                  expiration_time: data.expirationTime.toString(),
-                  standard: WEN_STANDARD,
-                  nft: nftData.id,
-                },
-              });
+              const order = await strapi.entityService.create(
+                "api::order.order",
+                {
+                  data: {
+                    order_id: orderUuid,
+                    batch_signed_order: batchSignedOrder.id,
+                    schema: SCHEMA_ERC721,
+                    price: item.erc20TokenAmount,
+                    token_id: item.nftId,
+                    quantity: 1, //TODO : ERC1155 지원하려면 바뀌어야함.
+                    order_hash: data.hash + "_" + orderIndex++,
+                    collection: collectionIdMap[collection.nftAddress],
+                    contract_address: collection.nftAddress,
+                    sale_kind: SALEKIND_BatchSignedERC721Order,
+                    maker: r[0].address,
+                    side: ORDERSIDE_SELL,
+                    listing_time: data.listingTime.toString(),
+                    expiration_time: data.expirationTime.toString(),
+                    standard: WEN_STANDARD,
+                    nft: nftData.id,
+                  },
+                }
+              );
+
+              // if the SELL order, update the sell_order of the NFT
+              const entry = await strapi.entityService.update(
+                "api::nft.nft",
+                nftData.id,
+                {
+                  data: {
+                    sell_order: order.id,
+                  },
+                }
+              );
 
               successList.push({
                 assetContract: collection.nftAddress,
@@ -405,26 +419,40 @@ module.exports = {
 
               //query existing orders and update to new order
 
-              await strapi.entityService.create("api::order.order", {
-                data: {
-                  order_id: orderUuid,
-                  batch_signed_order: batchSignedOrder.id,
-                  schema: SCHEMA_ERC721,
-                  price: item.erc20TokenAmount,
-                  token_id: item.nftId,
-                  quantity: 1, //TODO : ERC1155 지원하려면 바뀌어야함.
-                  order_hash: data.hash + "_" + orderIndex++,
-                  collection: collectionIdMap[collection.nftAddress],
-                  contract_address: collection.nftAddress,
-                  sale_kind: SALEKIND_BatchSignedERC721Order,
-                  maker: r[0].address,
-                  side: ORDERSIDE_SELL,
-                  listing_time: data.listingTime.toString(),
-                  expiration_time: data.expirationTime.toString(),
-                  standard: WEN_STANDARD,
-                  nft: nftData.id,
-                },
-              });
+              const order = await strapi.entityService.create(
+                "api::order.order",
+                {
+                  data: {
+                    order_id: orderUuid,
+                    batch_signed_order: batchSignedOrder.id,
+                    schema: SCHEMA_ERC721,
+                    price: item.erc20TokenAmount,
+                    token_id: item.nftId,
+                    quantity: 1, //TODO : ERC1155 지원하려면 바뀌어야함.
+                    order_hash: data.hash + "_" + orderIndex++,
+                    collection: collectionIdMap[collection.nftAddress],
+                    contract_address: collection.nftAddress,
+                    sale_kind: SALEKIND_BatchSignedERC721Order,
+                    maker: r[0].address,
+                    side: ORDERSIDE_SELL,
+                    listing_time: data.listingTime.toString(),
+                    expiration_time: data.expirationTime.toString(),
+                    standard: WEN_STANDARD,
+                    nft: nftData.id,
+                  },
+                }
+              );
+
+              // if the SELL order, update the sell_order of the NFT
+              const entry = await strapi.entityService.update(
+                "api::nft.nft",
+                nftData.id,
+                {
+                  data: {
+                    sell_order: order.id,
+                  },
+                }
+              );
 
               successList.push({
                 assetContract: collection.nftAddress,

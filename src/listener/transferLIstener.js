@@ -17,7 +17,7 @@ async function createTransferListener() {
   };
 
   jsonRpcProvider.removeAllListeners();
-  jsonRpcProvider.on(filter, (log, _) => {
+  jsonRpcProvider.on(filter, async (log, _) => {
     // // exit early if it's not our NFT
     try {
       if (!myCollections.includes(log.address)) return;
@@ -30,10 +30,39 @@ async function createTransferListener() {
         "to : ",
         `0x${log.topics[2].slice(-40)}`,
         "token id : ",
-        BigInt(log.topics[3])
+        BigInt(log.topics[3]),
+        log
       );
 
-      //   console.log("LOG!!!!!!", log);
+      // 1. Get NFT
+      const nftData = await strapi.db.query("api::nft.nft").findOne({
+        where: {
+          token_id: BigInt(log.topics[3]).toString(),
+          collection: { contract_address: log.address },
+        },
+      });
+
+      // 2. Get Transaction details
+
+      const txReceipt = await jsonRpcProvider.getTransaction(
+        log.transactionHash
+      );
+      console.log(txReceipt.toString());
+
+      // 2. If Previous Owner listed on WEN ( = If it has sell-order)
+      // order를 삭제
+
+      // 3. Check where the transfer from
+
+      // 3-1. If it's from Wen Exchange, set Last price
+
+      // 3-2. If it's not from Wen Exchange, don't set Last price
+
+      // 4. 공통
+      // 4-1. Owner 를 변경
+      // 4-2. History를 변경 추가(Sale, Transfer)
+
+      // 3. If Owner
     } catch (error) {
       console.log("error");
     }

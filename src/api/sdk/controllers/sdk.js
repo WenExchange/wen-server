@@ -1,7 +1,7 @@
 "use strict";
 
-const { createOrderData, createOrdersData } = require("./dataEncoder");
-const { getNFTOwner } = require("./blockchainHelper");
+const { createOrderData, createOrdersData } = require("./dataEncoder.js");
+const { getNFTOwner } = require("./blockchainHelper.js");
 
 /**
  * A set of functions called "actions" for `sdk`

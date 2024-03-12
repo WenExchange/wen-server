@@ -37,7 +37,7 @@ module.exports = {
       },
     },
     {
-      method: "GET", // But If you query nonce, order nonces goes up.
+      method: "GET",
       path: "/sdk/orders/list",
       handler: "sdk.getOrdersList",
       config: {

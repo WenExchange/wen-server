@@ -1160,7 +1160,7 @@ export interface ApiOrderOrder extends Schema.CollectionType {
     description: '';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     order_id: Attribute.String;
@@ -1190,7 +1190,6 @@ export interface ApiOrderOrder extends Schema.CollectionType {
     standard: Attribute.String & Attribute.DefaultTo<'wen-ex-v1'>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
       'api::order.order',
       'oneToOne',
@@ -1215,7 +1214,7 @@ export interface ApiRequestLogRequestLog extends Schema.CollectionType {
     description: '';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     request_uuid: Attribute.String & Attribute.Required;
@@ -1229,7 +1228,6 @@ export interface ApiRequestLogRequestLog extends Schema.CollectionType {
     new_nonce: Attribute.Integer;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
       'api::request-log.request-log',
       'oneToOne',

@@ -1079,11 +1079,6 @@ export interface ApiNftNft extends Schema.CollectionType {
     name: Attribute.String & Attribute.Required;
     image_url: Attribute.String & Attribute.Required;
     token_id: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
-    nft_trade_logs: Attribute.Relation<
-      'api::nft.nft',
-      'oneToMany',
-      'api::nft-trade-log.nft-trade-log'
-    >;
     rarity_score: Attribute.Float & Attribute.DefaultTo<0>;
     rarity_rank: Attribute.Integer;
     price: Attribute.Float;
@@ -1119,11 +1114,6 @@ export interface ApiNftTradeLogNftTradeLog extends Schema.CollectionType {
     draftAndPublish: false;
   };
   attributes: {
-    nft: Attribute.Relation<
-      'api::nft-trade-log.nft-trade-log',
-      'manyToOne',
-      'api::nft.nft'
-    >;
     collection: Attribute.Relation<
       'api::nft-trade-log.nft-trade-log',
       'oneToOne',
@@ -1134,6 +1124,11 @@ export interface ApiNftTradeLogNftTradeLog extends Schema.CollectionType {
     to: Attribute.String;
     price: Attribute.Float;
     expired_at: Attribute.DateTime;
+    nft: Attribute.Relation<
+      'api::nft-trade-log.nft-trade-log',
+      'oneToOne',
+      'api::nft.nft'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

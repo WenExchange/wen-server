@@ -867,6 +867,11 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     protocol_fee_receiver: Attribute.String;
     protocol_fee_point: Attribute.Integer & Attribute.DefaultTo<0>;
     volume_total: Attribute.Float & Attribute.DefaultTo<0>;
+    orders: Attribute.Relation<
+      'api::collection.collection',
+      'oneToMany',
+      'api::order.order'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1079,6 +1084,11 @@ export interface ApiNftNft extends Schema.CollectionType {
     name: Attribute.String & Attribute.Required;
     image_url: Attribute.String & Attribute.Required;
     token_id: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
+    nft_trade_logs: Attribute.Relation<
+      'api::nft.nft',
+      'oneToMany',
+      'api::nft-trade-log.nft-trade-log'
+    >;
     rarity_score: Attribute.Float & Attribute.DefaultTo<0>;
     rarity_rank: Attribute.Integer;
     price: Attribute.Float;
@@ -1114,6 +1124,11 @@ export interface ApiNftTradeLogNftTradeLog extends Schema.CollectionType {
     draftAndPublish: false;
   };
   attributes: {
+    nft: Attribute.Relation<
+      'api::nft-trade-log.nft-trade-log',
+      'manyToOne',
+      'api::nft.nft'
+    >;
     collection: Attribute.Relation<
       'api::nft-trade-log.nft-trade-log',
       'oneToOne',
@@ -1124,11 +1139,6 @@ export interface ApiNftTradeLogNftTradeLog extends Schema.CollectionType {
     to: Attribute.String;
     price: Attribute.Float;
     expired_at: Attribute.DateTime;
-    nft: Attribute.Relation<
-      'api::nft-trade-log.nft-trade-log',
-      'oneToOne',
-      'api::nft.nft'
-    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1171,7 +1181,7 @@ export interface ApiOrderOrder extends Schema.CollectionType {
     order_hash: Attribute.String;
     collection: Attribute.Relation<
       'api::order.order',
-      'oneToOne',
+      'manyToOne',
       'api::collection.collection'
     >;
     is_valid: Attribute.Boolean & Attribute.DefaultTo<true>;

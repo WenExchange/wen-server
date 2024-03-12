@@ -326,7 +326,21 @@ module.exports = {
             for (let item of collection.items) {
               mItem = item;
               let orderUuid = createUuidv4();
-              console.log("item price : ", item.erc20TokenAmount);
+              // query if the NFT exist
+              const nftData = await strapi.db.query("api::nft.nft").findOne({
+                where: {
+                  token_id: item.nftId,
+                  collection: { contract_address: collection.nftAddress },
+                },
+              });
+
+              if (nftData == null || nftData == undefined) {
+                ctx.body = {
+                  code: ERROR_RESPONSE,
+                  msg: `${collection.nftAddress} item id ${item.nftId} doesn't exist on DB`,
+                };
+                return;
+              }
 
               await strapi.entityService.create("api::order.order", {
                 data: {
@@ -345,6 +359,7 @@ module.exports = {
                   listing_time: data.listingTime.toString(),
                   expiration_time: data.expirationTime.toString(),
                   standard: WEN_STANDARD,
+                  nft: nftData.id,
                 },
               });
 
@@ -372,7 +387,21 @@ module.exports = {
             for (let item of collection.items) {
               mItem = item;
               let orderUuid = createUuidv4();
-              console.log("item price : ", item.erc20TokenAmount);
+
+              const nftData = await strapi.db.query("api::nft.nft").findOne({
+                where: {
+                  token_id: item.nftId,
+                  collection: { contract_address: collection.nftAddress },
+                },
+              });
+
+              if (nftData == null || nftData == undefined) {
+                ctx.body = {
+                  code: ERROR_RESPONSE,
+                  msg: `${collection.nftAddress} item id ${item.nftId} doesn't exist on DB`,
+                };
+                return;
+              }
 
               //query existing orders and update to new order
 
@@ -392,6 +421,8 @@ module.exports = {
                   side: ORDERSIDE_SELL,
                   listing_time: data.listingTime.toString(),
                   expiration_time: data.expirationTime.toString(),
+                  standard: WEN_STANDARD,
+                  nft: nftData.id,
                 },
               });
 

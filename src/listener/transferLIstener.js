@@ -1,6 +1,4 @@
 const ethers = require("ethers");
-const IERC721 = require("./IERC721.js");
-
 //TODO: change it to mainnet
 const jsonRpcProvider = new ethers.JsonRpcProvider(
   // "https://rpc.ankr.com/blast/c657bef90ad95db61eef20ff757471d11b8de5482613002038a6bf9d8bb84494" // mainnet
@@ -12,35 +10,34 @@ const myCollections = [
   "0x89F2ce18C98594303378940a83625f91C3Acded3",
   "0xec1c6ebb2EDEf02422BBBcAa3fb9b39363B9D47D",
 ];
-async function getNFTOwner() {
+async function createTransferListener() {
+  console.log("it's on");
   let filter = {
     topics: [ethers.id("Transfer(address,address,uint256)")], //from, to, tokenId
   };
 
+  jsonRpcProvider.removeAllListeners();
   jsonRpcProvider.on(filter, (log, _) => {
     // // exit early if it's not our NFT
-    if (!myCollections.includes(log.address)) return;
-    // const newNft: NFTCreateInput = {
-    //   address: log.address,
-    //   owner: logToAddress(log.topics[2]),
-    //   uri: "MOCKDATA",
-    //   id: parseInt(log.topics[3]),
-    // };
-    console.log(
-      "nft address : ",
-      log.address,
-      "from : ",
-      log.topics[0],
-      "to : ",
-      log.topics[1],
-      "token id : ",
-      log.topics[2]
-    );
+    try {
+      if (!myCollections.includes(log.address)) return;
 
-    console.log("LOG!!!!!!", log);
+      console.log(
+        "nft address : ",
+        log.address,
+        "from : ",
+        `0x${log.topics[1].slice(-40)}`,
+        "to : ",
+        `0x${log.topics[2].slice(-40)}`,
+        "token id : ",
+        BigInt(log.topics[3])
+      );
 
-    //this pushes a new nft to mongodb
-    // return this.nftsService.createOrUpdateNft(newNft);
+      //   console.log("LOG!!!!!!", log);
+    } catch (error) {
+      console.log("error");
+    }
   });
 }
-getNFTOwner();
+
+module.exports = { createTransferListener };

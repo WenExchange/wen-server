@@ -1,0 +1,71 @@
+// LOG!!!!!! Log {
+//   provider: JsonRpcProvider {},
+//   transactionHash: '0x6d4d3a518c50ec9eb75b3d06277a2b0614aa31b953c199b0997d5428fa48b226',
+//   blockHash: '0x1045e1e1ce0fc8396625b861e1598b6f3df665ba0625132006ba9abc5480d799',
+//   blockNumber: 2772479,
+//   removed: false,
+//   address: '0xC4d5966E0C4f37762414D03F165E7CbF2DC247FD',
+//   data: '0x',
+//   topics: [
+//     '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+//     '0x000000000000000000000000e0c78c90e25165cf8707ece8664916d1ea0b7994',
+//     '0x000000000000000000000000b4752134bfacf63a918df8fabe65abf00cffff00',
+//     '0x0000000000000000000000000000000000000000000000000000000000000000'
+//   ],
+//   index: 0,
+//   transactionIndex: 1
+// }
+// nft address :  0xec1c6ebb2EDEf02422BBBcAa3fb9b39363B9D47D from :  0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef to :  0x000000000000000000000000e0c78c90e25165cf8707ece8664916d1ea0b7994 token id :  0x000000000000000000000000b4752134bfacf63a918df8fabe65abf00cffff00
+// LOG!!!!!! Log {
+//   provider: JsonRpcProvider {},
+//   transactionHash: '0x6d4d3a518c50ec9eb75b3d06277a2b0614aa31b953c199b0997d5428fa48b226',
+//   blockHash: '0x1045e1e1ce0fc8396625b861e1598b6f3df665ba0625132006ba9abc5480d799',
+//   blockNumber: 2772479,
+//   removed: false,
+//   address: '0xec1c6ebb2EDEf02422BBBcAa3fb9b39363B9D47D',
+//   data: '0x',
+//   topics: [
+//     '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+//     '0x000000000000000000000000e0c78c90e25165cf8707ece8664916d1ea0b7994',
+//     '0x000000000000000000000000b4752134bfacf63a918df8fabe65abf00cffff00',
+//     '0x0000000000000000000000000000000000000000000000000000000000000000'
+//   ],
+//   index: 2,
+//   transactionIndex: 1
+// }
+// nft address :  0xC4d5966E0C4f37762414D03F165E7CbF2DC247FD from :  0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef to :  0x000000000000000000000000e0c78c90e25165cf8707ece8664916d1ea0b7994 token id :  0x000000000000000000000000b4752134bfacf63a918df8fabe65abf00cffff00
+// LOG!!!!!! Log {
+//   provider: JsonRpcProvider {},
+//   transactionHash: '0x6d4d3a518c50ec9eb75b3d06277a2b0614aa31b953c199b0997d5428fa48b226',
+//   blockHash: '0x1045e1e1ce0fc8396625b861e1598b6f3df665ba0625132006ba9abc5480d799',
+//   blockNumber: 2772479,
+//   removed: false,
+//   address: '0xC4d5966E0C4f37762414D03F165E7CbF2DC247FD',
+//   data: '0x',
+//   topics: [
+//     '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+//     '0x000000000000000000000000e0c78c90e25165cf8707ece8664916d1ea0b7994',
+//     '0x000000000000000000000000b4752134bfacf63a918df8fabe65abf00cffff00',
+//     '0x0000000000000000000000000000000000000000000000000000000000000000'
+//   ],
+//   index: 0,
+//   transactionIndex: 1
+// }
+// nft address :  0xec1c6ebb2EDEf02422BBBcAa3fb9b39363B9D47D from :  0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef to :  0x000000000000000000000000e0c78c90e25165cf8707ece8664916d1ea0b7994 token id :  0x000000000000000000000000b4752134bfacf63a918df8fabe65abf00cffff00
+// LOG!!!!!! Log {
+//   provider: JsonRpcProvider {},
+//   transactionHash: '0x6d4d3a518c50ec9eb75b3d06277a2b0614aa31b953c199b0997d5428fa48b226',
+//   blockHash: '0x1045e1e1ce0fc8396625b861e1598b6f3df665ba0625132006ba9abc5480d799',
+//   blockNumber: 2772479,
+//   removed: false,
+//   address: '0xec1c6ebb2EDEf02422BBBcAa3fb9b39363B9D47D',
+//   data: '0x',
+//   topics: [
+//     '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+//     '0x000000000000000000000000e0c78c90e25165cf8707ece8664916d1ea0b7994',
+//     '0x000000000000000000000000b4752134bfacf63a918df8fabe65abf00cffff00',
+//     '0x0000000000000000000000000000000000000000000000000000000000000000'
+//   ],
+//   index: 2,
+//   transactionIndex: 1
+// }

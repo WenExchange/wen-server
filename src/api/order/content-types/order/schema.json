@@ -71,6 +71,12 @@
       "type": "string",
       "default": "wen-ex-v1",
       "required": false
+    },
+    "nft": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::nft.nft",
+      "inversedBy": "orders"
     }
   }
 }

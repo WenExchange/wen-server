@@ -63,6 +63,17 @@
     },
     "traits": {
       "type": "json"
+    },
+    "orders": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::order.order",
+      "mappedBy": "nft"
+    },
+    "sell_order": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::order.order"
     }
   }
 }

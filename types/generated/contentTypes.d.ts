@@ -1097,6 +1097,12 @@ export interface ApiNftNft extends Schema.CollectionType {
     top_offer_price: Attribute.Float;
     expired_at: Attribute.DateTime;
     traits: Attribute.JSON;
+    orders: Attribute.Relation<'api::nft.nft', 'oneToMany', 'api::order.order'>;
+    sell_order: Attribute.Relation<
+      'api::nft.nft',
+      'oneToOne',
+      'api::order.order'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<'api::nft.nft', 'oneToOne', 'admin::user'> &
@@ -1187,6 +1193,7 @@ export interface ApiOrderOrder extends Schema.CollectionType {
     expiration_time: Attribute.String;
     listing_time: Attribute.String;
     standard: Attribute.String & Attribute.DefaultTo<'wen-ex-v1'>;
+    nft: Attribute.Relation<'api::order.order', 'manyToOne', 'api::nft.nft'>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

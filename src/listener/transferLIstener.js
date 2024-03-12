@@ -37,9 +37,6 @@ async function createTransferListener() {
     } catch (error) {
       console.log("error");
     }
-
-    //this pushes a new nft to mongodb
-    // return this.nftsService.createOrUpdateNft(newNft);
   });
 }
 

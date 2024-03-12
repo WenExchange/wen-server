@@ -1,7 +1,7 @@
 "use strict";
 
 const { createOrderData, createOrdersData } = require("./dataEncoder.js");
-const { getNFTOwner, recoverAddress } = require("./blockchainHelper.js");
+const { getNFTOwner } = require("./blockchainHelper.js");
 
 /**
  * A set of functions called "actions" for `sdk`
@@ -27,6 +27,13 @@ const ORDERSIDE_SELL = 1;
 const WEN_STANDARD = "wen-ex-v1";
 // TODO: NEED TO CHAGNE TO REAL ADDRESS
 const CONTRACT_ADDRESS_WEN_EX = "0xD75104c9C2aeC1594944c8F3a2858C62DEeaE91b";
+const LOG_TYPE_SALE = "SALE";
+const LOG_TYPE_TRANSFER = "TRANSFER";
+const LOG_TYPE_LISTING = "LISTING";
+const LOG_TYPE_OFFER = "OFFER";
+const LOG_TYPE_COLLECTION_OFFER = "COLLECTION_OFFER";
+const LOG_TYPE_CANCEL_LISTING = "CANCEL_LISTING";
+const LOG_TYPE_CANCEL_OFFER = "CANCEL_OFFER";
 
 const SCHEMA_ERC721 = "ERC721";
 

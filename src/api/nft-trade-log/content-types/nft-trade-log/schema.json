@@ -12,11 +12,6 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "collection": {
-      "type": "relation",
-      "relation": "oneToOne",
-      "target": "api::collection.collection"
-    },
     "type": {
       "type": "string",
       "required": true
@@ -38,6 +33,9 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::nft.nft"
+    },
+    "tx_hash": {
+      "type": "string"
     }
   }
 }

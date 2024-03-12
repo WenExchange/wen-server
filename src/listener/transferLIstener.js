@@ -72,8 +72,8 @@ async function createTransferListener() {
       // 2. If Previous Owner listed on WEN ( = If it has sell-order)
       //   order를 삭제
       if (
-        transferFrom == nftData.owner &&
-        transferFrom != transferTo &&
+        transferFrom.toLowerCase() == nftData.owner.toLowerCase() &&
+        transferFrom.toLowerCase() != transferTo.toLowerCase() &&
         nftData.sell_order != null
       ) {
         // 옛날에 owner 였는데 더이상 NFT 를 소유하고 있지 않은 경우
@@ -115,6 +115,7 @@ async function createTransferListener() {
                 },
               }
             );
+            console.log("SALE ADDED HERE  Hash : ", log.transactionHash);
           } else {
             await strapi.entityService.create(
               "api::nft-trade-log.nft-trade-log",
@@ -128,6 +129,7 @@ async function createTransferListener() {
                 },
               }
             );
+            console.log("TRANSFER ADDED HERE 1 Hash : ", log.transactionHash);
           }
         }
       } else {
@@ -143,6 +145,7 @@ async function createTransferListener() {
             tx_hash: log.transactionHash,
           },
         });
+        console.log("TRANSFER ADDED HERE 2 Hash : ", log.transactionHash);
       }
 
       // 4. 공통

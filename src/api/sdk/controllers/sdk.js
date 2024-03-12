@@ -156,6 +156,8 @@ module.exports = {
       ctx.body = err;
     }
   },
+
+  // TODO: 이 함수는 sell order만 처리
   postOrderBatch: async (ctx, next) => {
     try {
       const data = ctx.request.body.data;
@@ -331,14 +333,16 @@ module.exports = {
             for (let item of collection.items) {
               mItem = item;
               let orderUuid = createUuidv4();
-              // query if the NFT exist
+              // 1. query if the NFT exist
               const nftData = await strapi.db.query("api::nft.nft").findOne({
                 where: {
                   token_id: item.nftId,
                   collection: { contract_address: collection.nftAddress },
                 },
+                populate: {
+                  sell_order: true,
+                },
               });
-
               if (nftData == null || nftData == undefined) {
                 ctx.body = {
                   code: ERROR_RESPONSE,
@@ -346,6 +350,27 @@ module.exports = {
                 };
                 return;
               }
+
+              // // 2. If there is already a sell order, user should cancel the NFT first.
+              // if (
+              //   nftData.sell_order != null ||
+              //   nftData.sell_order != undefined
+              // ) {
+              //   if (nftData.sell_order.expiration_time > Date.now()) {
+              //     // If it's expired, delete order
+              //     // Delete Order
+              //     await strapi.entityService.delete(
+              //       "api::order.order",
+              //       nftData.sell_order.id
+              //     );
+              //   } else {
+              //     ctx.body = {
+              //       code: ERROR_RESPONSE,
+              //       msg: `${collection.nftAddress} item id ${item.nftId} already have sell order. Please cancel the previous sell order first.`,
+              //     };
+              //   }
+              //   return;
+              // }
               let orderNonce = orderIndex++;
               const order = await strapi.entityService.create(
                 "api::order.order",
@@ -372,13 +397,23 @@ module.exports = {
                 }
               );
 
-              // if the SELL order, update the sell_order of the NFT
-              const entry = await strapi.entityService.update(
-                "api::nft.nft",
-                nftData.id,
+              // 2. Update the sell_order of the NFT. Only the lastest one is the valid sell_order.
+              await strapi.entityService.update("api::nft.nft", nftData.id, {
+                data: {
+                  sell_order: order.id,
+                },
+              });
+
+              // 3. Create NFT Trade Log
+              await strapi.entityService.create(
+                "api::nft-trade-log.nft-trade-log",
                 {
                   data: {
-                    sell_order: order.id,
+                    type: LOG_TYPE_LISTING,
+                    price: item.erc20TokenAmount,
+                    from: data.maker,
+                    nft: nftData.id,
+                    expired_at: data.expirationTime,
                   },
                 }
               );
@@ -407,14 +442,16 @@ module.exports = {
             for (let item of collection.items) {
               mItem = item;
               let orderUuid = createUuidv4();
-
+              // 1. query if the NFT exist
               const nftData = await strapi.db.query("api::nft.nft").findOne({
                 where: {
                   token_id: item.nftId,
                   collection: { contract_address: collection.nftAddress },
                 },
+                populate: {
+                  sell_order: true,
+                },
               });
-
               if (nftData == null || nftData == undefined) {
                 ctx.body = {
                   code: ERROR_RESPONSE,
@@ -422,6 +459,27 @@ module.exports = {
                 };
                 return;
               }
+
+              // // 2. If there is already a sell order, user should cancel the NFT first.
+              // if (
+              //   nftData.sell_order != null ||
+              //   nftData.sell_order != undefined
+              // ) {
+              //   if (nftData.sell_order.expiration_time > Date.now()) {
+              //     // If it's expired, delete order
+              //     // Delete Order
+              //     await strapi.entityService.delete(
+              //       "api::order.order",
+              //       nftData.sell_order.id
+              //     );
+              //   } else {
+              //     ctx.body = {
+              //       code: ERROR_RESPONSE,
+              //       msg: `${collection.nftAddress} item id ${item.nftId} already have sell order. Please cancel the previous sell order first.`,
+              //     };
+              //   }
+              //   return;
+              // }
 
               //query existing orders and update to new order
 
@@ -458,6 +516,20 @@ module.exports = {
                 {
                   data: {
                     sell_order: order.id,
+                  },
+                }
+              );
+
+              // 3. Create NFT Trade Log
+              await strapi.entityService.create(
+                "api::nft-trade-log.nft-trade-log",
+                {
+                  data: {
+                    type: LOG_TYPE_LISTING,
+                    price: item.erc20TokenAmount,
+                    from: data.maker,
+                    nft: nftData.id,
+                    expired_at: data.expirationTime,
                   },
                 }
               );

@@ -867,11 +867,6 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     protocol_fee_receiver: Attribute.String;
     protocol_fee_point: Attribute.Integer & Attribute.DefaultTo<0>;
     volume_total: Attribute.Float & Attribute.DefaultTo<0>;
-    orders: Attribute.Relation<
-      'api::collection.collection',
-      'oneToMany',
-      'api::order.order'
-    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1181,7 +1176,7 @@ export interface ApiOrderOrder extends Schema.CollectionType {
     order_hash: Attribute.String;
     collection: Attribute.Relation<
       'api::order.order',
-      'manyToOne',
+      'oneToOne',
       'api::collection.collection'
     >;
     is_valid: Attribute.Boolean & Attribute.DefaultTo<true>;

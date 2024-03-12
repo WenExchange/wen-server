@@ -38,9 +38,8 @@
     },
     "collection": {
       "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::collection.collection",
-      "inversedBy": "orders"
+      "relation": "oneToOne",
+      "target": "api::collection.collection"
     },
     "is_valid": {
       "type": "boolean",

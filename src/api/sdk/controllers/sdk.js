@@ -1008,7 +1008,7 @@ async function processItem(
     },
   });
 
-  const expirationTime = dayjs(data.expirationTime).toISOString();
+  const expirationTime = new Date(data.expirationTime * 1000).toISOString();
 
   let result = await strapi.entityService.create(
     "api::nft-trade-log.nft-trade-log",

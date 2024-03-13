@@ -354,6 +354,16 @@ module.exports = {
       // Combine the results from basicCollections and collections
       const combinedResults = [...basicCollectionsResult, ...collectionsResult];
 
+      // Update Here - Update 는 Deadlock 문제때문에 따라
+      for (let item of combinedResults) {
+        if (!item.error) {
+          console.log("update ", item.nftId);
+          await strapi.entityService.update("api::nft.nft", item.nftId, {
+            data: { sell_order: item.orderEntityId },
+          });
+        }
+      }
+
       // Filter out the success and failure based on the error key
       const successList = combinedResults.filter((result) => !result.error);
       const failList = combinedResults.filter((result) => result.error);
@@ -903,7 +913,7 @@ async function processItem(
         nftData.sell_order.id
       );
     } else {
-      console.log("no sell_order error", nftData.sell_orde);
+      console.log("no sell_order error", nftData.sell_order);
 
       throw new Error(
         `${collection.nftAddress} item id ${item.nftId} already has a sell order. Please cancel the previous sell order first.`
@@ -931,9 +941,6 @@ async function processItem(
       nft: nftData.id,
     },
   });
-  await strapi.entityService.update("api::nft.nft", nftData.id, {
-    data: { sell_order: order.id },
-  });
   let result = await strapi.entityService.create(
     "api::nft-trade-log.nft-trade-log",
     {
@@ -951,6 +958,8 @@ async function processItem(
     assetContract: collection.nftAddress,
     assetTokenId: item.nftId,
     orderId: orderUuid,
+    orderEntityId: order.id,
+    nftId: nftData.id,
   };
 }
 
@@ -985,6 +994,8 @@ function processCollections(
             assetContract: collection.nftAddress,
             assetTokenId: item.nftId,
             errorDetails: error.message,
+            nftId: null,
+            orderEntityId: null,
           };
         })
       );

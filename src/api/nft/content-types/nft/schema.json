@@ -8,7 +8,7 @@
     "description": ""
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
@@ -33,24 +33,12 @@
       "default": 0,
       "required": true
     },
-    "nft_trade_logs": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::nft-trade-log.nft-trade-log",
-      "mappedBy": "nft"
-    },
-    "traits": {
-      "type": "json"
-    },
     "rarity_score": {
       "type": "float",
       "default": 0
     },
     "rarity_rank": {
       "type": "integer"
-    },
-    "price": {
-      "type": "biginteger"
     },
     "last_sale_price": {
       "type": "biginteger"
@@ -59,10 +47,21 @@
       "type": "string"
     },
     "top_offer_price": {
-      "type": "biginteger"
+      "type": "float"
     },
-    "expired_at": {
-      "type": "datetime"
+    "traits": {
+      "type": "json"
+    },
+    "orders": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::order.order",
+      "mappedBy": "nft"
+    },
+    "sell_order": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::order.order"
     }
   }
 }

@@ -8,19 +8,19 @@
     "description": ""
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
-    "contract_address": {
-      "type": "string",
-      "required": true,
-      "unique": true
-    },
     "slug": {
       "type": "string",
       "required": true,
       "unique": true
+    },
+    "contract_address": {
+      "type": "string",
+      "required": true,
+      "unique": false
     },
     "token_uri": {
       "type": "string",
@@ -80,20 +80,41 @@
       "type": "integer"
     },
     "floor_price": {
-      "type": "biginteger"
+      "type": "float"
     },
     "volume_24h": {
-      "type": "biginteger",
-      "default": "0",
+      "type": "float",
+      "default": 0,
       "required": false
     },
     "volume_7d": {
-      "type": "biginteger",
-      "default": "0",
+      "type": "float",
+      "default": 0,
       "required": false
     },
     "change_24h": {
       "type": "float"
+    },
+    "token_type": {
+      "type": "string"
+    },
+    "royalty_fee_point": {
+      "type": "integer",
+      "default": 0
+    },
+    "royalty_fee_receiver": {
+      "type": "string"
+    },
+    "protocol_fee_receiver": {
+      "type": "string"
+    },
+    "protocol_fee_point": {
+      "type": "integer",
+      "default": 0
+    },
+    "volume_total": {
+      "type": "float",
+      "default": 0
     }
   }
 }

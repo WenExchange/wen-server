@@ -4,7 +4,8 @@
   "info": {
     "singularName": "collection-stat-log",
     "pluralName": "collection-stat-logs",
-    "displayName": "CollectionStatLog"
+    "displayName": "CollectionStatLog",
+    "description": ""
   },
   "options": {
     "draftAndPublish": false
@@ -12,13 +13,12 @@
   "pluginOptions": {},
   "attributes": {
     "floor_price_1h": {
-      "type": "biginteger",
+      "type": "float",
       "required": false
     },
     "volume_1h": {
-      "type": "biginteger",
-      "required": true,
-      "default": "0"
+      "type": "float",
+      "required": false
     },
     "collection": {
       "type": "relation",

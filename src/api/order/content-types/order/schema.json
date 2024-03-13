@@ -1,0 +1,89 @@
+{
+  "kind": "collectionType",
+  "collectionName": "orders",
+  "info": {
+    "singularName": "order",
+    "pluralName": "orders",
+    "displayName": "Order",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "order_id": {
+      "type": "string"
+    },
+    "schema": {
+      "type": "string"
+    },
+    "token_id": {
+      "type": "integer"
+    },
+    "quantity": {
+      "type": "integer"
+    },
+    "order_hash": {
+      "type": "string"
+    },
+    "collection": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::collection.collection"
+    },
+    "is_valid": {
+      "type": "boolean",
+      "default": true
+    },
+    "contract_address": {
+      "type": "string"
+    },
+    "sale_kind": {
+      "type": "integer"
+    },
+    "side": {
+      "type": "integer"
+    },
+    "maker": {
+      "type": "string"
+    },
+    "taker": {
+      "type": "string"
+    },
+    "expiration_time": {
+      "type": "string"
+    },
+    "listing_time": {
+      "type": "string"
+    },
+    "standard": {
+      "type": "string",
+      "default": "wen-ex-v1",
+      "required": false
+    },
+    "nft": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::nft.nft",
+      "inversedBy": "orders"
+    },
+    "nonce": {
+      "type": "biginteger"
+    },
+    "price": {
+      "type": "string"
+    },
+    "price_eth": {
+      "type": "float"
+    },
+    "token": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::token.token"
+    },
+    "exchange_data": {
+      "type": "text"
+    }
+  }
+}

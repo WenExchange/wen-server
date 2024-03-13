@@ -790,11 +790,11 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     description: '';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
-    contract_address: Attribute.String & Attribute.Required & Attribute.Unique;
     slug: Attribute.String & Attribute.Required & Attribute.Unique;
+    contract_address: Attribute.String & Attribute.Required;
     token_uri: Attribute.String & Attribute.Required & Attribute.Unique;
     name: Attribute.String & Attribute.Required;
     description: Attribute.String;
@@ -816,13 +816,18 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     total_supply: Attribute.Integer & Attribute.DefaultTo<0>;
     owner_count: Attribute.Integer & Attribute.DefaultTo<0>;
     listing_count: Attribute.Integer & Attribute.DefaultTo<0>;
-    floor_price: Attribute.BigInteger;
-    volume_24h: Attribute.BigInteger & Attribute.DefaultTo<'0'>;
-    volume_7d: Attribute.BigInteger & Attribute.DefaultTo<'0'>;
+    floor_price: Attribute.Float;
+    volume_24h: Attribute.Float & Attribute.DefaultTo<0>;
+    volume_7d: Attribute.Float & Attribute.DefaultTo<0>;
     change_24h: Attribute.Float;
+    token_type: Attribute.String;
+    royalty_fee_point: Attribute.Integer & Attribute.DefaultTo<0>;
+    royalty_fee_receiver: Attribute.String;
+    protocol_fee_receiver: Attribute.String;
+    protocol_fee_point: Attribute.Integer & Attribute.DefaultTo<0>;
+    volume_total: Attribute.Float & Attribute.DefaultTo<0>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
       'api::collection.collection',
       'oneToOne',
@@ -845,15 +850,14 @@ export interface ApiCollectionStatLogCollectionStatLog
     singularName: 'collection-stat-log';
     pluralName: 'collection-stat-logs';
     displayName: 'CollectionStatLog';
+    description: '';
   };
   options: {
     draftAndPublish: false;
   };
   attributes: {
-    floor_price_1h: Attribute.BigInteger;
-    volume_1h: Attribute.BigInteger &
-      Attribute.Required &
-      Attribute.DefaultTo<'0'>;
+    floor_price_1h: Attribute.Float;
+    volume_1h: Attribute.Float;
     collection: Attribute.Relation<
       'api::collection-stat-log.collection-stat-log',
       'manyToOne',
@@ -928,6 +932,87 @@ export interface ApiEarlyUserEarlyUser extends Schema.CollectionType {
   };
 }
 
+export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
+  collectionName: 'exchange_users';
+  info: {
+    singularName: 'exchange-user';
+    pluralName: 'exchange-users';
+    displayName: 'ExchangeUser';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    address: Attribute.String & Attribute.Unique;
+    maker_nonce: Attribute.Integer & Attribute.DefaultTo<0>;
+    hash_nonce: Attribute.Integer & Attribute.DefaultTo<0>;
+    request_logs: Attribute.Relation<
+      'api::exchange-user.exchange-user',
+      'oneToMany',
+      'api::request-log.request-log'
+    >;
+    signature: Attribute.String;
+    username: Attribute.String;
+    icon_url: Attribute.String;
+    at_last_login: Attribute.DateTime;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::exchange-user.exchange-user',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::exchange-user.exchange-user',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiFeaturedItemFeaturedItem extends Schema.CollectionType {
+  collectionName: 'featured_items';
+  info: {
+    singularName: 'featured-item';
+    pluralName: 'featured-items';
+    displayName: 'FeaturedItem';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    collection: Attribute.Relation<
+      'api::featured-item.featured-item',
+      'oneToOne',
+      'api::collection.collection'
+    >;
+    name: Attribute.String;
+    description: Attribute.String;
+    icon: Attribute.Media;
+    banner: Attribute.Media;
+    link: Attribute.String;
+    order: Attribute.Integer & Attribute.DefaultTo<100>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::featured-item.featured-item',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::featured-item.featured-item',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiNftNft extends Schema.CollectionType {
   collectionName: 'nfts';
   info: {
@@ -937,7 +1022,7 @@ export interface ApiNftNft extends Schema.CollectionType {
     description: '';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     collection: Attribute.Relation<
@@ -948,22 +1033,20 @@ export interface ApiNftNft extends Schema.CollectionType {
     name: Attribute.String & Attribute.Required;
     image_url: Attribute.String & Attribute.Required;
     token_id: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
-    nft_trade_logs: Attribute.Relation<
-      'api::nft.nft',
-      'oneToMany',
-      'api::nft-trade-log.nft-trade-log'
-    >;
-    traits: Attribute.JSON;
     rarity_score: Attribute.Float & Attribute.DefaultTo<0>;
     rarity_rank: Attribute.Integer;
-    price: Attribute.BigInteger;
     last_sale_price: Attribute.BigInteger;
     owner: Attribute.String;
-    top_offer_price: Attribute.BigInteger;
-    expired_at: Attribute.DateTime;
+    top_offer_price: Attribute.Float;
+    traits: Attribute.JSON;
+    orders: Attribute.Relation<'api::nft.nft', 'oneToMany', 'api::order.order'>;
+    sell_order: Attribute.Relation<
+      'api::nft.nft',
+      'oneToOne',
+      'api::order.order'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<'api::nft.nft', 'oneToOne', 'admin::user'> &
       Attribute.Private;
     updatedBy: Attribute.Relation<'api::nft.nft', 'oneToOne', 'admin::user'> &
@@ -977,26 +1060,23 @@ export interface ApiNftTradeLogNftTradeLog extends Schema.CollectionType {
     singularName: 'nft-trade-log';
     pluralName: 'nft-trade-logs';
     displayName: 'NFTTradeLog';
+    description: '';
   };
   options: {
     draftAndPublish: false;
   };
   attributes: {
-    nft: Attribute.Relation<
-      'api::nft-trade-log.nft-trade-log',
-      'manyToOne',
-      'api::nft.nft'
-    >;
-    collection: Attribute.Relation<
-      'api::nft-trade-log.nft-trade-log',
-      'oneToOne',
-      'api::collection.collection'
-    >;
     type: Attribute.String & Attribute.Required;
     from: Attribute.String & Attribute.Required;
     to: Attribute.String;
-    price: Attribute.BigInteger;
+    price: Attribute.Float;
     expired_at: Attribute.DateTime;
+    nft: Attribute.Relation<
+      'api::nft-trade-log.nft-trade-log',
+      'oneToOne',
+      'api::nft.nft'
+    >;
+    tx_hash: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1007,6 +1087,137 @@ export interface ApiNftTradeLogNftTradeLog extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::nft-trade-log.nft-trade-log',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiOrderOrder extends Schema.CollectionType {
+  collectionName: 'orders';
+  info: {
+    singularName: 'order';
+    pluralName: 'orders';
+    displayName: 'Order';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    order_id: Attribute.String;
+    schema: Attribute.String;
+    token_id: Attribute.Integer;
+    quantity: Attribute.Integer;
+    order_hash: Attribute.String;
+    collection: Attribute.Relation<
+      'api::order.order',
+      'oneToOne',
+      'api::collection.collection'
+    >;
+    is_valid: Attribute.Boolean & Attribute.DefaultTo<true>;
+    contract_address: Attribute.String;
+    sale_kind: Attribute.Integer;
+    side: Attribute.Integer;
+    maker: Attribute.String;
+    taker: Attribute.String;
+    expiration_time: Attribute.String;
+    listing_time: Attribute.String;
+    standard: Attribute.String & Attribute.DefaultTo<'wen-ex-v1'>;
+    nft: Attribute.Relation<'api::order.order', 'manyToOne', 'api::nft.nft'>;
+    nonce: Attribute.BigInteger;
+    price: Attribute.String;
+    price_eth: Attribute.Float;
+    token: Attribute.Relation<
+      'api::order.order',
+      'oneToOne',
+      'api::token.token'
+    >;
+    exchange_data: Attribute.Text;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::order.order',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::order.order',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiRequestLogRequestLog extends Schema.CollectionType {
+  collectionName: 'request_logs';
+  info: {
+    singularName: 'request-log';
+    pluralName: 'request-logs';
+    displayName: 'RequestLog';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    request_uuid: Attribute.String & Attribute.Required;
+    type: Attribute.String & Attribute.Required;
+    exchange_user: Attribute.Relation<
+      'api::request-log.request-log',
+      'manyToOne',
+      'api::exchange-user.exchange-user'
+    >;
+    original_nonce: Attribute.Integer;
+    new_nonce: Attribute.Integer;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::request-log.request-log',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::request-log.request-log',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiTokenToken extends Schema.CollectionType {
+  collectionName: 'tokens';
+  info: {
+    singularName: 'token';
+    pluralName: 'tokens';
+    displayName: 'Token';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    name: Attribute.String;
+    symbol: Attribute.String;
+    decimal: Attribute.Integer;
+    icon: Attribute.String;
+    address: Attribute.String;
+    token_id: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::token.token',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::token.token',
       'oneToOne',
       'admin::user'
     > &
@@ -1035,8 +1246,13 @@ declare module '@strapi/types' {
       'api::collection.collection': ApiCollectionCollection;
       'api::collection-stat-log.collection-stat-log': ApiCollectionStatLogCollectionStatLog;
       'api::early-user.early-user': ApiEarlyUserEarlyUser;
+      'api::exchange-user.exchange-user': ApiExchangeUserExchangeUser;
+      'api::featured-item.featured-item': ApiFeaturedItemFeaturedItem;
       'api::nft.nft': ApiNftNft;
       'api::nft-trade-log.nft-trade-log': ApiNftTradeLogNftTradeLog;
+      'api::order.order': ApiOrderOrder;
+      'api::request-log.request-log': ApiRequestLogRequestLog;
+      'api::token.token': ApiTokenToken;
     }
   }
 }

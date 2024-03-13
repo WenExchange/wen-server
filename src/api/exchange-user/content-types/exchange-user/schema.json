@@ -1,0 +1,46 @@
+{
+  "kind": "collectionType",
+  "collectionName": "exchange_users",
+  "info": {
+    "singularName": "exchange-user",
+    "pluralName": "exchange-users",
+    "displayName": "ExchangeUser",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "address": {
+      "type": "string",
+      "unique": true
+    },
+    "maker_nonce": {
+      "type": "integer",
+      "default": 0
+    },
+    "hash_nonce": {
+      "type": "integer",
+      "default": 0
+    },
+    "request_logs": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::request-log.request-log",
+      "mappedBy": "exchange_user"
+    },
+    "signature": {
+      "type": "string"
+    },
+    "username": {
+      "type": "string"
+    },
+    "icon_url": {
+      "type": "string"
+    },
+    "at_last_login": {
+      "type": "datetime"
+    }
+  }
+}

@@ -320,233 +320,37 @@ module.exports = {
           },
         }
       );
-      const successList = [];
-      const failList = [];
 
       let orderIndex = data.startNonce;
       let mCollection;
       let mItem;
-      if (data.basicCollections) {
-        try {
-          for (let collection of data.basicCollections) {
-            mCollection = collection;
-            for (let item of collection.items) {
-              mItem = item;
-              let orderUuid = createUuidv4();
-              // 1. query if the NFT exist
-              const nftData = await strapi.db.query("api::nft.nft").findOne({
-                where: {
-                  token_id: item.nftId,
-                  collection: { contract_address: collection.nftAddress },
-                },
-                populate: {
-                  sell_order: true,
-                },
-              });
-              if (nftData == null || nftData == undefined) {
-                ctx.body = {
-                  code: ERROR_RESPONSE,
-                  msg: `${collection.nftAddress} item id ${item.nftId} doesn't exist on DB`,
-                };
-                return;
-              }
 
-              // // 2. If there is already a sell order, user should cancel the NFT first.
-              if (nftData.sell_order != null) {
-                if (nftData.sell_order.expiration_time < Date.now()) {
-                  // If it's expired, delete order
-                  // Delete Order
-                  await strapi.entityService.delete(
-                    "api::order.order",
-                    nftData.sell_order.id
-                  );
-                } else {
-                  ctx.body = {
-                    code: ERROR_RESPONSE,
-                    msg: `${collection.nftAddress} item id ${item.nftId} already have sell order. Please cancel the previous sell order first.`,
-                  };
-                  return;
-                }
-              }
-              let orderNonce = orderIndex++;
-              const order = await strapi.entityService.create(
-                "api::order.order",
-                {
-                  data: {
-                    order_id: orderUuid,
-                    batch_signed_order: batchSignedOrder.id,
-                    schema: SCHEMA_ERC721,
-                    price: item.erc20TokenAmount,
-                    token_id: item.nftId,
-                    quantity: 1, //TODO : ERC1155 지원하려면 바뀌어야함.
-                    order_hash: data.hash + "_" + orderNonce,
-                    nonce: orderNonce,
-                    collection: collectionIdMap[collection.nftAddress],
-                    contract_address: collection.nftAddress,
-                    sale_kind: SALEKIND_BatchSignedERC721Order,
-                    maker: r[0].address,
-                    side: ORDERSIDE_SELL,
-                    listing_time: data.listingTime.toString(),
-                    expiration_time: data.expirationTime.toString(),
-                    standard: WEN_STANDARD,
-                    nft: nftData.id,
-                  },
-                }
-              );
-              console.log("order added", order.id, order.token_id)
+      const basicCollectionsData = processCollections(
+        data.basicCollections || [],
+        collectionIdMap,
+        batchSignedOrder,
+        r[0].address,
+        data,
+        orderIndex,
+        SCHEMA_ERC721
+      );
 
-              // 2. Update the sell_order of the NFT. Only the lastest one is the valid sell_order.
-              await strapi.entityService.update("api::nft.nft", nftData.id, {
-                data: {
-                  sell_order: order.id,
-                },
-              });
+      const basicCollectionsResults = await basicCollectionsData.promise;
 
-              // 3. Create NFT Trade Log
-              let result = await strapi.entityService.create(
-                "api::nft-trade-log.nft-trade-log",
-                {
-                  data: {
-                    type: LOG_TYPE_LISTING,
-                    price: item.erc20TokenAmount,
-                    from: data.maker,
-                    nft: nftData.id,
-                    expired_at: data.expirationTime,
-                  },
-                }
-              );
+      const collectionsStartOrderNonce =
+        data.startNonce + basicCollectionsData.totalCount;
+      const collectionsResults = await processCollections(
+        data.collections || [],
+        collectionIdMap,
+        batchSignedOrder,
+        r[0].address,
+        data,
+        collectionsStartOrderNonce,
+        SCHEMA_ERC721
+      ).promise;
 
-              console.log("LOG_TYPE_LISTING", result.createdAt);
-
-              successList.push({
-                assetContract: collection.nftAddress,
-                assetTokenId: item.nftId,
-                orderId: orderUuid,
-              });
-            }
-          }
-        } catch (error) {
-          console.log(error);
-          failList.push({
-            assetContract: mCollection.nftAddress,
-            assetTokenId: mItem.nftId,
-          });
-        }
-      }
-
-      if (data.collections) {
-        // TODO : Collections 와 BasicCollections 의 구분을 만들어야하지 않을까?
-        try {
-          for (let collection of data.collections) {
-            mCollection = collection;
-            for (let item of collection.items) {
-              mItem = item;
-              let orderUuid = createUuidv4();
-              // 1. query if the NFT exist
-              const nftData = await strapi.db.query("api::nft.nft").findOne({
-                where: {
-                  token_id: item.nftId,
-                  collection: { contract_address: collection.nftAddress },
-                },
-                populate: {
-                  sell_order: true,
-                },
-              });
-              if (nftData == null || nftData == undefined) {
-                ctx.body = {
-                  code: ERROR_RESPONSE,
-                  msg: `${collection.nftAddress} item id ${item.nftId} doesn't exist on DB`,
-                };
-                return;
-              }
-
-              // // 2. If there is already a sell order, user should cancel the NFT first.
-              if (nftData.sell_order != null) {
-                if (nftData.sell_order.expiration_time < Date.now()) {
-                  // If it's expired, delete order
-                  // Delete Order
-                  await strapi.entityService.delete(
-                    "api::order.order",
-                    nftData.sell_order.id
-                  );
-                } else {
-                  ctx.body = {
-                    code: ERROR_RESPONSE,
-                    msg: `${collection.nftAddress} item id ${item.nftId} already have sell order. Please cancel the previous sell order first.`,
-                  };
-                }
-                return;
-              }
-
-              //query existing orders and update to new order
-
-              let orderNonce = orderIndex++;
-              const order = await strapi.entityService.create(
-                "api::order.order",
-                {
-                  data: {
-                    order_id: orderUuid,
-                    batch_signed_order: batchSignedOrder.id,
-                    schema: SCHEMA_ERC721,
-                    price: item.erc20TokenAmount,
-                    token_id: item.nftId,
-                    quantity: 1, //TODO : ERC1155 지원하려면 바뀌어야함.
-                    order_hash: data.hash + "_" + orderNonce,
-                    nonce: orderNonce,
-                    collection: collectionIdMap[collection.nftAddress],
-                    contract_address: collection.nftAddress,
-                    sale_kind: SALEKIND_BatchSignedERC721Order,
-                    maker: r[0].address,
-                    side: ORDERSIDE_SELL,
-                    listing_time: data.listingTime.toString(),
-                    expiration_time: data.expirationTime.toString(),
-                    standard: WEN_STANDARD,
-                    nft: nftData.id,
-                  },
-                }
-              );
-
-              // if the SELL order, update the sell_order of the NFT
-              const entry = await strapi.entityService.update(
-                "api::nft.nft",
-                nftData.id,
-                {
-                  data: {
-                    sell_order: order.id,
-                  },
-                }
-              );
-
-              // 3. Create NFT Trade Log
-              let result = await strapi.entityService.create(
-                "api::nft-trade-log.nft-trade-log",
-                {
-                  data: {
-                    type: LOG_TYPE_LISTING,
-                    price: item.erc20TokenAmount,
-                    from: data.maker,
-                    nft: nftData.id,
-                    expired_at: data.expirationTime,
-                  },
-                }
-              );
-
-              console.log("LOG_TYPE_LISTING", result.createdAt);
-
-              successList.push({
-                assetContract: collection.nftAddress,
-                assetTokenId: item.nftId,
-                orderId: orderUuid,
-              });
-            }
-          }
-        } catch (error) {
-          failList.push({
-            assetContract: mCollection.nftAddress,
-            assetTokenId: mItem.nftId,
-          });
-        }
-      }
+      const successList = [...basicCollectionsResults, ...collectionsResults];
+      const failList = [...basicCollectionsResults, ...collectionsResults];
 
       // 5. create Log
       const requestUuid = createUuidv4();
@@ -1058,4 +862,124 @@ function splitStringConditional(inputString) {
       number: null,
     };
   }
+}
+
+async function processItem(
+  collection,
+  item,
+  collectionIdMap,
+  batchSignedOrder,
+  makerAddress,
+  data,
+  orderIndex,
+  schema_type
+) {
+  let orderUuid = createUuidv4();
+  // Query if the NFT exists
+  const nftData = await strapi.db.query("api::nft.nft").findOne({
+    where: {
+      token_id: item.nftId,
+      collection: { contract_address: collection.nftAddress },
+    },
+    populate: {
+      sell_order: true,
+    },
+  });
+  if (!nftData) {
+    throw new Error(
+      `${collection.nftAddress} item id ${item.nftId} doesn't exist on DB`
+    );
+  }
+  if (nftData.sell_order != null) {
+    if (nftData.sell_order.expiration_time < Date.now()) {
+      await strapi.entityService.delete(
+        "api::order.order",
+        nftData.sell_order.id
+      );
+    } else {
+      throw new Error(
+        `${collection.nftAddress} item id ${item.nftId} already has a sell order. Please cancel the previous sell order first.`
+      );
+    }
+  }
+  const order = await strapi.entityService.create("api::order.order", {
+    data: {
+      order_id: orderUuid,
+      batch_signed_order: batchSignedOrder.id,
+      schema: schema_type,
+      price: item.erc20TokenAmount,
+      token_id: item.nftId,
+      quantity: 1,
+      order_hash: data.hash + "_" + orderIndex,
+      nonce: orderIndex,
+      collection: collectionIdMap[collection.nftAddress],
+      contract_address: collection.nftAddress,
+      sale_kind: SALEKIND_BatchSignedERC721Order,
+      maker: makerAddress,
+      side: ORDERSIDE_SELL,
+      listing_time: data.listingTime.toString(),
+      expiration_time: data.expirationTime.toString(),
+      standard: WEN_STANDARD,
+      nft: nftData.id,
+    },
+  });
+  await strapi.entityService.update("api::nft.nft", nftData.id, {
+    data: { sell_order: order.id },
+  });
+  let result = await strapi.entityService.create(
+    "api::nft-trade-log.nft-trade-log",
+    {
+      data: {
+        type: LOG_TYPE_LISTING,
+        price: item.erc20TokenAmount,
+        from: data.maker,
+        nft: nftData.id,
+        expired_at: data.expirationTime,
+      },
+    }
+  );
+  return {
+    assetContract: collection.nftAddress,
+    assetTokenId: item.nftId,
+    orderId: orderUuid,
+  };
+}
+
+function processCollections(
+  collections,
+  collectionIdMap,
+  batchSignedOrder,
+  makerAddress,
+  data,
+  orderIndex,
+  schema_type
+) {
+  let operations = [];
+  let currentOrderIndex = orderIndex;
+  let itemCount = 0;
+  for (let collection of collections) {
+    for (let item of collection.items) {
+      itemCount++;
+      operations.push(
+        processItem(
+          collection,
+          item,
+          collectionIdMap,
+          batchSignedOrder,
+          makerAddress,
+          data,
+          currentOrderIndex++,
+          schema_type
+        ).catch((error) => {
+          console.log(error);
+          return {
+            error: true,
+            assetContract: collection.nftAddress,
+            assetTokenId: item.nftId,
+          };
+        })
+      );
+    }
+  }
+  return { promise: Promise.all(operations), totalCount: itemCount };
 }

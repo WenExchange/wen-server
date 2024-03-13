@@ -17,7 +17,7 @@ module.exports = createCoreController('api::exchange-user.exchange-user',({ stra
                     address,
                     message
                   } = ctx.request.body.data;
-                  const recoveredAddress = ethers.verifyMessage(message, signature);
+                  const recoveredAddress = ethers.utils.verifyMessage(message, signature);
     
       
                   if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {

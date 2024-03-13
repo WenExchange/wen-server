@@ -1,9 +1,9 @@
 'use strict';
 
 /**
- * listing controller
+ * token controller
  */
 
 const { createCoreController } = require('@strapi/strapi').factories;
 
-module.exports = createCoreController('api::listing.listing');
+module.exports = createCoreController('api::token.token');

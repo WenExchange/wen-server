@@ -4,18 +4,14 @@
   "info": {
     "singularName": "nft",
     "pluralName": "nfts",
-    "displayName": "NFT"
+    "displayName": "NFT",
+    "description": ""
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
-    "tokenId": {
-      "type": "string",
-      "required": true,
-      "unique": true
-    },
     "collection": {
       "type": "relation",
       "relation": "manyToOne",
@@ -27,28 +23,45 @@
       "required": true,
       "unique": false
     },
-    "imageURL": {
+    "image_url": {
       "type": "string",
       "required": true,
-      "unique": true
+      "unique": false
     },
-    "rarityScore": {
+    "token_id": {
       "type": "integer",
-      "required": true,
-      "unique": true,
+      "default": 0,
+      "required": true
+    },
+    "rarity_score": {
+      "type": "float",
       "default": 0
     },
-    "rarityRank": {
-      "type": "integer",
-      "required": true,
-      "unique": true,
-      "default": 0
+    "rarity_rank": {
+      "type": "integer"
     },
-    "listings": {
+    "last_sale_price": {
+      "type": "biginteger"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "top_offer_price": {
+      "type": "float"
+    },
+    "traits": {
+      "type": "json"
+    },
+    "orders": {
       "type": "relation",
       "relation": "oneToMany",
-      "target": "api::listing.listing",
+      "target": "api::order.order",
       "mappedBy": "nft"
+    },
+    "sell_order": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::order.order"
     }
   }
 }

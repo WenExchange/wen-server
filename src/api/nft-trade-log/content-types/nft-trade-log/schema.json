@@ -1,0 +1,41 @@
+{
+  "kind": "collectionType",
+  "collectionName": "nft_trade_logs",
+  "info": {
+    "singularName": "nft-trade-log",
+    "pluralName": "nft-trade-logs",
+    "displayName": "NFTTradeLog",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "type": {
+      "type": "string",
+      "required": true
+    },
+    "from": {
+      "type": "string",
+      "required": true
+    },
+    "to": {
+      "type": "string"
+    },
+    "price": {
+      "type": "float"
+    },
+    "expired_at": {
+      "type": "datetime"
+    },
+    "nft": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::nft.nft"
+    },
+    "tx_hash": {
+      "type": "string"
+    }
+  }
+}

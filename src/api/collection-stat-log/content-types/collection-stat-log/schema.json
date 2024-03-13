@@ -1,0 +1,30 @@
+{
+  "kind": "collectionType",
+  "collectionName": "collection_stat_logs",
+  "info": {
+    "singularName": "collection-stat-log",
+    "pluralName": "collection-stat-logs",
+    "displayName": "CollectionStatLog",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "floor_price_1h": {
+      "type": "float",
+      "required": false
+    },
+    "volume_1h": {
+      "type": "float",
+      "required": false
+    },
+    "collection": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::collection.collection",
+      "inversedBy": "collection_stat_logs"
+    }
+  }
+}

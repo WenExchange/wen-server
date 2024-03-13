@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Azuki Demo 1",
+    "slug": "azuki-demo-1",
+    "description": "Azuki starts with a collection of 10,000 avatars that give you membership access to The Garden: a corner of the internet where artists, builders, and web3 enthusiasts meet to create a decentralized future. Azuki holders receive access to exclusive drops, experiences, and more",
+    "nft_name": "Azuki",
+    "token_type": "ERC721",
+    "contract_address": "0x67CC1ae57E6167Fb27663F50Ce5FEb12F8dD5565",
+    "token_uri": "https://ipfs.io/ipfs/QmZcH4YvBVVRJtdn4RdbaqgspFU8gH6P9vomDpBVpAL3u4",
+    "total_supply": "100",
+    "twitter": "https://twitter.com/blast_imbalance",
+    "discord": "https://twitter.com/blast_imbalance",
+    "website": "https://twitter.com/blast_imbalance",
+    "logo_url": "",
+    "banner_url": ""
+  },
+  {
+    "name": "Azuki Demo 2",
+    "slug": "azuki-demo-2",
+    "description": "Azuki starts with a collection of 10,000 avatars that give you membership access to The Garden: a corner of the internet where artists, builders, and web3 enthusiasts meet to create a decentralized future. Azuki holders receive access to exclusive drops, experiences, and more",
+    "nft_name": "Azuki",
+    "token_type": "ERC721",
+    "contract_address": "0x67CC1ae57E6167Fb27663F50Ce5FEb12F8dD5565",
+    "token_uri": "https://ipfs.io/ipfs/QmZcH4YvBVVRJtdn4RdbaqgspFU8gH6P9vomDpBVpAL3u4",
+    "total_supply": "100",
+    "twitter": "https://twitter.com/blast_imbalance",
+    "discord": "https://twitter.com/blast_imbalance",
+    "website": "https://twitter.com/blast_imbalance",
+    "logo_url": "",
+    "banner_url": ""
+  },
+  {
+    "name": "Azuki Demo 3",
+    "slug": "azuki-demo-3",
+    "description": "Azuki starts with a collection of 10,000 avatars that give you membership access to The Garden: a corner of the internet where artists, builders, and web3 enthusiasts meet to create a decentralized future. Azuki holders receive access to exclusive drops, experiences, and more",
+    "nft_name": "Azuki",
+    "token_type": "ERC721",
+    "contract_address": "0x67CC1ae57E6167Fb27663F50Ce5FEb12F8dD5565",
+    "token_uri": "https://ipfs.io/ipfs/QmZcH4YvBVVRJtdn4RdbaqgspFU8gH6P9vomDpBVpAL3u4",
+    "total_supply": "100",
+    "twitter": "https://twitter.com/blast_imbalance",
+    "discord": "https://twitter.com/blast_imbalance",
+    "website": "https://twitter.com/blast_imbalance",
+    "logo_url": "",
+    "banner_url": ""
+  }
+]

@@ -4,24 +4,25 @@
   "info": {
     "singularName": "collection",
     "pluralName": "collections",
-    "displayName": "Collection"
+    "displayName": "Collection",
+    "description": ""
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
-    "contractAddress": {
-      "type": "string",
-      "required": true,
-      "unique": true
-    },
     "slug": {
       "type": "string",
       "required": true,
       "unique": true
     },
-    "tokenURI": {
+    "contract_address": {
+      "type": "string",
+      "required": true,
+      "unique": false
+    },
+    "token_uri": {
       "type": "string",
       "required": true,
       "unique": true
@@ -30,26 +31,17 @@
       "type": "string",
       "required": true
     },
-    "ownerName": {
-      "type": "string",
-      "required": true
-    },
     "description": {
       "type": "string"
     },
-    "logoURL": {
+    "logo_url": {
       "type": "string",
       "required": true,
       "unique": false
     },
-    "bannerURL": {
+    "banner_url": {
       "type": "string",
       "required": true
-    },
-    "ownersCount": {
-      "type": "integer",
-      "required": true,
-      "default": 0
     },
     "twitter": {
       "type": "string",
@@ -61,14 +53,68 @@
     "website": {
       "type": "string"
     },
-    "totalSupply": {
-      "type": "integer"
-    },
     "nfts": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::nft.nft",
       "mappedBy": "collection"
+    },
+    "collection_stat_logs": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::collection-stat-log.collection-stat-log",
+      "mappedBy": "collection"
+    },
+    "total_supply": {
+      "type": "integer",
+      "default": 0,
+      "required": false
+    },
+    "owner_count": {
+      "type": "integer",
+      "default": 0,
+      "required": false
+    },
+    "listing_count": {
+      "default": 0,
+      "type": "integer"
+    },
+    "floor_price": {
+      "type": "float"
+    },
+    "volume_24h": {
+      "type": "float",
+      "default": 0,
+      "required": false
+    },
+    "volume_7d": {
+      "type": "float",
+      "default": 0,
+      "required": false
+    },
+    "change_24h": {
+      "type": "float"
+    },
+    "token_type": {
+      "type": "string"
+    },
+    "royalty_fee_point": {
+      "type": "integer",
+      "default": 0
+    },
+    "royalty_fee_receiver": {
+      "type": "string"
+    },
+    "protocol_fee_receiver": {
+      "type": "string"
+    },
+    "protocol_fee_point": {
+      "type": "integer",
+      "default": 0
+    },
+    "volume_total": {
+      "type": "float",
+      "default": 0
     }
   }
 }

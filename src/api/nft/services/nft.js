@@ -6,4 +6,7 @@
 
 const { createCoreService } = require('@strapi/strapi').factories;
 
-module.exports = createCoreService('api::nft.nft');
+module.exports = createCoreService('api::nft.nft', ({strapi}) => ({
+    
+    
+}));

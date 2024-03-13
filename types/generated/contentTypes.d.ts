@@ -1159,7 +1159,6 @@ export interface ApiOrderOrder extends Schema.CollectionType {
       'api::batch-signed-order.batch-signed-order'
     >;
     schema: Attribute.String;
-    price: Attribute.BigInteger;
     token_id: Attribute.Integer;
     quantity: Attribute.Integer;
     order_hash: Attribute.String;
@@ -1179,6 +1178,8 @@ export interface ApiOrderOrder extends Schema.CollectionType {
     standard: Attribute.String & Attribute.DefaultTo<'wen-ex-v1'>;
     nft: Attribute.Relation<'api::order.order', 'manyToOne', 'api::nft.nft'>;
     nonce: Attribute.BigInteger;
+    price: Attribute.String;
+    price_eth: Attribute.Float;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

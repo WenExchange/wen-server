@@ -24,9 +24,6 @@
     "schema": {
       "type": "string"
     },
-    "price": {
-      "type": "biginteger"
-    },
     "token_id": {
       "type": "integer"
     },
@@ -79,6 +76,12 @@
     },
     "nonce": {
       "type": "biginteger"
+    },
+    "price": {
+      "type": "string"
+    },
+    "price_eth": {
+      "type": "float"
     }
   }
 }

@@ -322,9 +322,6 @@ module.exports = {
       );
 
       let orderIndex = data.startNonce;
-      let mCollection;
-      let mItem;
-
       const basicCollectionsData = processCollections(
         data.basicCollections || [],
         collectionIdMap,
@@ -335,23 +332,31 @@ module.exports = {
         SCHEMA_ERC721
       );
 
-      const basicCollectionsResults = await basicCollectionsData.promise;
+      // Note: You should await the promise before proceeding
+      const basicCollectionsResult = await basicCollectionsData.promise;
 
-      const collectionsStartOrderNonce =
-        data.startNonce + basicCollectionsData.totalCount;
-      const collectionsResults = await processCollections(
+      // Calculate the starting order index for the next set of collections
+      const collectionsStartOrderIndex =
+        orderIndex + basicCollectionsData.totalCount;
+      const collectionsData = processCollections(
         data.collections || [],
         collectionIdMap,
         batchSignedOrder,
         r[0].address,
         data,
-        collectionsStartOrderNonce,
+        collectionsStartOrderIndex,
         SCHEMA_ERC721
-      ).promise;
+      );
 
-      const successList = [...basicCollectionsResults, ...collectionsResults];
-      const failList = [...basicCollectionsResults, ...collectionsResults];
+      // Await the collections processing results
+      const collectionsResult = await collectionsData.promise;
 
+      // Combine the results from basicCollections and collections
+      const combinedResults = [...basicCollectionsResult, ...collectionsResult];
+
+      // Filter out the success and failure based on the error key
+      const successList = combinedResults.filter((result) => !result.error);
+      const failList = combinedResults.filter((result) => result.error);
       // 5. create Log
       const requestUuid = createUuidv4();
       await createRequestLog(
@@ -876,6 +881,7 @@ async function processItem(
 ) {
   let orderUuid = createUuidv4();
   // Query if the NFT exists
+  console.log(111, collection);
   const nftData = await strapi.db.query("api::nft.nft").findOne({
     where: {
       token_id: item.nftId,
@@ -891,12 +897,14 @@ async function processItem(
     );
   }
   if (nftData.sell_order != null) {
-    if (nftData.sell_order.expiration_time < Date.now()) {
+    if (nftData.sell_order.expiration_time < Date.now() / 1000) {
       await strapi.entityService.delete(
         "api::order.order",
         nftData.sell_order.id
       );
     } else {
+      console.log("no sell_order error", nftData.sell_orde);
+
       throw new Error(
         `${collection.nftAddress} item id ${item.nftId} already has a sell order. Please cancel the previous sell order first.`
       );
@@ -939,6 +947,7 @@ async function processItem(
     }
   );
   return {
+    error: false,
     assetContract: collection.nftAddress,
     assetTokenId: item.nftId,
     orderId: orderUuid,
@@ -971,11 +980,11 @@ function processCollections(
           currentOrderIndex++,
           schema_type
         ).catch((error) => {
-          console.log(error);
           return {
             error: true,
             assetContract: collection.nftAddress,
             assetTokenId: item.nftId,
+            errorDetails: error.message,
           };
         })
       );

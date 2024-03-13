@@ -22,9 +22,8 @@ const LOG_TYPE_MINT = "MINT";
 
 //TODO: update myCollections
 const myCollections = [
-  "0xC4d5966E0C4f37762414D03F165E7CbF2DC247FD",
-  "0x89F2ce18C98594303378940a83625f91C3Acded3",
-  "0xec1c6ebb2EDEf02422BBBcAa3fb9b39363B9D47D",
+  "0x7E3D4B14E191533B44470889b6d0d36F232de1A3",
+  "0xEFFBE8DFc7B147a59Dd407Efb8b5510804C02236",
 ];
 async function createTransferListener({ strapi }) {
   console.log("it's on");

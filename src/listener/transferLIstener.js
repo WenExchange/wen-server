@@ -1,6 +1,6 @@
 const ethers = require("ethers");
 //TODO: change it to mainnet
-const jsonRpcProvider = new ethers.JsonRpcProvider(
+const jsonRpcProvider = new ethers.providers.JsonRpcProvider(
   // "https://rpc.ankr.com/blast/c657bef90ad95db61eef20ff757471d11b8de5482613002038a6bf9d8bb84494" // mainnet
   "https://rpc.ankr.com/blast_testnet_sepolia/c657bef90ad95db61eef20ff757471d11b8de5482613002038a6bf9d8bb84494" // testnet
 );
@@ -25,7 +25,7 @@ const myCollections = [
 async function createTransferListener() {
   console.log("it's on");
   let filter = {
-    topics: [ethers.id("Transfer(address,address,uint256)")], //from, to, tokenId
+    topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId
   };
 
   jsonRpcProvider.removeAllListeners();

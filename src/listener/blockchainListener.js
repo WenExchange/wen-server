@@ -106,11 +106,18 @@ async function createTransferListener({ strapi }) {
             }
           );
 
+          console.log("deleting owner? ");
+
           // TODO: [FLOOR PRICE]
 
           console.log("CANCEL LISTING HERE 1: ");
         } else {
           console.log("check if nftData exist, nftData.sell_order exist");
+          console.log(
+            "deleting owner? NO! ",
+            nftData.sell_order,
+            nftData.owner
+          );
         }
       }
 
@@ -123,7 +130,7 @@ async function createTransferListener({ strapi }) {
           txReceipt.data.includes(SELECTOR_fillBatchSignedERC721Orders)
         ) {
           if (deletingOrder) {
-            // 1. ORDER 를 삭제
+            // 1. nft last sale price update
             await strapi.entityService.update("api::nft.nft", nftData.id, {
               data: {
                 last_sale_price: deletingOrder.price,
@@ -157,7 +164,11 @@ async function createTransferListener({ strapi }) {
                 },
               }
             );
-            console.log("TRANSFER ADDED HERE 1 Hash : ", log.transactionHash);
+            console.log(
+              "TRANSFER ADDED HERE 1 Hash : ",
+              log.transactionHash,
+              deletingOrder
+            );
           }
         }
       } else {

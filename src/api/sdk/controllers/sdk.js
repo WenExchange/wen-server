@@ -163,6 +163,7 @@ module.exports = {
   postOrderBatch: async (ctx, next) => {
     try {
       const data = ctx.request.body.data;
+      console.log("post order ", data);
 
       // 1. check if the user exist.
       // contractAddress 로 값을 찾아온다.
@@ -607,6 +608,7 @@ module.exports = {
         pageSize: DEFAULT_PAGE_SIZE,
         page: page,
         orderBy: [order],
+        populate: { token: true },
       });
     }
 
@@ -631,7 +633,7 @@ module.exports = {
         // Priced in paymentToken, and the unit is wei.
         price: result.price,
         // The contract address of the paymentToken.
-        paymentToken: ETH_ADDRESS,
+        paymentToken: result.token.address,
         // Kind of sell order. 0 for fixed-price sales, and 3 for batchSignedERC721 sell order.
         saleKind: result.sale_kind,
         // Side of the order. 0 for buy order, and 1 for sell order.
@@ -763,7 +765,7 @@ module.exports = {
           contractAddress: orderData.contract_address,
           tokenId: orderData.token_id,
           standard: orderData.standard,
-          paymentToken: "0x0000000000000000000000000000000000000000", //TODO: payment token
+          paymentToken: orderData.token.address,
           maker: orderData.maker,
           listingTime: orderData.listing_time,
           side: orderData.side,
@@ -1000,7 +1002,7 @@ async function processItem(
       expiration_time: data.expirationTime.toString(),
       standard: WEN_STANDARD,
       nft: nftData.id,
-      token: TOKEN_ETH_ID,
+      token: TOKEN_WENETH_ID, //TODO
       exchange_data: JSON.stringify(exchangeDataObject),
     },
   });

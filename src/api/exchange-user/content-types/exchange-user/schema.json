@@ -30,12 +30,6 @@
       "target": "api::request-log.request-log",
       "mappedBy": "exchange_user"
     },
-    "batch_signed_orders": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::batch-signed-order.batch-signed-order",
-      "mappedBy": "exchange_user"
-    },
     "signature": {
       "type": "string"
     },

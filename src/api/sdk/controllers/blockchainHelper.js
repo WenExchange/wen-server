@@ -19,4 +19,11 @@ async function getNFTOwner(nftContract, tokenId) {
 
 // getNFTOwner("0xec1c6ebb2EDEf02422BBBcAa3fb9b39363B9D47D", 1);
 
-module.exports = { getNFTOwner };
+function weiToEther(wei) {
+  const etherFloat = ethers.utils.formatEther(wei);
+
+  console.log("WEI TO ETH", wei, etherFloat);
+  return etherFloat;
+}
+
+module.exports = { getNFTOwner, weiToEther };

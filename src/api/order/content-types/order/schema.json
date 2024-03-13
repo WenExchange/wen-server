@@ -15,12 +15,6 @@
     "order_id": {
       "type": "string"
     },
-    "batch_signed_order": {
-      "type": "relation",
-      "relation": "manyToOne",
-      "target": "api::batch-signed-order.batch-signed-order",
-      "inversedBy": "orders"
-    },
     "schema": {
       "type": "string"
     },
@@ -82,6 +76,14 @@
     },
     "price_eth": {
       "type": "float"
+    },
+    "token": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::token.token"
+    },
+    "exchange_data": {
+      "type": "text"
     }
   }
 }

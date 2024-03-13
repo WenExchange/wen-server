@@ -56,8 +56,8 @@ module.exports = {
     },
     {
       method: "POST", // But If you query nonce, order nonces goes up.
-      path: "/sdk/orders/encodeTradeDataByHash",
-      handler: "sdk.encodeTradeDataByHash",
+      path: "/sdk/orders/fetchExchangeDataByHash",
+      handler: "sdk.fetchExchangeDataByHash",
       config: {
         policies: [],
         middlewares: [],

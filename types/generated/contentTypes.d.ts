@@ -781,47 +781,6 @@ export interface PluginI18NLocale extends Schema.CollectionType {
   };
 }
 
-export interface ApiBatchSignedOrderBatchSignedOrder
-  extends Schema.CollectionType {
-  collectionName: 'batch_signed_orders';
-  info: {
-    singularName: 'batch-signed-order';
-    pluralName: 'batch-signed-orders';
-    displayName: 'BatchSignedOrder';
-    description: '';
-  };
-  options: {
-    draftAndPublish: false;
-  };
-  attributes: {
-    exchange_data: Attribute.Text;
-    exchange_user: Attribute.Relation<
-      'api::batch-signed-order.batch-signed-order',
-      'manyToOne',
-      'api::exchange-user.exchange-user'
-    >;
-    orders: Attribute.Relation<
-      'api::batch-signed-order.batch-signed-order',
-      'oneToMany',
-      'api::order.order'
-    >;
-    createdAt: Attribute.DateTime;
-    updatedAt: Attribute.DateTime;
-    createdBy: Attribute.Relation<
-      'api::batch-signed-order.batch-signed-order',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-    updatedBy: Attribute.Relation<
-      'api::batch-signed-order.batch-signed-order',
-      'oneToOne',
-      'admin::user'
-    > &
-      Attribute.Private;
-  };
-}
-
 export interface ApiCollectionCollection extends Schema.CollectionType {
   collectionName: 'collections';
   info: {
@@ -993,11 +952,6 @@ export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
       'oneToMany',
       'api::request-log.request-log'
     >;
-    batch_signed_orders: Attribute.Relation<
-      'api::exchange-user.exchange-user',
-      'oneToMany',
-      'api::batch-signed-order.batch-signed-order'
-    >;
     signature: Attribute.String;
     username: Attribute.String;
     icon_url: Attribute.String;
@@ -1153,11 +1107,6 @@ export interface ApiOrderOrder extends Schema.CollectionType {
   };
   attributes: {
     order_id: Attribute.String;
-    batch_signed_order: Attribute.Relation<
-      'api::order.order',
-      'manyToOne',
-      'api::batch-signed-order.batch-signed-order'
-    >;
     schema: Attribute.String;
     token_id: Attribute.Integer;
     quantity: Attribute.Integer;
@@ -1180,6 +1129,12 @@ export interface ApiOrderOrder extends Schema.CollectionType {
     nonce: Attribute.BigInteger;
     price: Attribute.String;
     price_eth: Attribute.Float;
+    token: Attribute.Relation<
+      'api::order.order',
+      'oneToOne',
+      'api::token.token'
+    >;
+    exchange_data: Attribute.Text;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1288,7 +1243,6 @@ declare module '@strapi/types' {
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
       'plugin::i18n.locale': PluginI18NLocale;
-      'api::batch-signed-order.batch-signed-order': ApiBatchSignedOrderBatchSignedOrder;
       'api::collection.collection': ApiCollectionCollection;
       'api::collection-stat-log.collection-stat-log': ApiCollectionStatLogCollectionStatLog;
       'api::early-user.early-user': ApiEarlyUserEarlyUser;

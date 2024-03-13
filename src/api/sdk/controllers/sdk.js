@@ -1,7 +1,7 @@
 "use strict";
 
 const { createOrderData, createOrdersData } = require("./dataEncoder.js");
-const { getNFTOwner } = require("./blockchainHelper.js");
+const { getNFTOwner, weiToEther } = require("./blockchainHelper.js");
 
 /**
  * A set of functions called "actions" for `sdk`
@@ -34,6 +34,9 @@ const LOG_TYPE_OFFER = "OFFER";
 const LOG_TYPE_COLLECTION_OFFER = "COLLECTION_OFFER";
 const LOG_TYPE_CANCEL_LISTING = "CANCEL_LISTING";
 const LOG_TYPE_CANCEL_OFFER = "CANCEL_OFFER";
+
+const TOKEN_ETH_ID = 1;
+const TOKEN_WENETH_ID = 2; //TODO: WEN ETH TOKEN 에 추가하고 변경
 
 const SCHEMA_ERC721 = "ERC721";
 
@@ -291,7 +294,6 @@ module.exports = {
         basicCollections: data.basicCollections,
         collections: data.collections,
         startNonce: data.startNonce,
-        nonce: data.startNonce + totalItemCount - 1,
         hashNonce: data.hashNonce,
         platformFeeRecipient: data.platformFeeRecipient,
         v: data.v,
@@ -305,27 +307,11 @@ module.exports = {
         signatureType: SIGNATURE_TYPE_EIP712,
       };
 
-      console.log(
-        "exchangeDataObject , :",
-        exchangeDataObject.basicCollections[0]
-      );
-
-      // 3. Upload batch signed order
-      const batchSignedOrder = await strapi.entityService.create(
-        "api::batch-signed-order.batch-signed-order",
-        {
-          data: {
-            exchange_data: JSON.stringify(exchangeDataObject),
-            exchange_user: r[0].id,
-          },
-        }
-      );
-
       let orderIndex = data.startNonce;
       const basicCollectionsData = processCollections(
         data.basicCollections || [],
         collectionIdMap,
-        batchSignedOrder,
+        exchangeDataObject,
         r[0].address,
         data,
         orderIndex,
@@ -341,7 +327,7 @@ module.exports = {
       const collectionsData = processCollections(
         data.collections || [],
         collectionIdMap,
-        batchSignedOrder,
+        exchangeDataObject,
         r[0].address,
         data,
         collectionsStartOrderIndex,
@@ -455,7 +441,7 @@ module.exports = {
               is_valid: true,
             },
             orderBy: { createdAt: "DESC" }, // 가장최근 Data TODO
-            populate: { collection: true, batch_signed_order: true },
+            populate: { collection: true },
           });
           if (r.length === 0) {
             ctx.body = {
@@ -464,7 +450,7 @@ module.exports = {
             };
             return;
           }
-          const orderObj = JSON.parse(r[0].batch_signed_order.exchange_data);
+          const orderObj = JSON.parse(r[0].exchange_data);
           const validationResult = await _validateOrder(orderObj);
 
           if (!validationResult.result) {
@@ -491,7 +477,7 @@ module.exports = {
             schema: SCHEMA_ERC721,
             buyer: data.buyer,
             toAddress: orderObj.maker,
-            exchangeData: r[0].batch_signed_order.exchange_data,
+            exchangeData: r[0].exchange_data,
             price: NFTPrice.price,
           });
         }
@@ -658,7 +644,7 @@ module.exports = {
   },
   encodeTradeDataByHash: async (ctx, next) => {
     const data = ctx.request.body.data;
-    console.log("encode!!!!!! ", data);
+    // console.log("encode!!!!!! ", data);
     const hashListWithNonce = [];
     const orderList = [];
 
@@ -685,7 +671,6 @@ module.exports = {
           order_hash: order.orderHash,
         },
         populate: {
-          batch_signed_order: true,
           collection: true,
         },
       });
@@ -702,17 +687,17 @@ module.exports = {
     }
     // check if this is FillBatchSignedOrder or FillBatchSignedOrders(from various Signined Order)
     let isOrder = true;
-    let currentBatchSignedOrderId;
+    let currenOrderHash;
     for (let order of orderList) {
-      if (currentBatchSignedOrderId) {
-        if (currentBatchSignedOrderId == order.batch_signed_order.id) {
-          currentBatchSignedOrderId = order.batch_signed_order.id;
+      if (currenOrderHash) {
+        if (currenOrderHash == getPlaneHash(order.order_hash)) {
+          currenOrderHash = getPlaneHash(order.order_hash);
         } else {
           isOrder = false;
           break;
         }
       } else {
-        currentBatchSignedOrderId = order.batch_signed_order.id;
+        currenOrderHash = getPlaneHash(order.order_hash);
       }
     }
 
@@ -736,6 +721,77 @@ module.exports = {
     };
 
     return;
+  },
+
+  fetchExchangeDataByHash: async (ctx, next) => {
+    const data = ctx.request.body.data;
+    console.log("encode!!!!!! ", data);
+
+    const hashListWithNonce = [];
+    const orderList = [];
+
+    for (let order of data.hashList) {
+      hashListWithNonce.push(splitStringConditional(order.orderHash));
+    }
+
+    // 1. get order data with orderHash
+    for (let order of data.hashList) {
+      const orderData = await strapi.db.query("api::order.order").findOne({
+        where: {
+          order_hash: order.orderHash,
+        },
+        populate: {
+          collection: true,
+          token: true,
+        },
+      });
+
+      console.log("orderData   :   ", orderData);
+      if (orderData == null) {
+        ctx.body = {
+          code: ERROR_RESPONSE,
+          msg: `order hash ${order.orderHash} doesn't exist on db`,
+        };
+        return;
+      } else {
+        orderList.push({
+          contractAddress: orderData.contract_address,
+          tokenId: orderData.token_id,
+          standard: orderData.standard,
+          paymentToken: "0x0000000000000000000000000000000000000000", //TODO: payment token
+          maker: orderData.maker,
+          listingTime: orderData.listing_time,
+          side: orderData.side,
+          saleKind: orderData.sale_kind,
+          price: orderData.price,
+          isValid: true,
+          errorDetail: "",
+          taker: "0x0000000000000000000000000000000000000000",
+          expirationTime: orderData.expiration_time,
+          quantity: orderData.quantity,
+          priceBase: orderData.price_eth,
+          schema: orderData.schema,
+          paymentTokenCoin: {
+            id: orderData.token.token_id,
+            name: orderData.token.symbol,
+            address: orderData.token.address,
+            icon: orderData.token.icon,
+            decimal: orderData.token.decimal,
+            accuracy: 4,
+          },
+          exchangeData: orderData.exchange_data,
+          orderHash: orderData.order_hash,
+          orderId: orderData.order_id,
+        });
+      }
+    }
+
+    ctx.body = {
+      data: {
+        orderExchangeList: orderList,
+      },
+      code: SUCCESS_RESPONSE,
+    };
   },
 };
 
@@ -883,7 +939,7 @@ async function processItem(
   collection,
   item,
   collectionIdMap,
-  batchSignedOrder,
+  exchangeDataObject,
   makerAddress,
   data,
   orderIndex,
@@ -920,12 +976,13 @@ async function processItem(
       );
     }
   }
+  exchangeDataObject.nonce = orderIndex;
   const order = await strapi.entityService.create("api::order.order", {
     data: {
       order_id: orderUuid,
-      batch_signed_order: batchSignedOrder.id,
       schema: schema_type,
       price: item.erc20TokenAmount,
+      price_eth: weiToEther(item.erc20TokenAmount),
       token_id: item.nftId,
       quantity: 1,
       order_hash: data.hash + "_" + orderIndex,
@@ -939,6 +996,8 @@ async function processItem(
       expiration_time: data.expirationTime.toString(),
       standard: WEN_STANDARD,
       nft: nftData.id,
+      token: TOKEN_ETH_ID,
+      exchange_data: JSON.stringify(exchangeDataObject),
     },
   });
   let result = await strapi.entityService.create(
@@ -1002,4 +1061,8 @@ function processCollections(
     }
   }
   return { promise: Promise.all(operations), totalCount: itemCount };
+}
+
+function getPlaneHash(orderHash) {
+  return orderHash.split("_")[0];
 }

@@ -15,6 +15,7 @@ const LOG_TYPE_OFFER = "OFFER";
 const LOG_TYPE_COLLECTION_OFFER = "COLLECTION_OFFER";
 const LOG_TYPE_CANCEL_LISTING = "CANCEL_LISTING";
 const LOG_TYPE_CANCEL_OFFER = "CANCEL_OFFER";
+const LOG_TYPE_MINT = "MINT";
 
 //TODO: update myCollections
 const myCollections = [
@@ -28,10 +29,18 @@ async function createTransferListener() {
     topics: [ethers.id("Transfer(address,address,uint256)")], //from, to, tokenId
   };
 
-  jsonRpcProvider.removeAllListeners();
+  const a = await jsonRpcProvider.listeners;
+
+  console.log("hi");
+
+  await jsonRpcProvider.removeAllListeners();
   jsonRpcProvider.on(filter, async (log, _) => {
     // // exit early if it's not our NFT
     try {
+      const a = await jsonRpcProvider.listeners;
+
+      console.log("hi 222", a.length);
+
       if (!myCollections.includes(log.address)) return;
 
       const transferFrom = `0x${log.topics[1].slice(-40)}`;
@@ -71,19 +80,21 @@ async function createTransferListener() {
       let deletingOrder;
       // 2. If Previous Owner listed on WEN ( = If it has sell-order)
       //   order를 삭제
-      if (
-        transferFrom == nftData.owner &&
-        transferFrom != transferTo &&
-        nftData.sell_order != null
-      ) {
-        // 옛날에 owner 였는데 더이상 NFT 를 소유하고 있지 않은 경우
-        // order를 삭제
-        deletingOrder = await strapi.entityService.delete(
-          "api::order.order",
-          nftData.sell_order.id
-        );
-      } else {
-        console.log("check if nftData exist, nftData.sell_order exist");
+      if (nftData.owner) {
+        if (
+          transferFrom.toLowerCase() == nftData.owner.toLowerCase() &&
+          transferFrom.toLowerCase() != transferTo.toLowerCase() &&
+          nftData.sell_order != null
+        ) {
+          // 옛날에 owner 였는데 더이상 NFT 를 소유하고 있지 않은 경우
+          // order를 삭제
+          deletingOrder = await strapi.entityService.delete(
+            "api::order.order",
+            nftData.sell_order.id
+          );
+        } else {
+          console.log("check if nftData exist, nftData.sell_order exist");
+        }
       }
 
       // 3. Check where the transfer from
@@ -115,6 +126,7 @@ async function createTransferListener() {
                 },
               }
             );
+            console.log("SALE ADDED HERE  Hash : ", log.transactionHash);
           } else {
             await strapi.entityService.create(
               "api::nft-trade-log.nft-trade-log",
@@ -128,21 +140,50 @@ async function createTransferListener() {
                 },
               }
             );
+            console.log("TRANSFER ADDED HERE 1 Hash : ", log.transactionHash);
           }
         }
       } else {
         // 3-2. If it's not from Wen Exchange, don't set Last price
         // add element and mintify
 
-        await strapi.entityService.create("api::nft-trade-log.nft-trade-log", {
-          data: {
-            type: LOG_TYPE_TRANSFER,
-            from: transferFrom,
-            to: transferTo,
-            nft: nftData.id,
-            tx_hash: log.transactionHash,
-          },
-        });
+        if (transferFrom != "0x0000000000000000000000000000000000000000") {
+          await strapi.entityService.create(
+            "api::nft-trade-log.nft-trade-log",
+            {
+              data: {
+                type: LOG_TYPE_TRANSFER,
+                from: transferFrom,
+                to: transferTo,
+                nft: nftData.id,
+                tx_hash: log.transactionHash,
+              },
+            }
+          );
+          console.log(
+            "TRANSFER ADDED HERE 2 Hash : ",
+            log.transactionHash,
+            transferFrom
+          );
+        } else {
+          await strapi.entityService.create(
+            "api::nft-trade-log.nft-trade-log",
+            {
+              data: {
+                type: LOG_TYPE_MINT,
+                from: transferFrom,
+                to: transferTo,
+                nft: nftData.id,
+                tx_hash: log.transactionHash,
+              },
+            }
+          );
+          console.log(
+            "MINT ADDED HERE 2 Hash : ",
+            log.transactionHash,
+            transferFrom
+          );
+        }
       }
 
       // 4. 공통

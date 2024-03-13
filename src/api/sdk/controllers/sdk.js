@@ -365,8 +365,8 @@ module.exports = {
                     code: ERROR_RESPONSE,
                     msg: `${collection.nftAddress} item id ${item.nftId} already have sell order. Please cancel the previous sell order first.`,
                   };
+                  return;
                 }
-                return;
               }
               let orderNonce = orderIndex++;
               const order = await strapi.entityService.create(
@@ -393,6 +393,7 @@ module.exports = {
                   },
                 }
               );
+              console.log("order added", order.id, order.token_id)
 
               // 2. Update the sell_order of the NFT. Only the lastest one is the valid sell_order.
               await strapi.entityService.update("api::nft.nft", nftData.id, {

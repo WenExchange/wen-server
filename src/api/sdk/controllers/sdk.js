@@ -1003,7 +1003,7 @@ async function processItem(
       expiration_time: data.expirationTime.toString(),
       standard: WEN_STANDARD,
       nft: nftData.id,
-      token: TOKEN_WENETH_ID, //TODO
+      token: TOKEN_ETH_ID, //TODO
       exchange_data: JSON.stringify(exchangeDataObject),
     },
   });

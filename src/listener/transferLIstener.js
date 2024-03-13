@@ -23,7 +23,7 @@ const myCollections = [
   "0x89F2ce18C98594303378940a83625f91C3Acded3",
   "0xec1c6ebb2EDEf02422BBBcAa3fb9b39363B9D47D",
 ];
-async function createTransferListener() {
+async function createTransferListener({strapi}) {
   console.log("it's on");
   let filter = {
     topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId

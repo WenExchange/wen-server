@@ -1,7 +1,7 @@
 "use strict";
 
 const { createOrderData, createOrdersData } = require("./dataEncoder.js");
-const { getNFTOwner } = require("./blockchainHelper.js");
+const { getNFTOwner, weiToEther } = require("./blockchainHelper.js");
 
 /**
  * A set of functions called "actions" for `sdk`
@@ -926,6 +926,7 @@ async function processItem(
       batch_signed_order: batchSignedOrder.id,
       schema: schema_type,
       price: item.erc20TokenAmount,
+      price_eth: weiToEther(item.erc20TokenAmount),
       token_id: item.nftId,
       quantity: 1,
       order_hash: data.hash + "_" + orderIndex,

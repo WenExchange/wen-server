@@ -2,6 +2,7 @@
 
 const { createOrderData, createOrdersData } = require("./dataEncoder.js");
 const { getNFTOwner, weiToEther } = require("./blockchainHelper.js");
+const dayjs = require("dayjs");
 
 /**
  * A set of functions called "actions" for `sdk`
@@ -1006,6 +1007,9 @@ async function processItem(
       exchange_data: JSON.stringify(exchangeDataObject),
     },
   });
+
+  const expirationTime = dayjs(data.expirationTime).toISOString();
+
   let result = await strapi.entityService.create(
     "api::nft-trade-log.nft-trade-log",
     {
@@ -1014,7 +1018,7 @@ async function processItem(
         price: item.erc20TokenAmount,
         from: data.maker,
         nft: nftData.id,
-        expired_at: data.expirationTime,
+        expired_at: expirationTime,
       },
     }
   );

@@ -82,7 +82,7 @@ async function createTransferListener({ strapi }) {
         if (
           transferFrom.toLowerCase() == nftData.owner.toLowerCase() &&
           transferFrom.toLowerCase() != transferTo.toLowerCase() &&
-          nftData.sell_order != null
+          nftData.sell_order != null 
         ) {
           // 옛날에 owner 였는데 더이상 NFT 를 소유하고 있지 않은 경우
           // order를 삭제
@@ -123,7 +123,7 @@ async function createTransferListener({ strapi }) {
           txReceipt.data.includes(SELECTOR_fillBatchSignedERC721Orders)
         ) {
           if (deletingOrder) {
-            // 1. ORDER 를 삭제
+            // 1. nft last sale price update 
             await strapi.entityService.update("api::nft.nft", nftData.id, {
               data: {
                 last_sale_price: deletingOrder.price,

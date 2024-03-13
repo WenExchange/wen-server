@@ -22,7 +22,6 @@ async function getNFTOwner(nftContract, tokenId) {
 function weiToEther(wei) {
   const etherFloat = ethers.utils.formatEther(wei);
 
-  console.log("WEI TO ETH", wei, etherFloat);
   return etherFloat;
 }
 

@@ -266,14 +266,14 @@ function createOrderData(orderList, taker) {
     bytes: collectionBytes,
   });
 
-  console.log("data !! ", {
-    encodedData1,
-    encodedData2,
-    encodedData3,
-    r: exData.r,
-    s: exData.s,
-    bytes: collectionBytes,
-  });
+  // console.log("data !! ", {
+  //   encodedData1,
+  //   encodedData2,
+  //   encodedData3,
+  //   r: exData.r,
+  //   s: exData.s,
+  //   bytes: collectionBytes,
+  // });
 
   return {
     parameterData,
@@ -335,7 +335,6 @@ function createOrdersData(orderList, taker) {
     additional2,
   });
 
-  console.log("parameterData", parameterData);
 
   return { parameterData };
 }

@@ -138,7 +138,7 @@ function createOrderData(orderList, taker) {
   let order = orderList[0];
 
   //   console.log("HERE!!! , ", order);
-  let exData = JSON.parse(order.batch_signed_order.exchange_data);
+  let exData = JSON.parse(order.exchange_data);
   let encodedData1 = encodeData1(
     0,
     0,

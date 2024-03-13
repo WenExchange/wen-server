@@ -53,7 +53,7 @@ module.exports = {
   getOrdersNonce: async (ctx, next) => {
     try {
       const { maker, schema, count } = ctx.request.query;
-      console.log("getOrderNonce : ", maker, schema, count);
+      // console.log("getOrderNonce : ", maker, schema, count);
 
       let makerNonce;
       const uuid = createUuidv4();
@@ -118,7 +118,6 @@ module.exports = {
   getCollectionFees: async (ctx, next) => {
     try {
       // ctx.body = "ok";
-      console.log(ctx.request.body.data);
       const data = ctx.request.body.data;
       const feeList = [];
 
@@ -177,7 +176,6 @@ module.exports = {
           },
         }
       );
-      console.log(r[0].address);
       if (r.length != 1) {
         ctx.body = {
           code: ERROR_RESPONSE,
@@ -343,11 +341,21 @@ module.exports = {
       // Update Here - Update 는 Deadlock 문제때문에 따라
       for (let item of combinedResults) {
         if (!item.error) {
-          console.log("update ", item.nftId);
           await strapi.entityService.update("api::nft.nft", item.nftId, {
             data: { sell_order: item.orderEntityId },
           });
         }
+      }
+
+      const uniqueAddresses = combinedResults.reduce((acc, current) => {
+        acc.add(current.assetContract);
+        return acc;
+      }, new Set());
+
+      // Convert the Set back to an array
+      const uniqueContractAddress = Array.from(uniqueAddresses);
+      for (let address of uniqueContractAddress) {
+        // TODO: [FLOOR PRICE] - Contract Address 모두에 대해 업데이트해줘야함.
       }
 
       // Filter out the success and failure based on the error key
@@ -379,7 +387,6 @@ module.exports = {
   getBatchSignedOrders: async (ctx, next) => {
     try {
       const data = ctx.request.body.data;
-      console.log(data);
 
       // 1. check if the user exist.
       const userData = await strapi.entityService.findMany(
@@ -582,7 +589,6 @@ module.exports = {
       }
     }
 
-    console.log("orlist", orQueryList);
     //isValid = true 인 order만
     andQueryList.push({ is_valid: true });
     const order = {};
@@ -705,7 +711,6 @@ module.exports = {
     if (isOrder) {
       txData = createOrderData(orderList, data.buyer).parameterData;
     } else {
-      console.log("orders data");
       txData = createOrdersData(orderList, data.buyer).parameterData;
     }
     // console.log("orderData : ", txData);
@@ -725,7 +730,7 @@ module.exports = {
 
   fetchExchangeDataByHash: async (ctx, next) => {
     const data = ctx.request.body.data;
-    console.log("encode!!!!!! ", data);
+    // console.log("encode!!!!!! ", data);
 
     const hashListWithNonce = [];
     const orderList = [];
@@ -947,7 +952,6 @@ async function processItem(
 ) {
   let orderUuid = createUuidv4();
   // Query if the NFT exists
-  console.log(111, collection);
   const nftData = await strapi.db.query("api::nft.nft").findOne({
     where: {
       token_id: item.nftId,

@@ -1,6 +1,6 @@
 "use strict";
 
-const { createTransferListener } = require("./listener/transferLIstener");
+const { createTransferListener } = require("./listener/blockchainListener");
 module.exports = {
   /**
    * An asynchronous register function that runs before

@@ -23,15 +23,11 @@ const myCollections = [
   "0x89F2ce18C98594303378940a83625f91C3Acded3",
   "0xec1c6ebb2EDEf02422BBBcAa3fb9b39363B9D47D",
 ];
-async function createTransferListener({strapi}) {
+async function createTransferListener({ strapi }) {
   console.log("it's on");
   let filter = {
     topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId
   };
-
-  const a = await jsonRpcProvider.listeners;
-
-  console.log("hi");
 
   await jsonRpcProvider.removeAllListeners();
   jsonRpcProvider.on(filter, async (log, _) => {
@@ -39,7 +35,7 @@ async function createTransferListener({strapi}) {
     try {
       const a = await jsonRpcProvider.listeners;
 
-      console.log("hi 222", a.length);
+      // console.log("hi 222", a.length);
 
       if (!myCollections.includes(log.address)) return;
 

@@ -1,4 +1,6 @@
 const ethers = require("ethers");
+const { Web3 } = require("web3");
+const web3 = new Web3();
 //TODO: change it to mainnet
 const jsonRpcProvider = new ethers.providers.JsonRpcProvider(
   // "https://rpc.ankr.com/blast/c657bef90ad95db61eef20ff757471d11b8de5482613002038a6bf9d8bb84494" // mainnet
@@ -14,6 +16,7 @@ const LOG_TYPE_LISTING = "LISTING";
 const LOG_TYPE_OFFER = "OFFER";
 const LOG_TYPE_COLLECTION_OFFER = "COLLECTION_OFFER";
 const LOG_TYPE_CANCEL_LISTING = "CANCEL_LISTING";
+const LOG_TYPE_AUTO_CANCEL_LISTING = "AUTO_CANCEL_LISTING"; // 유저가 더이상 BUYER 가 아닌 경우
 const LOG_TYPE_CANCEL_OFFER = "CANCEL_OFFER";
 const LOG_TYPE_MINT = "MINT";
 
@@ -28,15 +31,14 @@ async function createTransferListener({ strapi }) {
   let filter = {
     topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId
   };
+  let cancelFilter = {
+    topics: [ethers.utils.id("ERC721OrderCancelled(address,uint256)")],
+  };
 
   await jsonRpcProvider.removeAllListeners();
   jsonRpcProvider.on(filter, async (log, _) => {
     // // exit early if it's not our NFT
     try {
-      const a = await jsonRpcProvider.listeners;
-
-      // console.log("hi 222", a.length);
-
       if (!myCollections.includes(log.address)) return;
 
       const transferFrom = `0x${log.topics[1].slice(-40)}`;
@@ -86,8 +88,27 @@ async function createTransferListener({ strapi }) {
           // order를 삭제
           deletingOrder = await strapi.entityService.delete(
             "api::order.order",
-            nftData.sell_order.id
+            nftData.sell_order.id,
+            {
+              populate: { nft: true },
+            }
           );
+
+          await strapi.entityService.create(
+            "api::nft-trade-log.nft-trade-log",
+            {
+              data: {
+                type: LOG_TYPE_AUTO_CANCEL_LISTING,
+                from: deletingOrder.maker,
+                nft: deletingOrder.nft.id,
+                tx_hash: log.transactionHash,
+              },
+            }
+          );
+
+          // TODO: [FLOOR PRICE]
+
+          console.log("CANCEL LISTING HERE 1: ");
         } else {
           console.log("check if nftData exist, nftData.sell_order exist");
         }
@@ -192,6 +213,64 @@ async function createTransferListener({ strapi }) {
       });
     } catch (error) {
       console.log("error", error);
+    }
+  });
+
+  jsonRpcProvider.on(cancelFilter, async (log, _) => {
+    console.log("hi 222 ", log);
+    const parametersTypes = [
+      "address", // additional1
+      "uint256", // additional2
+    ];
+
+    const encodedData = web3.eth.abi.decodeParameters(
+      parametersTypes,
+      log.data
+    );
+    const userAddress = encodedData[0];
+    const nonceId = encodedData[1].toString();
+
+    console.log(encodedData, userAddress, nonceId);
+
+    // 1. delete order
+    const result = await strapi.db.query("api::order.order").delete({
+      where: {
+        $and: [
+          {
+            maker: userAddress,
+          },
+          {
+            nonce: nonceId,
+          },
+        ],
+      },
+      populate: {
+        nft: true,
+      },
+    });
+
+    // 2. create cancel listing
+    if (result != null) {
+      if (result.id != null) {
+        await strapi.entityService.create("api::nft-trade-log.nft-trade-log", {
+          data: {
+            type: LOG_TYPE_CANCEL_LISTING,
+            from: userAddress,
+            nft: result.nft.id,
+            tx_hash: log.transactionHash,
+          },
+        });
+        console.log(
+          "CANCEL LISTING HERE 2 Hash : ",
+          log.transactionHash,
+          "contract : ",
+          result.contract_address,
+          "nft id : ",
+          result.token_id
+        );
+      }
+
+      // TODO: [FLOOR PRICE]
     }
   });
 }

@@ -40,9 +40,6 @@
     "rarity_rank": {
       "type": "integer"
     },
-    "last_sale_price": {
-      "type": "biginteger"
-    },
     "owner": {
       "type": "string"
     },
@@ -62,6 +59,9 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::order.order"
+    },
+    "last_sale_price": {
+      "type": "float"
     }
   }
 }

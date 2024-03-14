@@ -298,14 +298,17 @@ function createOrdersData(orderList, taker) {
   let orderBySigned = {};
   for (let order of orderList) {
     if (!firstRoyaltyFeeReciepient) {
+      console.log(order);
       firstRoyaltyFeeReciepient = order.collection.royalty_fee_receiver;
     }
-    if (!orderBySigned[order.batch_signed_order.id]) {
-      orderBySigned[order.batch_signed_order.id] = {
+
+    let planeHash = getPlaneHash(order.order_hash);
+    if (!orderBySigned[planeHash]) {
+      orderBySigned[planeHash] = {
         orders: [],
       };
     }
-    orderBySigned[order.batch_signed_order.id].orders.push(order);
+    orderBySigned[planeHash].orders.push(order);
   }
 
   const signedList = [];
@@ -335,8 +338,11 @@ function createOrdersData(orderList, taker) {
     additional2,
   });
 
-
   return { parameterData };
+}
+
+function getPlaneHash(orderHash) {
+  return orderHash.split("_")[0];
 }
 
 function createAdditionalValues(
@@ -484,28 +490,6 @@ function createFillBatchSignedOrders(param) {
 
   return SELECTOR_fillBatchSignedERC721Orders + data.substring(2);
 }
-
-// console.log(
-//   encodeCollectionsToBytes([
-//     {
-//       filledIndexListPart1: "000000000000000000000000",
-//       nftAddress: "0x41951c1a94d068e1da124f63d5e99ee2a0acdaac",
-//       collectionType: 0,
-//       itemsCount: 1,
-//       filledCount: 1,
-//       filledIndexListPart2: "00000000",
-//       platformFeePercentage: 200,
-//       royaltyFeePercentage: 0,
-//       royaltyFeeRecipient: "0x0000000000000000000000000000000000000000",
-//       items: [
-//         "0000000000005af3107a40000000000000000000000000000000000000000090",
-//       ],
-//     },
-//   ])
-//     .toString()
-//     .toLowerCase() ==
-//     "0x00000000000000000000000041951c1a94d068e1da124f63d5e99ee2a0acdaac000101000000000000c8000000000000000000000000000000000000000000000000000000005af3107a40000000000000000000000000000000000000000090"
-// );
 
 module.exports = {
   createOrderData,

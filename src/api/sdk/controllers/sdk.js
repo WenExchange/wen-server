@@ -2,6 +2,7 @@
 
 const { createOrderData, createOrdersData } = require("./dataEncoder.js");
 const { getNFTOwner, weiToEther } = require("./blockchainHelper.js");
+const { updateFloorPrice } = require("../../../listener/blockchainListener.js");
 const dayjs = require("dayjs");
 
 /**
@@ -357,7 +358,7 @@ module.exports = {
       // Convert the Set back to an array
       const uniqueContractAddress = Array.from(uniqueAddresses);
       for (let address of uniqueContractAddress) {
-        // TODO: [FLOOR PRICE] - Contract Address 모두에 대해 업데이트해줘야함.
+        await updateFloorPrice({ strapi }, address);
       }
 
       // Filter out the success and failure based on the error key
@@ -480,7 +481,7 @@ module.exports = {
           commonData.push({
             contractAddress: item.contractAddress,
             tokenId: item.tokenId,
-            orderHash: r[0].batch_signed_order.order_hash,
+            orderHash: getPlaneHash(orderObj.hash),
             quantity: 1, // TODO ERC 1155
             tokenContract: token,
             schema: SCHEMA_ERC721,
@@ -716,8 +717,6 @@ module.exports = {
     } else {
       txData = createOrdersData(orderList, data.buyer).parameterData;
     }
-    // console.log("orderData : ", txData);
-    // console.log("txValue : ", txValue.toString());
 
     ctx.body = {
       data: {

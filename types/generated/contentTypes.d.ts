@@ -816,7 +816,6 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     total_supply: Attribute.Integer & Attribute.DefaultTo<0>;
     owner_count: Attribute.Integer & Attribute.DefaultTo<0>;
     listing_count: Attribute.Integer & Attribute.DefaultTo<0>;
-    floor_price: Attribute.Float;
     volume_24h: Attribute.Float & Attribute.DefaultTo<0>;
     volume_7d: Attribute.Float & Attribute.DefaultTo<0>;
     change_24h: Attribute.Float;
@@ -826,6 +825,7 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     protocol_fee_receiver: Attribute.String;
     protocol_fee_point: Attribute.Integer & Attribute.DefaultTo<0>;
     volume_total: Attribute.Float & Attribute.DefaultTo<0>;
+    floor_price: Attribute.Decimal & Attribute.DefaultTo<0>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1035,7 +1035,6 @@ export interface ApiNftNft extends Schema.CollectionType {
     token_id: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
     rarity_score: Attribute.Float & Attribute.DefaultTo<0>;
     rarity_rank: Attribute.Integer;
-    last_sale_price: Attribute.BigInteger;
     owner: Attribute.String;
     top_offer_price: Attribute.Float;
     traits: Attribute.JSON;
@@ -1045,6 +1044,7 @@ export interface ApiNftNft extends Schema.CollectionType {
       'oneToOne',
       'api::order.order'
     >;
+    last_sale_price: Attribute.Float;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<'api::nft.nft', 'oneToOne', 'admin::user'> &

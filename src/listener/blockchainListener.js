@@ -1,6 +1,9 @@
 const ethers = require("ethers");
 const { Web3 } = require("web3");
 const web3 = new Web3();
+const {updateFloorPrice} = require("./collectionStats"
+)
+
 //TODO: change it to mainnet
 const jsonRpcProvider = new ethers.providers.JsonRpcProvider(
   // "https://rpc.ankr.com/blast/c657bef90ad95db61eef20ff757471d11b8de5482613002038a6bf9d8bb84494" // mainnet
@@ -25,6 +28,8 @@ const myCollections = [
   "0x7E3D4B14E191533B44470889b6d0d36F232de1A3",
   "0xEFFBE8DFc7B147a59Dd407Efb8b5510804C02236",
 ];
+
+
 async function createTransferListener({ strapi }) {
   console.log("it's on");
   let filter = {
@@ -99,7 +104,7 @@ async function createTransferListener({ strapi }) {
               // 1. nft last sale price update
               await strapi.entityService.update("api::nft.nft", nftData.id, {
                 data: {
-                  last_sale_price: deletingOrder.price,
+                  last_sale_price: deletingOrder.price_eth,
                 },
               });
               // 2. NFT TradeLog에 추가
@@ -131,7 +136,7 @@ async function createTransferListener({ strapi }) {
 
               console.log("SALE : Order deleted Id", deletingOrder.id);
 
-              // TODO: [FLOOR PRICE]
+             await updateFloorPrice({strapi},log.address)
 
               console.log("CANCEL LISTING HERE 1: ");
             } else {
@@ -253,7 +258,8 @@ async function createTransferListener({ strapi }) {
         );
       }
 
-      // TODO: [FLOOR PRICE]
+      await updateFloorPrice({strapi},result.contract_address)
+
     } else {
       console.log("it's null", userAddress, nonceId);
     }

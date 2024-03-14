@@ -79,9 +79,6 @@
       "default": 0,
       "type": "integer"
     },
-    "floor_price": {
-      "type": "float"
-    },
     "volume_24h": {
       "type": "float",
       "default": 0,
@@ -114,6 +111,10 @@
     },
     "volume_total": {
       "type": "float",
+      "default": 0
+    },
+    "floor_price": {
+      "type": "decimal",
       "default": 0
     }
   }

@@ -1,0 +1,25 @@
+{
+  "kind": "collectionType",
+  "collectionName": "coin_prices",
+  "info": {
+    "singularName": "coin-price",
+    "pluralName": "coin-prices",
+    "displayName": "CoinPrice"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "price": {
+      "type": "decimal",
+      "default": 0,
+      "required": true
+    },
+    "symbol": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    }
+  }
+}

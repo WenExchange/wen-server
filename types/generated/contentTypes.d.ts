@@ -781,6 +781,36 @@ export interface PluginI18NLocale extends Schema.CollectionType {
   };
 }
 
+export interface ApiCoinPriceCoinPrice extends Schema.CollectionType {
+  collectionName: 'coin_prices';
+  info: {
+    singularName: 'coin-price';
+    pluralName: 'coin-prices';
+    displayName: 'CoinPrice';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    price: Attribute.Decimal & Attribute.Required & Attribute.DefaultTo<0>;
+    symbol: Attribute.String & Attribute.Required & Attribute.Unique;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::coin-price.coin-price',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::coin-price.coin-price',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiCollectionCollection extends Schema.CollectionType {
   collectionName: 'collections';
   info: {
@@ -1243,6 +1273,7 @@ declare module '@strapi/types' {
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
       'plugin::i18n.locale': PluginI18NLocale;
+      'api::coin-price.coin-price': ApiCoinPriceCoinPrice;
       'api::collection.collection': ApiCollectionCollection;
       'api::collection-stat-log.collection-stat-log': ApiCollectionStatLogCollectionStatLog;
       'api::early-user.early-user': ApiEarlyUserEarlyUser;

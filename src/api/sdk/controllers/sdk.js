@@ -2,8 +2,8 @@
 
 const { createOrderData, createOrdersData } = require("./dataEncoder.js");
 const { getNFTOwner, weiToEther } = require("./blockchainHelper.js");
-const { updateFloorPrice } = require("../../../listener/blockchainListener.js");
 const dayjs = require("dayjs");
+const { batchUpdateFloorPrice } = require("../../../listener/collectionStats.js");
 
 /**
  * A set of functions called "actions" for `sdk`
@@ -357,14 +357,11 @@ module.exports = {
 
       // Convert the Set back to an array
       const uniqueContractAddress = Array.from(uniqueAddresses);
-      for (let address of uniqueContractAddress) {
-        // don't use await. just send it to server.
-        try {
-          updateFloorPrice({ strapi }, address);
-        } catch (error) {
-          console.log("updateFloorPrice", error);
-        }
-      }
+
+      
+      batchUpdateFloorPrice({strapi, addressList:uniqueContractAddress }).catch(error => {
+        console.log("batchUpdateFloorPrice", error.message);
+      })
 
       // Filter out the success and failure based on the error key
       const successList = combinedResults.filter((result) => !result.error);

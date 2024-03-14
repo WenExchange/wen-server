@@ -46,4 +46,25 @@ module.exports = createCoreController('api::nft.nft', ({ strapi }) => ({
         
     },
 
+    async getNFTCount(ctx) {
+        {
+            try {
+                const count = await strapi.db.query('api::nft.nft').count({
+                    ...ctx.request.query
+                  });
+
+                  return ctx.body = {
+                    count
+                  }
+
+            } catch (error) {
+                console.error(error.message)
+            }
+        }
+           
+
+        
+    },
+
+
   }));

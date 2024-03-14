@@ -298,10 +298,11 @@ function createOrdersData(orderList, taker) {
   let orderBySigned = {};
   for (let order of orderList) {
     if (!firstRoyaltyFeeReciepient) {
+      console.log(order);
       firstRoyaltyFeeReciepient = order.collection.royalty_fee_receiver;
     }
 
-    let planeHash = getPlaneHash(order.hash);
+    let planeHash = getPlaneHash(order.order_hash);
     if (!orderBySigned[planeHash]) {
       orderBySigned[planeHash] = {
         orders: [],

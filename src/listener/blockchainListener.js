@@ -1,6 +1,9 @@
 const ethers = require("ethers");
 const { Web3 } = require("web3");
 const web3 = new Web3();
+const {updateFloorPrice} = require("./collectionStats"
+)
+
 //TODO: change it to mainnet
 const jsonRpcProvider = new ethers.providers.JsonRpcProvider(
   // "https://rpc.ankr.com/blast/c657bef90ad95db61eef20ff757471d11b8de5482613002038a6bf9d8bb84494" // mainnet
@@ -26,61 +29,6 @@ const myCollections = [
   "0xEFFBE8DFc7B147a59Dd407Efb8b5510804C02236",
 ];
 
-async function updateFloorPrice({ strapi }, contractAddress) {
-  const orderData = await strapi.db.query("api::order.order").findOne({
-    where: {
-      contract_address: contractAddress,
-    },
-    orderBy: {
-      price_eth: "asc",
-    },
-    populate: {
-      collection: true,
-    },
-  });
-
-  if (orderData) {
-    let currentCollectionFP;
-    if (orderData.collection.floor_price) {
-      currentCollectionFP = orderData.collection.floor_price;
-    } else {
-      currentCollectionFP = 0;
-    }
-    const realFP = orderData.price_eth;
-
-    if (realFP != currentCollectionFP) {
-      await strapi.entityService.update(
-        "api::collection.collection",
-        orderData.collection.id,
-        {
-          data: {
-            floor_price: realFP,
-          },
-        }
-      );
-      console.log("updated! real FP", realFP, "previous", currentCollectionFP);
-    } else {
-      console.log(
-        "didn't updated! real FP",
-        realFP,
-        "previous",
-        currentCollectionFP
-      );
-    }
-  } else {
-    // If there is no Order data, set the floor_price to 0
-    await strapi.entityService.update(
-      "api::collection.collection",
-      orderData.collection.id,
-      {
-        data: {
-          floor_price: 0,
-        },
-      }
-    );
-    console.log("no order data", contractAddress);
-  }
-}
 
 async function createTransferListener({ strapi }) {
   console.log("it's on");
@@ -318,4 +266,4 @@ async function createTransferListener({ strapi }) {
   });
 }
 
-module.exports = { createTransferListener, updateFloorPrice };
+module.exports = { createTransferListener };

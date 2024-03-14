@@ -13,5 +13,10 @@ module.exports = {
         path: '/nfts/getNFT',
         handler: 'nft.getNFT',
       },
+      { // Path defined with an URL parameter
+        method: 'GET',
+        path: '/nfts/count',
+        handler: 'nft.getNFTCount',
+      },
     ]
   }

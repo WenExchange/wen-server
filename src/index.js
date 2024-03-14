@@ -42,7 +42,11 @@ module.exports = {
       // findBots(strapi)
       // deleteBotUsers(strapi)
 
+<<<<<<< HEAD
       createTransferListener({ strapi });
+=======
+      // createTransferListener({strapi});
+>>>>>>> 2426187 (:)
     } catch (error) {
       console.log(error.message);
     }

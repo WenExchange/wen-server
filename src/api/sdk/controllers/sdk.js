@@ -358,7 +358,12 @@ module.exports = {
       // Convert the Set back to an array
       const uniqueContractAddress = Array.from(uniqueAddresses);
       for (let address of uniqueContractAddress) {
-        await updateFloorPrice({ strapi }, address);
+        // don't use await. just send it to server.
+        try {
+          updateFloorPrice({ strapi }, address);
+        } catch (error) {
+          console.log("updateFloorPrice", error);
+        }
       }
 
       // Filter out the success and failure based on the error key

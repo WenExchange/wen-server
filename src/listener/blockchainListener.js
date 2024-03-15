@@ -1,8 +1,7 @@
 const ethers = require("ethers");
 const { Web3 } = require("web3");
 const web3 = new Web3();
-const {updateFloorPrice} = require("./collectionStats"
-)
+const { updateFloorPrice } = require("./collectionStats");
 
 //TODO: change it to mainnet
 const jsonRpcProvider = new ethers.providers.JsonRpcProvider(
@@ -28,7 +27,6 @@ const myCollections = [
   "0x7E3D4B14E191533B44470889b6d0d36F232de1A3",
   "0xEFFBE8DFc7B147a59Dd407Efb8b5510804C02236",
 ];
-
 
 async function createTransferListener({ strapi }) {
   console.log("it's on");
@@ -90,7 +88,7 @@ async function createTransferListener({ strapi }) {
         let deletingOrder;
         if (transferFrom != "0x0000000000000000000000000000000000000000") {
           if (nftData.sell_order != null) {
-            if (nftData.owner == transferFrom) {
+            if (nftData.sell_order.maker == transferFrom) {
               // SALE임
 
               deletingOrder = await strapi.entityService.delete(
@@ -136,7 +134,7 @@ async function createTransferListener({ strapi }) {
 
               console.log("SALE : Order deleted Id", deletingOrder.id);
 
-             await updateFloorPrice({strapi},log.address)
+              await updateFloorPrice({ strapi }, log.address);
 
               console.log("CANCEL LISTING HERE 1: ");
             } else {
@@ -258,8 +256,7 @@ async function createTransferListener({ strapi }) {
         );
       }
 
-      await updateFloorPrice({strapi},result.contract_address)
-
+      await updateFloorPrice({ strapi }, result.contract_address);
     } else {
       console.log("it's null", userAddress, nonceId);
     }

@@ -5,7 +5,6 @@ const { getNFTOwner, weiToEther } = require("./blockchainHelper.js");
 const dayjs = require("dayjs");
 const {
   batchUpdateFloorPrice,
-  updateOrdersCount,
 } = require("../../../listener/collectionStats.js");
 
 /**
@@ -31,7 +30,7 @@ const ORDERSIDE_SELL = 1;
 //From Wen
 const WEN_STANDARD = "wen-ex-v1";
 // TODO: NEED TO CHAGNE TO REAL ADDRESS
-const CONTRACT_ADDRESS_WEN_EX = "0x1E80bFd685D9017dfDd497FAf14B8c4E8779F91C";
+const CONTRACT_ADDRESS_WEN_EX = "0xD75104c9C2aeC1594944c8F3a2858C62DEeaE91b";
 const LOG_TYPE_SALE = "SALE";
 const LOG_TYPE_TRANSFER = "TRANSFER";
 const LOG_TYPE_LISTING = "LISTING";

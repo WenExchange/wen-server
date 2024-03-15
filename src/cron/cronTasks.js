@@ -3,7 +3,8 @@ const DiscordManager = require("../discord/DiscordManager");
 const wen = require("../web3/wen_contract.js");
 const { createAlchemyWeb3 } = require("@alch/alchemy-web3");
 const web3 = createAlchemyWeb3("https://rpc.ankr.com/blast_testnet_sepolia/c657bef90ad95db61eef20ff757471d11b8de5482613002038a6bf9d8bb84494");
-const {telegramClient} = require("../telegram/TelegramClient")
+const {telegramClient} = require("../telegram/TelegramClient");
+const axios = require("axios");
 const chatId = process.env.TELEGRAM_CHAT_ID;
 module.exports = {
   ClaimAllYield: {
@@ -71,6 +72,32 @@ module.exports = {
       tz: "Asia/Seoul",
     },
   },
+
+  getETHUSDT: {
+    task: async ({ strapi }) => {
+      try {
+       const priceInfo = await axios.get(`https://api.api-ninjas.com/v1/cryptoprice?symbol=ETHUSDT`, {
+         headers: { 'X-Api-Key': 'RvlBPLkBQkQ323ebmaAnPA==0RUW8U3YEnJdRez7'}
+       }).then(res => res.data)
+
+       const updated = await strapi.entityService.update(
+        "api::coin-price.coin-price",1,
+        {
+          data: {
+            ...priceInfo
+          }
+        }
+      );
+
+
+      } catch (error) {
+        console.error(error.message);
+      }
+    },
+    options: {
+      rule: `*/15 * * * * *`,
+    },
+  }
 };
 
 function successYield(object) {

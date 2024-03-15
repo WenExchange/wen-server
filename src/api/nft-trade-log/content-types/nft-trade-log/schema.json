@@ -36,6 +36,10 @@
     },
     "tx_hash": {
       "type": "string"
+    },
+    "timestamp": {
+      "type": "biginteger",
+      "required": false
     }
   }
 }

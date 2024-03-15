@@ -1107,6 +1107,7 @@ export interface ApiNftTradeLogNftTradeLog extends Schema.CollectionType {
       'api::nft.nft'
     >;
     tx_hash: Attribute.String;
+    timestamp: Attribute.BigInteger;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

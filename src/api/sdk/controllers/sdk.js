@@ -1024,6 +1024,7 @@ async function processItem(
         from: data.maker,
         nft: nftData.id,
         expired_at: expirationTime,
+        timestamp: dayjs().unix()
       },
     }
   );

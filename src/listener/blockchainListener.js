@@ -1,5 +1,6 @@
 const ethers = require("ethers");
 const { Web3 } = require("web3");
+const dayjs = require("dayjs");
 const web3 = new Web3();
 const {
   updateFloorPrice,
@@ -120,6 +121,7 @@ async function createTransferListener({ strapi }) {
                     to: transferTo,
                     nft: nftData.id,
                     tx_hash: log.transactionHash,
+                    timestamp: dayjs().unix()
                   },
                 }
               );
@@ -132,6 +134,7 @@ async function createTransferListener({ strapi }) {
                     from: deletingOrder.maker,
                     nft: deletingOrder.nft.id,
                     tx_hash: log.transactionHash,
+                    timestamp: dayjs().unix()
                   },
                 }
               );
@@ -156,6 +159,7 @@ async function createTransferListener({ strapi }) {
                     to: transferTo,
                     nft: nftData.id,
                     tx_hash: log.transactionHash,
+                    timestamp: dayjs().unix()
                   },
                 }
               );
@@ -172,6 +176,7 @@ async function createTransferListener({ strapi }) {
                   to: transferTo,
                   nft: nftData.id,
                   tx_hash: log.transactionHash,
+                  timestamp: dayjs().unix()
                 },
               }
             );
@@ -187,6 +192,7 @@ async function createTransferListener({ strapi }) {
                 to: transferTo,
                 nft: nftData.id,
                 tx_hash: log.transactionHash,
+                timestamp: dayjs().unix()
               },
             }
           );
@@ -256,6 +262,7 @@ async function createTransferListener({ strapi }) {
             from: userAddress,
             nft: result.nft.id,
             tx_hash: log.transactionHash,
+            timestamp: dayjs().unix()
           },
         });
         console.log(

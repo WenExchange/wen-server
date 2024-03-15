@@ -25,6 +25,9 @@
       "relation": "manyToOne",
       "target": "api::collection.collection",
       "inversedBy": "collection_stat_logs"
+    },
+    "timestamp": {
+      "type": "biginteger"
     }
   }
 }

@@ -2,6 +2,7 @@
 
 
 const { createTransferListener } = require("./listener/blockchainListener");
+const CollectionCacheManager = require("./cache-managers/CollectionCacheManager")
 
 const { update1hourStat } = require("./listener/collectionStats");
 const dayjs = require("dayjs");
@@ -54,6 +55,8 @@ module.exports = {
       //   "0x7E3D4B14E191533B44470889b6d0d36F232de1A3"
       // );
       createTransferListener({ strapi });
+
+      const ccm = CollectionCacheManager.getInstance(strapi)
     } catch (error) {
       console.log(error.message);
     }

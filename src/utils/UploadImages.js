@@ -99,7 +99,7 @@ async function uploadByUrl(imageUrls) {
       }
     );
     const results = await uploadedBlobToStrapi.json();
-    console.log(results);
+    // console.log(results);
     return results;
   } catch (error) {
     console.log(error);
@@ -111,42 +111,42 @@ const path = require("path");
 
 // Assuming uploadByUrl function is defined as shown earlier
 
-// async function processAndUploadImages() {
-//   const filePath = path.join(__dirname, "48_1.json");
-//   let data = await fs.readFile(filePath, "utf8");
-//   let objects = JSON.parse(data);
+async function processAndUploadImages() {
+  const filePath = path.join(__dirname, "48_1.json");
+  let data = await fs.readFile(filePath, "utf8");
+  let objects = JSON.parse(data);
 
-//   const objectsToProcess = objects.filter((obj) => !obj.strapi_image_url);
+  const objectsToProcess = objects.filter((obj) => !obj.strapi_image_url);
 
-//   // Processing in batches of 10
-//   for (let i = 0; i < objectsToProcess.length; i += 10) {
-//     const batch = objectsToProcess.slice(i, i + 10);
-//     console.log("batch : ", i, i + 10);
-//     const imageUrls = batch.map((obj) =>
-//       obj.image_url.replace(
-//         "ipfs://",
-//         "https://wen-exchange.quicknode-ipfs.com/ipfs/"
-//       )
-//     ); // Convert IPFS URL to HTTP URL
+  // Processing in batches of 10
+  for (let i = 0; i < objectsToProcess.length; i += 10) {
+    const batch = objectsToProcess.slice(i, i + 10);
+    console.log("batch : ", i, i + 10);
+    const imageUrls = batch.map((obj) =>
+      obj.image_url.replace(
+        "ipfs://",
+        "https://wen-exchange.quicknode-ipfs.com/ipfs/"
+      )
+    ); // Convert IPFS URL to HTTP URL
 
-//     // Upload images by URL and update objects with returned URLs
-//     const uploadResults = await uploadByUrl(imageUrls);
-//     if (uploadResults) {
-//       uploadResults.forEach((result, index) => {
-//         // Find original object and update strapi_image_url
-//         const originalIndex = objects.findIndex(
-//           (obj) => obj.image_url === batch[index].image_url
-//         );
-//         if (originalIndex !== -1) {
-//           objects[originalIndex].strapi_image_url = result.url;
-//         }
-//       });
-//     }
-//   }
+    // Upload images by URL and update objects with returned URLs
+    const uploadResults = await uploadByUrl(imageUrls);
+    if (uploadResults) {
+      uploadResults.forEach((result, index) => {
+        // Find original object and update strapi_image_url
+        const originalIndex = objects.findIndex(
+          (obj) => obj.image_url === batch[index].image_url
+        );
+        if (originalIndex !== -1) {
+          objects[originalIndex].strapi_image_url = result.url;
+        }
+      });
+    }
+  }
 
-//   // Save the updated array back to "a.json"
-//   await fs.writeFile(filePath, JSON.stringify(objects, null, 2));
-// }
+  // Save the updated array back to "a.json"
+  await fs.writeFile(filePath, JSON.stringify(objects, null, 2));
+}
 
 async function processAndUploadImagesIncrementally() {
   const filePath = path.join(__dirname, "48_1.json");
@@ -159,7 +159,7 @@ async function processAndUploadImagesIncrementally() {
     // Find first 10 objects without strapi_image_url
     const objectsToProcess = objects
       .filter((obj) => !obj.strapi_image_url)
-      .slice(0, 10);
+      .slice(0, 30);
 
     // If there are no objects left to process, break the loop
     if (objectsToProcess.length === 0) {
@@ -197,9 +197,52 @@ async function processAndUploadImagesIncrementally() {
 }
 processAndUploadImagesIncrementally();
 
-// processAndUploadImages().then(() =>
-//   console.log("Image processing and upload complete.")
-// );
+// async function processAndUploadImagesIncrementally2() {
+//   const filePath = path.join(__dirname, "48_1.json");
+//   let data = await fs.readFile(filePath, "utf8");
+//   let objects = JSON.parse(data);
+//   const batchSize = 200; // Processing in larger batches
+
+//   for (let i = 0; i < objects.length; i += batchSize) {
+//     const chunk = objects.slice(i, i + batchSize);
+//     const objectsToProcess = chunk.filter((obj) => !obj.strapi_image_url);
+
+//     if (objectsToProcess.length === 0) {
+//       console.log(`Chunk starting at index ${i} has no items to process.`);
+//       continue;
+//     }
+
+//     const imageUrls = objectsToProcess.map((obj) =>
+//       obj.image_url.replace(
+//         "ipfs://",
+//         "https://wen-exchange.quicknode-ipfs.com/ipfs/"
+//       )
+//     );
+//     const uploadPromises = imageUrls.map((url) => uploadByUrl([url])); // Assuming uploadByUrl can handle individual URLs
+//     const uploadResults = await Promise.all(uploadPromises);
+
+//     uploadResults.flat().forEach((result, index) => {
+//       if (result && result.url) {
+//         const originalIndex = objects.findIndex(
+//           (obj) => obj.image_url === objectsToProcess[index].image_url
+//         );
+//         if (originalIndex !== -1) {
+//           objects[originalIndex].strapi_image_url = result.url;
+//         }
+//       }
+//     });
+
+//     // Save the updated objects after processing this chunk
+//     await fs.writeFile(filePath, JSON.stringify(objects, null, 2));
+//     console.log(
+//       `Chunk processed and saved. Last token_id in this chunk: ${
+//         objectsToProcess[objectsToProcess.length - 1].token_id
+//       }`
+//     );
+//   }
+
+//   console.log("Image processing and upload complete.");
+// }
 
 module.exports = {
   uploadByUrl,

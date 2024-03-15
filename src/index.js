@@ -48,6 +48,8 @@ module.exports = {
       //   "0x7E3D4B14E191533B44470889b6d0d36F232de1A3"
       // );
       createTransferListener({ strapi });
+      console.log(444, Intl.DateTimeFormat().resolvedOptions().timeZone);
+      
     } catch (error) {
       console.log(error.message);
     }

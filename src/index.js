@@ -1,6 +1,8 @@
 "use strict";
 
 const { createTransferListener } = require("./listener/blockchainListener");
+
+const { update1hourStat } = require("./listener/collectionStats");
 module.exports = {
   /**
    * An asynchronous register function that runs before
@@ -41,8 +43,11 @@ module.exports = {
       // console.log(333, users.length);
       // findBots(strapi)
       // deleteBotUsers(strapi)
-
-      // createTransferListener({ strapi });
+      // await update1hourStat(
+      //   { strapi },
+      //   "0x7E3D4B14E191533B44470889b6d0d36F232de1A3"
+      // );
+      createTransferListener({ strapi });
     } catch (error) {
       console.log(error.message);
     }

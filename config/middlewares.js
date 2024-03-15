@@ -14,6 +14,7 @@ module.exports = [
             "blob:",
             "dl.airtable.com",
             "wen-exchange.s3.ap-northeast-2.amazonaws.com",
+            "d1kb1oeulsx0pq.cloudfront.net"
           ],
           "media-src": [
             "'self'",
@@ -21,6 +22,7 @@ module.exports = [
             "blob:",
             "dl.airtable.com",
             "wen-exchange.s3.ap-northeast-2.amazonaws.com",
+            "d1kb1oeulsx0pq.cloudfront.net"
           ],
           upgradeInsecureRequests: null,
         },

@@ -1,7 +1,11 @@
 const ethers = require("ethers");
 const { Web3 } = require("web3");
 const web3 = new Web3();
-const { updateFloorPrice } = require("./collectionStats");
+const {
+  updateFloorPrice,
+  updateOrdersCount,
+  updateOwnerCount,
+} = require("./collectionStats");
 
 //TODO: change it to mainnet
 const jsonRpcProvider = new ethers.providers.JsonRpcProvider(
@@ -111,7 +115,7 @@ async function createTransferListener({ strapi }) {
                 {
                   data: {
                     type: LOG_TYPE_SALE,
-                    price: deletingOrder.price,
+                    price: deletingOrder.price_eth,
                     from: transferFrom,
                     to: transferTo,
                     nft: nftData.id,
@@ -119,7 +123,7 @@ async function createTransferListener({ strapi }) {
                   },
                 }
               );
-
+              //3. log added
               await strapi.entityService.create(
                 "api::nft-trade-log.nft-trade-log",
                 {
@@ -134,7 +138,11 @@ async function createTransferListener({ strapi }) {
 
               console.log("SALE : Order deleted Id", deletingOrder.id);
 
+              // 4. floor price update
               await updateFloorPrice({ strapi }, log.address);
+
+              // 5. update listing count
+              await updateOrdersCount({ strapi }, log.address);
 
               console.log("CANCEL LISTING HERE 1: ");
             } else {
@@ -197,6 +205,9 @@ async function createTransferListener({ strapi }) {
             owner: transferTo,
           },
         });
+
+        //4-2. Owner Count 를 변경
+        await updateOwnerCount({ strapi }, log.address);
       } else {
         console.log("log is already exist.");
       }
@@ -238,6 +249,7 @@ async function createTransferListener({ strapi }) {
     // 2. create cancel listing
     if (result != null) {
       if (result.id != null) {
+        //2-1. create cancle listing
         await strapi.entityService.create("api::nft-trade-log.nft-trade-log", {
           data: {
             type: LOG_TYPE_CANCEL_LISTING,
@@ -255,8 +267,10 @@ async function createTransferListener({ strapi }) {
           result.token_id
         );
       }
-
+      // 2-2. updateFloorPrice
       await updateFloorPrice({ strapi }, result.contract_address);
+      // 2-3. update listing count
+      await updateOrdersCount({ strapi }, log.address);
     } else {
       console.log("it's null", userAddress, nonceId);
     }

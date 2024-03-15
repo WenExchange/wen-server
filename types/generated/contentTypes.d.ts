@@ -893,6 +893,7 @@ export interface ApiCollectionStatLogCollectionStatLog
       'manyToOne',
       'api::collection.collection'
     >;
+    timestamp: Attribute.BigInteger;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

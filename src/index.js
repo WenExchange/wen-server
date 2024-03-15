@@ -1,14 +1,16 @@
 "use strict";
 
-
 const { createTransferListener } = require("./listener/blockchainListener");
 
 const { update1hourStat } = require("./listener/collectionStats");
 const dayjs = require("dayjs");
-var utc = require('dayjs/plugin/utc')
-var timezone = require('dayjs/plugin/timezone') // dependent on utc plugin
-dayjs.extend(utc)
-dayjs.extend(timezone)
+var utc = require("dayjs/plugin/utc");
+var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
+
+const { uploadNFTImages } = require("../src/utils/UploadImages");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 module.exports = {
   /**
    * An asynchronous register function that runs before
@@ -53,7 +55,8 @@ module.exports = {
       //   { strapi },
       //   "0x7E3D4B14E191533B44470889b6d0d36F232de1A3"
       // );
-      createTransferListener({ strapi });
+      // createTransferListener({ strapi });
+      // uploadNFTImages({ strapi });
     } catch (error) {
       console.log(error.message);
     }

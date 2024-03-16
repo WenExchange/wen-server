@@ -40,7 +40,6 @@ async function createTransferListener({ strapi }) {
     try {
       const ccm = CollectionCacheManager.getInstance(strapi)
       const myCollections = ccm.getCollectionAddresses()
-      console.log("cached collection address -", myCollections.length);
       if (!myCollections.includes(log.address.toLowerCase())) return;
 
       const transferFrom = `0x${log.topics[1].slice(-40)}`;
@@ -272,7 +271,7 @@ async function createTransferListener({ strapi }) {
       // 2-2. updateFloorPrice
       await updateFloorPrice({ strapi }, result.contract_address);
       // 2-3. update listing count
-      await updateOrdersCount({ strapi }, log.address);
+      await updateOrdersCount({ strapi }, result.contract_address);
     } else {
       console.log("it's null", userAddress, nonceId);
     }

@@ -2,9 +2,10 @@ const axios = require("axios");
 const { parse } = require("url");
 
 async function uploadByUrl({ strapi }) {
+  console.log(333);
   try {
     const url = "https://api.blastopians.io/1.png";
-    const imageName = parse(url).pathname.split("/").pop();
+    // const imageName = parse(url).pathname.split("/").pop();
     const response = await axios({
       method: "GET",
       url,
@@ -26,9 +27,13 @@ async function uploadByUrl({ strapi }) {
     // });
     // ctx.send({ message: "Image uploaded successfully!" });
   } catch (error) {
+    console.error(error.message
+      );
     // ctx.throw(500, "Unable to upload image from URL");
   }
 }
+
+uploadByUrl({strapi: null}).then()
 
 async function uploadNFTImages({ strapi }) {
   const imageURL = "https://api.blastopians.io/1.png";
@@ -73,34 +78,34 @@ async function uploadNFTImages({ strapi }) {
   // console.log(response);
 }
 
-async function uploadByUrl(imageUrls) {
-  try {
-    const formData = new FormData();
+// async function uploadByUrl(imageUrls) {
+//   try {
+//     const formData = new FormData();
 
-    for (let imageUrl of imageUrls) {
-      const image = await fetch(imageUrl);
-      const imagetoUpload = await image.blob();
-      formData.append("files", imagetoUpload);
-    }
+//     for (let imageUrl of imageUrls) {
+//       const image = await fetch(imageUrl);
+//       const imagetoUpload = await image.blob();
+//       formData.append("files", imagetoUpload);
+//     }
 
-    const uploadedBlobToStrapi = await fetch(
-      "http://localhost:1337/api/upload",
-      {
-        method: "POST",
-        headers: {
-          authorization: `Bearer 8fb15f482edd0150963bc7cb8d7ef28431a8fa89fe7307a98faec92cea0d59b0bf0637264c883dd5ba83f205f1e486698ebb677ad650bb8c6d14d4ac951522061d5abd1f70527138a5875638f80e35ac68ce3af6c7b9c96bca37ace9d3528f8b5d87d545d5eca5cca8f8748f7d1202e2debe60076048d17dab64bd35aaeaf3c1`,
-        },
-        body: formData,
-      }
-    );
-    const results = await uploadedBlobToStrapi.json();
-    // console.log(results);
-    return results;
-  } catch (error) {
-    console.log(error);
-    console.log(error.message);
-  }
-}
+//     const uploadedBlobToStrapi = await fetch(
+//       "http://localhost:1337/api/upload",
+//       {
+//         method: "POST",
+//         headers: {
+//           authorization: `Bearer 8fb15f482edd0150963bc7cb8d7ef28431a8fa89fe7307a98faec92cea0d59b0bf0637264c883dd5ba83f205f1e486698ebb677ad650bb8c6d14d4ac951522061d5abd1f70527138a5875638f80e35ac68ce3af6c7b9c96bca37ace9d3528f8b5d87d545d5eca5cca8f8748f7d1202e2debe60076048d17dab64bd35aaeaf3c1`,
+//         },
+//         body: formData,
+//       }
+//     );
+//     const results = await uploadedBlobToStrapi.json();
+//     // console.log(results);
+//     return results;
+//   } catch (error) {
+//     console.log(error);
+//     console.log(error.message);
+//   }
+// }
 const fs = require("fs").promises;
 const path = require("path");
 
@@ -190,7 +195,7 @@ async function processAndUploadImagesIncrementally() {
 
   console.log("Image processing and upload complete.");
 }
-processAndUploadImagesIncrementally();
+// processAndUploadImagesIncrementally();
 
 // async function processAndUploadImagesIncrementally2() {
 //   const filePath = path.join(__dirname, "48_1.json");

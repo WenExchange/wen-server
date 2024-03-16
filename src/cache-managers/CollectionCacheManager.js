@@ -31,7 +31,7 @@ CACHE_COLLECTION_ADDRESSES = []
 
   /** Handlers */
   getCollectionAddresses = () => {
-      return this.CACHE_COLLECTION_ADDRESSES
+      return this.CACHE_COLLECTION_ADDRESSES.map(address => address.toLowerCase())
   }
   setCollectionAddresses = (addresses) => {
     this.CACHE_COLLECTION_ADDRESSES = addresses

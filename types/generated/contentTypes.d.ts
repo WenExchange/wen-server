@@ -858,6 +858,7 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     floor_price: Attribute.Float & Attribute.DefaultTo<0>;
     sale_24h: Attribute.Integer & Attribute.DefaultTo<0>;
     boost_point: Attribute.Integer & Attribute.DefaultTo<0>;
+    change_7d: Attribute.Float;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -1171,6 +1172,10 @@ export interface ApiOrderOrder extends Schema.CollectionType {
       'api::token.token'
     >;
     exchange_data: Attribute.Text;
+    protocol_fee_receiver: Attribute.String;
+    royalty_fee_receiver: Attribute.String;
+    protocol_fee_point: Attribute.Integer;
+    royalty_fee_point: Attribute.Integer;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

@@ -820,16 +820,16 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     description: '';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     slug: Attribute.String & Attribute.Required & Attribute.Unique;
     contract_address: Attribute.String & Attribute.Required;
-    token_uri: Attribute.String & Attribute.Required & Attribute.Unique;
+    token_uri: Attribute.String & Attribute.Unique;
     name: Attribute.String & Attribute.Required;
     description: Attribute.String;
-    logo_url: Attribute.String & Attribute.Required;
-    banner_url: Attribute.String & Attribute.Required;
+    logo_url: Attribute.String;
+    banner_url: Attribute.String;
     twitter: Attribute.String;
     discord: Attribute.String;
     website: Attribute.String;
@@ -859,7 +859,6 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     sale_24h: Attribute.Integer & Attribute.DefaultTo<0>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
       'api::collection.collection',
       'oneToOne',

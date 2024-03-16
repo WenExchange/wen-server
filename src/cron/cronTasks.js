@@ -8,7 +8,7 @@ const {telegramClient} = require("../telegram/TelegramClient");
 const axios = require("axios");
 const chatId = process.env.TELEGRAM_CHAT_ID;
 const {NFT_LOG_TYPE} = require("../utils/constants")
-const {stats_1h_collection}  = require("./start_collelction")
+const {stats_1h_collection}  = require("./stat_collelction")
 module.exports = {
 
   ClaimAllYield: {

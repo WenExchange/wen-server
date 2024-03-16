@@ -28,6 +28,10 @@
     },
     "timestamp": {
       "type": "biginteger"
+    },
+    "sale_1h": {
+      "type": "integer",
+      "default": 0
     }
   }
 }

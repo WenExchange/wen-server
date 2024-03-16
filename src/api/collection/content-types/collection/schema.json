@@ -8,7 +8,7 @@
     "description": ""
   },
   "options": {
-    "draftAndPublish": false
+    "draftAndPublish": true
   },
   "pluginOptions": {},
   "attributes": {
@@ -115,6 +115,10 @@
     },
     "floor_price": {
       "type": "decimal",
+      "default": 0
+    },
+    "sale_24h": {
+      "type": "integer",
       "default": 0
     }
   }

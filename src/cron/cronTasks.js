@@ -1,12 +1,15 @@
-// const dayjs = require("dayjs");
+const dayjs = require("dayjs");
 const DiscordManager = require("../discord/DiscordManager");
+const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
 const wen = require("../web3/wen_contract.js");
 const { createAlchemyWeb3 } = require("@alch/alchemy-web3");
 const web3 = createAlchemyWeb3("https://rpc.ankr.com/blast_testnet_sepolia/c657bef90ad95db61eef20ff757471d11b8de5482613002038a6bf9d8bb84494");
 const {telegramClient} = require("../telegram/TelegramClient");
 const axios = require("axios");
 const chatId = process.env.TELEGRAM_CHAT_ID;
+const {NFT_LOG_TYPE} = require("../utils/constants")
 module.exports = {
+
   ClaimAllYield: {
     task: async ({ strapi }) => {
       console.log("[WEN BOT] ClaimAllYield");
@@ -97,7 +100,147 @@ module.exports = {
     options: {
       rule: `*/15 * * * * *`,
     },
-  }
+  },
+  cacheCollection: {
+    task: async ({ strapi }) => {
+      console.log("[CRON TASK] cache collection address");
+      try {
+
+        const ccm = CollectionCacheManager.getInstance(strapi)
+        await ccm.fetchAndUpdateCollections({strapi})
+
+
+      } catch (error) {
+        console.error(error.message);
+      }
+    },
+    options: {
+      rule: `*/10 * * * *`,
+    },
+  },
+  stats_1h_Collection: {
+    task: async ({ strapi }) => {
+      console.log("[CRON TASK] 24H COLLECTION STATS");
+      try {
+        const colllections = await strapi.db.query( "api::collection.collection").findMany();
+
+        const statUpdatePromises = colllections.map(collection => {
+          const timestamp = dayjs().unix()
+          const collection_id = collection.id
+          const floor_price_1h = collection.floor_price
+         
+          const seconds_1h = 60 * 60
+          return strapi.db.query("api::collection-stat-log.collection-stat-log", {
+            where: {
+              timestamp: {
+                $gte: timestamp - seconds_1h 
+              },
+              collection: {
+                id: {
+                  $eq: collection_id
+                }
+              }
+            },
+            populate: {
+              collection: true
+            }
+          }).then(statLog => {
+            if (statLog) return null
+            return strapi.db.query( "api::nft-trade-log.nft-trade-log").findMany({
+              where: {
+                $and: [
+                  {
+                    timestamp: {
+                      $gte: timestamp - seconds_1h 
+                    },
+                  },
+                  {
+                    type:{
+                      $eq: NFT_LOG_TYPE.LOG_TYPE_SALE
+                    }
+                  },
+                  {
+                    nft: {
+                      collection: {
+                        id: {
+                          $eq: collection_id
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              populate: {
+                nft: {
+                  collection :true
+                }
+              }
+            }).then (nftTradeLogs => {
+              const volume_1h = nftTradeLogs.reduce((accumulator, currentValue) => {
+                return accumulator + currentValue.price;
+            }, 0);
+            const sale_1h = nftTradeLogs.length
+  
+            return {
+              timestamp,
+              collection_id,
+              floor_price_1h,
+              volume_1h,
+              sale_1h
+            }
+         
+            })
+          })
+          
+          
+
+          
+    
+        })
+        const collectionStatDatas = await Promise.all(statUpdatePromises)
+        const filteredCollectionStateDatas = collectionStatDatas.filter(_ => _ !== null)
+        const collectionStatCreatePromises = filteredCollectionStateDatas.map(collectionStatData => {
+          return strapi.entityService.create("api::collection-stat-log.collection-stat-log", {
+            data: {
+              ...collectionStatData,
+              collection: collectionStatData.collection_id
+            }
+          })
+        })
+
+       /** Create */ 
+        Promise.all(collectionStatCreatePromises).catch(error=> console.error(error.message))
+      }
+        
+        catch (error) {
+        console.error(error.message);
+      }
+    },
+    options: {
+      rule: `00 * * * *`,
+      tz: "Asia/Seoul",
+    },
+  },
+
+  stats_24h_Collection: {
+    task: async ({ strapi }) => {
+      console.log("[CRON TASK] 24H COLLECTION STATS");
+      try {
+        
+      }
+        
+        catch (error) {
+        console.error(error.message);
+      }
+    },
+    options: {
+      rule: `00 00 * * *`,
+      tz: "Asia/Seoul",
+    },
+  },
+
+
+
 };
 
 function successYield(object) {

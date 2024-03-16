@@ -1,4 +1,4 @@
-const isProduction = false
+const isProduction = true
 const ethers = require("ethers");
 module.exports = {
     NFT_TRADE_LOG_TYPE : {

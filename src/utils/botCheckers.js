@@ -76,8 +76,6 @@ const checkIsValidIDiscordUser = async ({strapi, start, limit}) => {
     }))
 
     const filteredDeletedIds = results.filter(_ => _ !== null)
-    console.log(333, "filteredDeletedIds",filteredDeletedIds);
-
   //   const deletedUsers = await Promise.all(filteredErrorUserIds.map(deleteUserId => {
   //     return strapi.entityService.delete(
   // "api::early-user.early-user",
@@ -111,7 +109,6 @@ const deleteBotUsersByDiscordIds = async ({strapi, discord_ids}) => {
 
   );
   const willDeleteUserIds = await earlyUsers.map((user, index) => user.id)
-  console.log( 333, "willDeleteUserIds", willDeleteUserIds);
 
  
 
@@ -130,7 +127,6 @@ const deleteBotUsersByDiscordIds = async ({strapi, discord_ids}) => {
 
 
 const checkIsValidTwitterUser = async ({strapi, start, limit}) => {
-  console.log(333, "checkIsValidTwitterUser");
   const users = await getEarlyUsers({strapi,start, limit})
 
   const _twitterClient = twitterClient()

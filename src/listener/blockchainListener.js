@@ -38,11 +38,9 @@ async function createTransferListener({ strapi }) {
   jsonRpcProvider.on(filter, async (log, _) => {
     // // exit early if it's not our NFT
     try {
-      const ccm = CollectionCacheManager.getInstance(strapi);
-      const myCollections = ccm.getCollectionAddresses();
-      if (!myCollections.includes(log.address.toLowerCase())) {
-        return;
-      }
+      const ccm = CollectionCacheManager.getInstance(strapi)
+      const myCollections = ccm.getCollectionAddresses()
+      if (!myCollections.includes(log.address.toLowerCase())) return;
 
       const transferFrom = `0x${log.topics[1].slice(-40)}`;
       const transferTo = `0x${log.topics[2].slice(-40)}`;
@@ -50,6 +48,8 @@ async function createTransferListener({ strapi }) {
 
       // 1. NFT 의 sell order가 존재함?
       // 1-1. YES. NFT Owner 가 transferFrom 임?
+
+      //
 
       // 1. Get NFT
       const nftData = await strapi.db.query("api::nft.nft").findOne({
@@ -271,7 +271,7 @@ async function createTransferListener({ strapi }) {
       // 2-2. updateFloorPrice
       await updateFloorPrice({ strapi }, result.contract_address);
       // 2-3. update listing count
-      await updateOrdersCount({ strapi }, log.address);
+      await updateOrdersCount({ strapi }, result.contract_address);
     } else {
       console.log("it's null", userAddress, nonceId);
     }

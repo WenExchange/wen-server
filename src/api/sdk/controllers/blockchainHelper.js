@@ -3,11 +3,7 @@ const IERC721 = require("./IERC721.js");
 const { Web3 } = require("web3");
 const web3 = new Web3();
 
-//TODO: change it to mainnet
-const jsonRpcProvider = new ethers.providers.JsonRpcProvider(
-  // "https://rpc.ankr.com/blast/c657bef90ad95db61eef20ff757471d11b8de5482613002038a6bf9d8bb84494" // mainnet
-  "https://rpc.ankr.com/blast_testnet_sepolia/c657bef90ad95db61eef20ff757471d11b8de5482613002038a6bf9d8bb84494" // testnet
-);
+const { jsonRpcProvider } = require("../../../utils/constants");
 
 async function getNFTOwner(nftContract, tokenId) {
   const nft = new ethers.Contract(nftContract, IERC721.abi, jsonRpcProvider);

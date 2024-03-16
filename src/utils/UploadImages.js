@@ -1,16 +1,6 @@
 const axios = require("axios");
 const { parse } = require("url");
 
-async function uploadImage() {
-  // const file = await blobFrom("./1.png", "image/png");
-  // const form = new FormData();
-  // form.append("files", file, "1.png");
-  // const response = await fetch("http://localhost:1337/api/upload", {
-  //   method: "post",
-  //   body: form,
-  // });
-}
-
 async function uploadByUrl({ strapi }) {
   try {
     const url = "https://api.blastopians.io/1.png";
@@ -21,14 +11,19 @@ async function uploadByUrl({ strapi }) {
       responseType: "arraybuffer",
     });
     const buffer = Buffer.from(response.data, "binary");
-    await strapi.plugins["upload"].services.upload.upload({
-      data: {},
-      files: {
-        path: buffer,
-        name: imageName,
-        type: response.headers["content-type"],
-      },
-    });
+    console.log(333, "buffer",buffer);
+    // const file = files["files.uploadedFile"];
+
+    // const updatedFile = await strapi.plugins.upload.services.upload.upload({
+    //   data: {
+    //     fileInfo: {
+    //       name: "test",
+    //       caption: "test Caption",
+    //       alternativeText: "test Alternative Text",
+    //     },
+    //   },
+    //   files: file,
+    // });
     // ctx.send({ message: "Image uploaded successfully!" });
   } catch (error) {
     // ctx.throw(500, "Unable to upload image from URL");

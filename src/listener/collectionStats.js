@@ -188,13 +188,6 @@ async function update1hourStat({ strapi }, collection_address) {
   );
 
   console.log(realOrdersCount);
-
-  console.log(
-    "111",
-    await strapi.db.connection.raw(`SELECT UTC_TIMESTAMP(6);`)
-  );
-
-  console.log("222", await strapi.db.connection.raw(`SELECT NOW(6);`));
 }
 
 module.exports = {

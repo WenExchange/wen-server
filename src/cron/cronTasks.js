@@ -1,4 +1,4 @@
-// const dayjs = require("dayjs");
+
 const DiscordManager = require("../discord/DiscordManager");
 const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
 const wen = require("../web3/wen_contract.js");
@@ -7,6 +7,8 @@ const web3 = createAlchemyWeb3("https://rpc.ankr.com/blast_testnet_sepolia/c657b
 const {telegramClient} = require("../telegram/TelegramClient");
 const axios = require("axios");
 const chatId = process.env.TELEGRAM_CHAT_ID;
+const {NFT_LOG_TYPE} = require("../utils/constants")
+const {stats_1h_collection}  = require("./stat_collelction")
 module.exports = {
 
   ClaimAllYield: {
@@ -117,6 +119,32 @@ module.exports = {
       rule: `*/10 * * * *`,
     },
   },
+  stats_1h_collection: {
+    task: stats_1h_collection,
+    options: {
+      rule: `00 * * * *`,
+      tz: "Asia/Seoul",
+    },
+  },
+
+  stats_24h_Collection: {
+    task: async ({ strapi }) => {
+      console.log("[CRON TASK] 24H COLLECTION STATS");
+      try {
+        
+      }
+        
+        catch (error) {
+        console.error(error.message);
+      }
+    },
+    options: {
+      rule: `00 00 * * *`,
+      tz: "Asia/Seoul",
+    },
+  },
+
+
 
 };
 

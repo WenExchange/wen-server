@@ -24,7 +24,7 @@
     },
     "token_uri": {
       "type": "string",
-      "required": true,
+      "required": false,
       "unique": true
     },
     "name": {
@@ -36,12 +36,12 @@
     },
     "logo_url": {
       "type": "string",
-      "required": true,
+      "required": false,
       "unique": false
     },
     "banner_url": {
       "type": "string",
-      "required": true
+      "required": false
     },
     "twitter": {
       "type": "string",
@@ -114,8 +114,19 @@
       "default": 0
     },
     "floor_price": {
-      "type": "decimal",
+      "type": "float",
       "default": 0
+    },
+    "sale_24h": {
+      "type": "integer",
+      "default": 0
+    },
+    "boost_point": {
+      "default": 0,
+      "type": "integer"
+    },
+    "change_7d": {
+      "type": "float"
     }
   }
 }

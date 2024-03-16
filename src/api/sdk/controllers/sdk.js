@@ -30,7 +30,7 @@ const ORDERSIDE_SELL = 1;
 //From Wen
 const WEN_STANDARD = "wen-ex-v1";
 // TODO: NEED TO CHAGNE TO REAL ADDRESS
-const CONTRACT_ADDRESS_WEN_EX = "0xD75104c9C2aeC1594944c8F3a2858C62DEeaE91b";
+const CONTRACT_ADDRESS_WEN_EX = "0x5958dC6cdc5df14b92699eABf17c7a19A1B22712";
 const LOG_TYPE_SALE = "SALE";
 const LOG_TYPE_TRANSFER = "TRANSFER";
 const LOG_TYPE_LISTING = "LISTING";
@@ -342,7 +342,6 @@ module.exports = {
 
       // Combine the results from basicCollections and collections
       const combinedResults = [...basicCollectionsResult, ...collectionsResult];
-
       // Update Here - Update 는 Deadlock 문제때문에 따라
       for (let item of combinedResults) {
         if (!item.error) {
@@ -359,7 +358,6 @@ module.exports = {
 
       // Convert the Set back to an array
       const uniqueContractAddress = Array.from(uniqueAddresses);
-
       batchUpdateFloorPrice({
         strapi,
         addressList: uniqueContractAddress,
@@ -808,39 +806,6 @@ module.exports = {
   },
 };
 
-// {
-//   exchange: '0xd75104c9c2aec1594944c8f3a2858c62deeae91b',
-//   maker: '0xe0c78c90e25165cf8707ece8664916d1ea0b7994',
-//   listingTime: 1709871949,
-//   expirationTime: 1710476809,
-//   startNonce: 0,
-//   paymentToken: '0x0000000000000000000000000000000000000000',
-//   platformFeeRecipient: '0xe0c78c90e25165cf8707ece8664916d1ea0b7994',
-//   basicCollections: [
-//     {
-//       nftAddress: '0xc4d5966e0c4f37762414d03f165e7cbf2dc247fd',
-//       platformFee: 200,
-//       royaltyFeeRecipient: '0xfb6fb1c53943d6797add7e4228c44c909e993023',
-//       royaltyFee: 500,
-//       items: [{ erc20TokenAmount: '10000000000000000', nftId: '1' }]
-//     },
-//     {
-//       nftAddress: '0xec1c6ebb2edef02422bbbcaa3fb9b39363b9d47d',
-//       platformFee: 200,
-//       royaltyFeeRecipient: '0xfb6fb1c53943d6797add7e4228c44c909e993023',
-//       royaltyFee: 600,
-//       items: [{ erc20TokenAmount: '10000000000000000', nftId: '1' }]
-//     }
-//   ],
-//   collections: [],
-//   hashNonce: '0',
-//   chain: 'wen',
-//   v: 28,
-//   r: '0xf811d29d0ef04aa2f917276490d2fbcc7a7fd96d086bd442931f4358de82db6e',
-//   s: '0x7a9aba21cb08285249ec00199bdc2553539b1dfb4c1a2c9f949aa8cd5932060e',
-//   hash: '0x6b64b86c6a4524d8ba22ffab1b05178045fe5d6367ea791faf00f027a309a646'
-// }
-
 async function getTokenData(symbol) {
   const r = await strapi.db.query("api::token.token").findOne({
     where: {
@@ -959,6 +924,17 @@ async function processItem(
   schema_type
 ) {
   let orderUuid = createUuidv4();
+  // Query Collection data for fee
+  const dbCollectionData = await strapi.db
+    .query("api::collection.collection")
+    .findOne({
+      where: { contract_address: collection.nftAddress },
+    });
+  if (!dbCollectionData) {
+    throw new Error(
+      `${collection.nftAddress} collection data doesn't exist on DB`
+    );
+  }
   // Query if the NFT exists
   const nftData = await strapi.db.query("api::nft.nft").findOne({
     where: {
@@ -1010,6 +986,10 @@ async function processItem(
       nft: nftData.id,
       token: TOKEN_ETH_ID, //TODO
       exchange_data: JSON.stringify(exchangeDataObject),
+      royalty_fee_receiver: dbCollectionData.royalty_fee_receiver,
+      royalty_fee_point: dbCollectionData.royalty_fee_point,
+      protocol_fee_receiver: dbCollectionData.protocol_fee_receiver,
+      protocol_fee_point: dbCollectionData.protocol_fee_point,
     },
   });
 
@@ -1024,7 +1004,7 @@ async function processItem(
         from: data.maker,
         nft: nftData.id,
         expired_at: expirationTime,
-        timestamp: dayjs().unix()
+        timestamp: dayjs().unix(),
       },
     }
   );

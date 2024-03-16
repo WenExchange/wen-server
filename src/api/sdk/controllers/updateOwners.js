@@ -1,6 +1,8 @@
 const { jsonRpcProvider } = require("../../../utils/constants");
 const ethers = require("ethers");
 const IERC721 = require("./IERC721.js");
+const { Web3 } = require("web3");
+const web3 = new Web3();
 
 async function getNFTOwner(nftContract, tokenId) {
   const nft = new ethers.Contract(nftContract, IERC721.abi, jsonRpcProvider);
@@ -12,7 +14,10 @@ async function getNFTOwner(nftContract, tokenId) {
 async function updateAllNftOwner({ strapi }) {
   const results = await strapi.db
     .query("api::nft.nft")
-    .findMany({ populate: { collection: true } });
+    .findMany({
+      where: { owner: { $null: true } },
+      populate: { collection: true },
+    });
 
   let totalCount = 0;
   for (let result of results) {
@@ -43,9 +48,5 @@ async function updateAllNftOwner({ strapi }) {
     console.log("total count ", totalCount++);
   }
 }
-function weiToEther(wei) {
-  const etherFloat = ethers.utils.formatEther(wei);
-  return etherFloat;
-}
 
-module.exports = { updateAllNftOwner, getNFTOwner, weiToEther };
+module.exports = { updateAllNftOwner };

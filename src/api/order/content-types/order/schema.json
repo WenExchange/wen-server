@@ -84,6 +84,18 @@
     },
     "exchange_data": {
       "type": "text"
+    },
+    "protocol_fee_receiver": {
+      "type": "string"
+    },
+    "royalty_fee_receiver": {
+      "type": "string"
+    },
+    "protocol_fee_point": {
+      "type": "integer"
+    },
+    "royalty_fee_point": {
+      "type": "integer"
     }
   }
 }

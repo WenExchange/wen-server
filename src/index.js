@@ -8,6 +8,7 @@ const dayjs = require("dayjs");
 var utc = require("dayjs/plugin/utc");
 var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
 const { updateAllNftOwner } = require("./api/sdk/controllers/updateOwners");
+const { stats_1h_collection } = require("./cron/start_collelction");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 module.exports = {
@@ -28,7 +29,7 @@ module.exports = {
    */
   async bootstrap({ strapi }) {
     try {
-      createTransferListener({ strapi });
+      // createTransferListener({ strapi });
       const ccm = CollectionCacheManager.getInstance(strapi);
     } catch (error) {
       console.log(error.message);

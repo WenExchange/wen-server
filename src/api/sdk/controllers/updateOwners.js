@@ -12,12 +12,10 @@ async function getNFTOwner(nftContract, tokenId) {
 }
 
 async function updateAllNftOwner({ strapi }) {
-  const results = await strapi.db
-    .query("api::nft.nft")
-    .findMany({
-      where: { owner: { $null: true } },
-      populate: { collection: true },
-    });
+  const results = await strapi.db.query("api::nft.nft").findMany({
+    where: { owner: { $null: true } },
+    populate: { collection: true },
+  });
 
   let totalCount = 0;
   for (let result of results) {
@@ -49,4 +47,31 @@ async function updateAllNftOwner({ strapi }) {
   }
 }
 
-module.exports = { updateAllNftOwner };
+async function updateAllOrderFee({ strapi }) {
+  const results = await strapi.db.query("api::order.order").findMany({
+    populate: { collection: true },
+  });
+
+  let totalCount = 0;
+  for (let result of results) {
+    const exchageData = JSON.parse(result.exchange_data);
+    const royaltyFeeReceiver =
+      exchageData.basicCollections[0].royaltyFeeRecipient;
+    const royaltyFeePoint = exchageData.basicCollections[0].royaltyFee;
+    console.log(royaltyFeeReceiver, royaltyFeePoint);
+
+    // if (result.royalty_fee_point == null) {
+    await strapi.entityService.update("api::order.order", result.id, {
+      data: {
+        royalty_fee_receiver: royaltyFeeReceiver,
+        royalty_fee_point: royaltyFeePoint,
+      },
+    });
+    console.log("result update ");
+    totalCount++;
+    // }
+  }
+  console.log("updated total count ", totalCount);
+}
+
+module.exports = { updateAllNftOwner, updateAllOrderFee };

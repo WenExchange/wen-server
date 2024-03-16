@@ -41,7 +41,7 @@ async function createTransferListener({ strapi }) {
       const ccm = CollectionCacheManager.getInstance(strapi)
       const myCollections = ccm.getCollectionAddresses()
       console.log("cached collection address -", myCollections.length);
-      if (!myCollections.includes(log.address)) return;
+      if (!myCollections.includes(log.address.toLowerCase())) return;
 
       const transferFrom = `0x${log.topics[1].slice(-40)}`;
       const transferTo = `0x${log.topics[2].slice(-40)}`;

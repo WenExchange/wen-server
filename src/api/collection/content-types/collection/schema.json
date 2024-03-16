@@ -114,7 +114,7 @@
       "default": 0
     },
     "floor_price": {
-      "type": "decimal",
+      "type": "float",
       "default": 0
     },
     "sale_24h": {

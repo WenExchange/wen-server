@@ -855,7 +855,7 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     protocol_fee_receiver: Attribute.String;
     protocol_fee_point: Attribute.Integer & Attribute.DefaultTo<0>;
     volume_total: Attribute.Float & Attribute.DefaultTo<0>;
-    floor_price: Attribute.Decimal & Attribute.DefaultTo<0>;
+    floor_price: Attribute.Float & Attribute.DefaultTo<0>;
     sale_24h: Attribute.Integer & Attribute.DefaultTo<0>;
     boost_point: Attribute.Integer & Attribute.DefaultTo<0>;
     createdAt: Attribute.DateTime;

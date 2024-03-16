@@ -48,5 +48,4 @@ function weiToEther(wei) {
   return etherFloat;
 }
 
-
-module.exports = { updateAllNftOwner ,getNFTOwner, weiToEther };
+module.exports = { updateAllNftOwner, getNFTOwner, weiToEther };

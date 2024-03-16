@@ -155,10 +155,7 @@ function createOrderData(orderList, taker) {
     exData.paymentToken
   );
 
-  let encodedData3 = encodeData3(
-    takerPart2,
-    order.collection.protocol_fee_receiver
-  );
+  let encodedData3 = encodeData3(takerPart2, order.protocol_fee_receiver);
 
   let collectionsItemIndexList = {};
   for (let order of orderList) {
@@ -185,11 +182,11 @@ function createOrderData(orderList, taker) {
     collectionsItemIndexList[collectionContract].collectionType = 0;
     collectionsItemIndexList[collectionContract].itemsCount = totalItemsCount;
     collectionsItemIndexList[collectionContract].platformFeePercentage =
-      order.collection.protocol_fee_point;
+      order.protocol_fee_point;
     collectionsItemIndexList[collectionContract].royaltyFeePercentage =
-      order.collection.royalty_fee_point;
+      order.royalty_fee_point;
     collectionsItemIndexList[collectionContract].royaltyFeeRecipient =
-      order.collection.royalty_fee_receiver;
+      order.royalty_fee_receiver;
   }
 
   let collectionData = [];
@@ -299,7 +296,7 @@ function createOrdersData(orderList, taker) {
   for (let order of orderList) {
     if (!firstRoyaltyFeeReciepient) {
       console.log(order);
-      firstRoyaltyFeeReciepient = order.collection.royalty_fee_receiver;
+      firstRoyaltyFeeReciepient = order.royalty_fee_receiver;
     }
 
     let planeHash = getPlaneHash(order.order_hash);

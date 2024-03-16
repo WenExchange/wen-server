@@ -365,7 +365,6 @@ module.exports = {
         console.log("batchUpdateFloorPrice", error.message);
       });
 
-
       // Filter out the success and failure based on the error key
       const successList = combinedResults.filter((result) => !result.error);
       const failList = combinedResults.filter((result) => result.error);
@@ -925,6 +924,17 @@ async function processItem(
   schema_type
 ) {
   let orderUuid = createUuidv4();
+  // Query Collection data for fee
+  const dbCollectionData = await strapi.db
+    .query("api::collection.collection")
+    .findOne({
+      where: { contract_address: collection.nftAddress },
+    });
+  if (!dbCollectionData) {
+    throw new Error(
+      `${collection.nftAddress} collection data doesn't exist on DB`
+    );
+  }
   // Query if the NFT exists
   const nftData = await strapi.db.query("api::nft.nft").findOne({
     where: {
@@ -976,6 +986,10 @@ async function processItem(
       nft: nftData.id,
       token: TOKEN_ETH_ID, //TODO
       exchange_data: JSON.stringify(exchangeDataObject),
+      royalty_fee_receiver: dbCollectionData.royalty_fee_receiver,
+      royalty_fee_point: dbCollectionData.royalty_fee_point,
+      protocol_fee_receiver: dbCollectionData.protocol_fee_receiver,
+      protocol_fee_point: dbCollectionData.protocol_fee_point,
     },
   });
 

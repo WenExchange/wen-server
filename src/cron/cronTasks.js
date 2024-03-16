@@ -1,4 +1,4 @@
-const dayjs = require("dayjs");
+
 const DiscordManager = require("../discord/DiscordManager");
 const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
 const wen = require("../web3/wen_contract.js");
@@ -8,6 +8,7 @@ const {telegramClient} = require("../telegram/TelegramClient");
 const axios = require("axios");
 const chatId = process.env.TELEGRAM_CHAT_ID;
 const {NFT_LOG_TYPE} = require("../utils/constants")
+const {stats_1h_collection}  = require("./stat_collelction")
 module.exports = {
 
   ClaimAllYield: {
@@ -118,104 +119,8 @@ module.exports = {
       rule: `*/10 * * * *`,
     },
   },
-  stats_1h_Collection: {
-    task: async ({ strapi }) => {
-      console.log("[CRON TASK] 24H COLLECTION STATS");
-      try {
-        const colllections = await strapi.db.query( "api::collection.collection").findMany();
-
-        const statUpdatePromises = colllections.map(collection => {
-          const timestamp = dayjs().unix()
-          const collection_id = collection.id
-          const floor_price_1h = collection.floor_price
-         
-          const seconds_1h = 60 * 60
-          return strapi.db.query("api::collection-stat-log.collection-stat-log", {
-            where: {
-              timestamp: {
-                $gte: timestamp - seconds_1h 
-              },
-              collection: {
-                id: {
-                  $eq: collection_id
-                }
-              }
-            },
-            populate: {
-              collection: true
-            }
-          }).then(statLog => {
-            if (statLog) return null
-            return strapi.db.query( "api::nft-trade-log.nft-trade-log").findMany({
-              where: {
-                $and: [
-                  {
-                    timestamp: {
-                      $gte: timestamp - seconds_1h 
-                    },
-                  },
-                  {
-                    type:{
-                      $eq: NFT_LOG_TYPE.LOG_TYPE_SALE
-                    }
-                  },
-                  {
-                    nft: {
-                      collection: {
-                        id: {
-                          $eq: collection_id
-                        }
-                      }
-                    }
-                  }
-                ]
-              },
-              populate: {
-                nft: {
-                  collection :true
-                }
-              }
-            }).then (nftTradeLogs => {
-              const volume_1h = nftTradeLogs.reduce((accumulator, currentValue) => {
-                return accumulator + currentValue.price;
-            }, 0);
-            const sale_1h = nftTradeLogs.length
-  
-            return {
-              timestamp,
-              collection_id,
-              floor_price_1h,
-              volume_1h,
-              sale_1h
-            }
-         
-            })
-          })
-          
-          
-
-          
-    
-        })
-        const collectionStatDatas = await Promise.all(statUpdatePromises)
-        const filteredCollectionStateDatas = collectionStatDatas.filter(_ => _ !== null)
-        const collectionStatCreatePromises = filteredCollectionStateDatas.map(collectionStatData => {
-          return strapi.entityService.create("api::collection-stat-log.collection-stat-log", {
-            data: {
-              ...collectionStatData,
-              collection: collectionStatData.collection_id
-            }
-          })
-        })
-
-       /** Create */ 
-        Promise.all(collectionStatCreatePromises).catch(error=> console.error(error.message))
-      }
-        
-        catch (error) {
-        console.error(error.message);
-      }
-    },
+  stats_1h_collection: {
+    task: stats_1h_collection,
     options: {
       rule: `00 * * * *`,
       tz: "Asia/Seoul",

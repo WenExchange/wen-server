@@ -820,7 +820,7 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     description: '';
   };
   options: {
-    draftAndPublish: false;
+    draftAndPublish: true;
   };
   attributes: {
     slug: Attribute.String & Attribute.Required & Attribute.Unique;
@@ -857,8 +857,10 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     volume_total: Attribute.Float & Attribute.DefaultTo<0>;
     floor_price: Attribute.Decimal & Attribute.DefaultTo<0>;
     sale_24h: Attribute.Integer & Attribute.DefaultTo<0>;
+    boost_point: Attribute.Integer & Attribute.DefaultTo<0>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
       'api::collection.collection',
       'oneToOne',

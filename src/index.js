@@ -1,15 +1,15 @@
 "use strict";
 
-
 const { createTransferListener } = require("./listener/blockchainListener");
-const CollectionCacheManager = require("./cache-managers/CollectionCacheManager")
+const CollectionCacheManager = require("./cache-managers/CollectionCacheManager");
 
 const { update1hourStat } = require("./listener/collectionStats");
 const dayjs = require("dayjs");
-var utc = require('dayjs/plugin/utc')
-var timezone = require('dayjs/plugin/timezone') // dependent on utc plugin
-dayjs.extend(utc)
-dayjs.extend(timezone)
+var utc = require("dayjs/plugin/utc");
+var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
+const { updateAllNftOwner } = require("./api/sdk/controllers/updateOwners");
+dayjs.extend(utc);
+dayjs.extend(timezone);
 module.exports = {
   /**
    * An asynchronous register function that runs before
@@ -55,8 +55,8 @@ module.exports = {
       //   "0x7E3D4B14E191533B44470889b6d0d36F232de1A3"
       // );
       createTransferListener({ strapi });
-
-      const ccm = CollectionCacheManager.getInstance(strapi)
+      updateAllNftOwner({ strapi });
+      const ccm = CollectionCacheManager.getInstance(strapi);
     } catch (error) {
       console.log(error.message);
     }

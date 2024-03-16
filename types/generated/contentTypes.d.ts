@@ -825,11 +825,11 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
   attributes: {
     slug: Attribute.String & Attribute.Required & Attribute.Unique;
     contract_address: Attribute.String & Attribute.Required;
-    token_uri: Attribute.String & Attribute.Unique;
+    token_uri: Attribute.String & Attribute.Required & Attribute.Unique;
     name: Attribute.String & Attribute.Required;
     description: Attribute.String;
-    logo_url: Attribute.String;
-    banner_url: Attribute.String;
+    logo_url: Attribute.String & Attribute.Required;
+    banner_url: Attribute.String & Attribute.Required;
     twitter: Attribute.String;
     discord: Attribute.String;
     website: Attribute.String;
@@ -855,9 +855,7 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     protocol_fee_receiver: Attribute.String;
     protocol_fee_point: Attribute.Integer & Attribute.DefaultTo<0>;
     volume_total: Attribute.Float & Attribute.DefaultTo<0>;
-    floor_price: Attribute.Float & Attribute.DefaultTo<0>;
-    sale_24h: Attribute.Integer & Attribute.DefaultTo<0>;
-    boost_point: Attribute.Integer & Attribute.DefaultTo<0>;
+    floor_price: Attribute.Decimal & Attribute.DefaultTo<0>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -897,7 +895,6 @@ export interface ApiCollectionStatLogCollectionStatLog
       'api::collection.collection'
     >;
     timestamp: Attribute.BigInteger;
-    sale_1h: Attribute.Integer & Attribute.DefaultTo<0>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

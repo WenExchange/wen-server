@@ -43,5 +43,10 @@ async function updateAllNftOwner({ strapi }) {
     console.log("total count ", totalCount++);
   }
 }
+function weiToEther(wei) {
+  const etherFloat = ethers.utils.formatEther(wei);
+  return etherFloat;
+}
 
-module.exports = { updateAllNftOwner ,getNFTOwner };
+
+module.exports = { updateAllNftOwner ,getNFTOwner, weiToEther };

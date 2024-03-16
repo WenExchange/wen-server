@@ -339,10 +339,12 @@ module.exports = {
 
       // Await the collections processing results
       const collectionsResult = await collectionsData.promise;
+      console.log(333, "collectionsResult", collectionsResult);
+     
 
       // Combine the results from basicCollections and collections
       const combinedResults = [...basicCollectionsResult, ...collectionsResult];
-
+      console.log(333, "combinedResults", combinedResults);
       // Update Here - Update 는 Deadlock 문제때문에 따라
       for (let item of combinedResults) {
         if (!item.error) {
@@ -359,13 +361,14 @@ module.exports = {
 
       // Convert the Set back to an array
       const uniqueContractAddress = Array.from(uniqueAddresses);
-
+      console.log(333, "uniqueContractAddress",uniqueContractAddress);
       batchUpdateFloorPrice({
         strapi,
         addressList: uniqueContractAddress,
       }).catch((error) => {
         console.log("batchUpdateFloorPrice", error.message);
       });
+
 
       // Filter out the success and failure based on the error key
       const successList = combinedResults.filter((result) => !result.error);

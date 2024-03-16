@@ -53,15 +53,14 @@ async function updateFloorPrice({ strapi }, contractAddress) {
     }
   } else {
     // If there is no Order data, set the floor_price to 0
-    await strapi.entityService.update(
-      "api::collection.collection",
-      orderData.collection.id,
-      {
-        data: {
-          floor_price: 0,
-        },
-      }
-    );
+
+    const entry = await strapi.db.query('api::collection.collection').update({
+      where: { contract_address: contractAddress },
+      data: {
+        floor_price: 0,
+      },
+    });
+    
     console.log("no order data", contractAddress);
   }
 }

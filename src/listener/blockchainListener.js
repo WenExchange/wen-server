@@ -9,14 +9,21 @@ const {
 } = require("./collectionStats");
 
 //TODO: change it to mainnet
-const {jsonRpcProvider, NFT_LOG_TYPE} = require("../utils/constants")
-const wenExContractAddress = "0xD75104c9C2aeC1594944c8F3a2858C62DEeaE91b";
-const SELECTOR_fillBatchSignedERC721Order = "0xa4d73041";
-const SELECTOR_fillBatchSignedERC721Orders = "0x149b8ce6";
+const { jsonRpcProvider, NFT_LOG_TYPE } = require("../utils/constants");
 
-const {LOG_TYPE_SALE,LOG_TYPE_TRANSFER ,LOG_TYPE_LISTING, LOG_TYPE_OFFER, LOG_TYPE_COLLECTION_OFFER, LOG_TYPE_CANCEL_LISTING, LOG_TYPE_AUTO_CANCEL_LISTING, LOG_TYPE_CANCEL_OFFER, LOG_TYPE_MINT} = NFT_LOG_TYPE
+const {
+  LOG_TYPE_SALE,
+  LOG_TYPE_TRANSFER,
+  LOG_TYPE_LISTING,
+  LOG_TYPE_OFFER,
+  LOG_TYPE_COLLECTION_OFFER,
+  LOG_TYPE_CANCEL_LISTING,
+  LOG_TYPE_AUTO_CANCEL_LISTING,
+  LOG_TYPE_CANCEL_OFFER,
+  LOG_TYPE_MINT,
+} = NFT_LOG_TYPE;
 
-const CollectionCacheManager = require("../cache-managers/CollectionCacheManager")
+const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
 
 async function createTransferListener({ strapi }) {
   console.log("it's on");
@@ -109,7 +116,7 @@ async function createTransferListener({ strapi }) {
                     to: transferTo,
                     nft: nftData.id,
                     tx_hash: log.transactionHash,
-                    timestamp: dayjs().unix()
+                    timestamp: dayjs().unix(),
                   },
                 }
               );
@@ -122,7 +129,7 @@ async function createTransferListener({ strapi }) {
                     from: deletingOrder.maker,
                     nft: deletingOrder.nft.id,
                     tx_hash: log.transactionHash,
-                    timestamp: dayjs().unix()
+                    timestamp: dayjs().unix(),
                   },
                 }
               );
@@ -147,7 +154,7 @@ async function createTransferListener({ strapi }) {
                     to: transferTo,
                     nft: nftData.id,
                     tx_hash: log.transactionHash,
-                    timestamp: dayjs().unix()
+                    timestamp: dayjs().unix(),
                   },
                 }
               );
@@ -164,7 +171,7 @@ async function createTransferListener({ strapi }) {
                   to: transferTo,
                   nft: nftData.id,
                   tx_hash: log.transactionHash,
-                  timestamp: dayjs().unix()
+                  timestamp: dayjs().unix(),
                 },
               }
             );
@@ -180,7 +187,7 @@ async function createTransferListener({ strapi }) {
                 to: transferTo,
                 nft: nftData.id,
                 tx_hash: log.transactionHash,
-                timestamp: dayjs().unix()
+                timestamp: dayjs().unix(),
               },
             }
           );
@@ -250,7 +257,7 @@ async function createTransferListener({ strapi }) {
             from: userAddress,
             nft: result.nft.id,
             tx_hash: log.transactionHash,
-            timestamp: dayjs().unix()
+            timestamp: dayjs().unix(),
           },
         });
         console.log(

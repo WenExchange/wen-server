@@ -54,9 +54,8 @@ module.exports = {
       //   { strapi },
       //   "0x7E3D4B14E191533B44470889b6d0d36F232de1A3"
       // );
-      createTransferListener({ strapi });
-      updateAllNftOwner({ strapi });
-      const ccm = CollectionCacheManager.getInstance(strapi);
+      // createTransferListener({ strapi });
+      // const ccm = CollectionCacheManager.getInstance(strapi);
     } catch (error) {
       console.log(error.message);
     }

@@ -9,8 +9,9 @@ module.exports = {
 
     jsonRpcProvider: new ethers.providers.JsonRpcProvider(
         isProduction ? 
-        "https://rpc.ankr.com/blast/c657bef90ad95db61eef20ff757471d11b8de5482613002038a6bf9d8bb84494" :
-        "https://rpc.ankr.com/blast_testnet_sepolia/c657bef90ad95db61eef20ff757471d11b8de5482613002038a6bf9d8bb84494" )
+        "https://rpc.ankr.com/blast/d347c8e224d87a27991df14f8963b6b858f52617aec0cc0d1278bca0fcb0178c"
+      :
+        "https://rpc.ankr.com/blast_testnet_sepolia/d347c8e224d87a27991df14f8963b6b858f52617aec0cc0d1278bca0fcb0178c" )
     ,
     NFT_LOG_TYPE: {
         LOG_TYPE_SALE: "SALE",

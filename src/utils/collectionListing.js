@@ -698,20 +698,10 @@ const {jsonRpcProvider} = require("./constants")
 // 4. [db] nft db create 
 // 5. (optional) Image Upload
 
-const listing = async () => {
-  try {
-    const SSS_LAND_OFFICIAL = "0xdd22cee7fb6257f3bad43cc66562fb7925756114"
-    const collectionData = await getCollectionDataByContract(SSS_LAND_OFFICIAL)
-    await fetchAllTokensAndSave(collectionData)
-    
-  } catch (error) {
-    
-  }
-}
-
 const getCollectionDataByContract = async (contract_address) => {
   const collectionContract =  new ethers.Contract(contract_address, contractABI, jsonRpcProvider);
-  const total_supply = await collectionContract.totalSupply();
+  let total_supply = await collectionContract.totalSupply();
+  total_supply = total_supply.toNumber()
   let start_token_id = 0
   try {
     const tokenURI = await collectionContract.tokenURI(start_token_id);
@@ -721,39 +711,65 @@ const getCollectionDataByContract = async (contract_address) => {
   }
 
   return {
+    collectionContractProvider : collectionContract, 
     contract_address,
     total_supply,
     token_id_list: Array.from(
-      { length: total_supply.toNumber() },
+      { length: total_supply },
       (_, i) => i + start_token_id
     )
 
   }
 }
 
-const addrs = ["0x71da4d5805c1f2ecce2a41a9f9e026287f2b1f39"];
-const ids = [52]; //267, 5000, 3000
+async function fetchAllTokensAndSave(collectionData) {
 
-let contractAddress;
-let collectionId;
+const {total_supply, token_id_list, contract_address, collectionContractProvider} = collectionData
 
-let nftContract;
+  const chunkSize = 50;
+  const chunks = [];
 
-async function bulkUpdate() {
-  for (let i = 0; i < ids.length; i++) {
-    contractAddress = addrs[i];
-    collectionId = ids[i];
-    nftContract = new ethers.Contract(contractAddress, contractABI, jsonRpcProvider);
-    await fetchAllTokensAndSave(collectionId);
+  for (let i = 0; i < token_id_list.length; i += chunkSize) {
+    console.log(`start chunk ${i + 1} ~ ${i + chunkSize + 1}`);
+    chunks.push(token_id_list.slice(i, i + chunkSize));
   }
+
+  const allTokensData = [];
+
+  for (const chunk of chunks) {
+    const fetchPromises = chunk.map((tokenId) =>
+      fetchTokenData(collectionContractProvider, tokenId).then(res => {
+        return {
+          ...res,
+          contract_address
+        }
+      })
+    );
+    const results = await Promise.all(fetchPromises);
+    allTokensData.push(...results);
+  }
+
+  // Filter out successful and failed data
+  const successfulData = allTokensData.filter(
+    (data) => data !== null
+  );
+
+  fs.writeFile(`${contract_address}.json`, JSON.stringify(successfulData, null, 2), (writeErr) => {
+    if (writeErr) {
+      console.error("Error saving the file:", writeErr);
+    } else {
+      console.log(
+        `Successfully updated token data in ${contract_address}.json, total Supply ${total_supply} arrayLength : ${successfulData.length}`
+      );
+    }
+  });
+  return successfulData
 }
 
-// bulkUpdate();
-
-async function fetchTokenData(tokenId) {
+async function fetchTokenData(collectionContractProvider, tokenId) {
   try {
     // console.log("token id", tokenId);
-    const tokenURI = await nftContract.tokenURI(tokenId);
+    const tokenURI = await collectionContractProvider.tokenURI(tokenId);
     const httpURL = tokenURI.replace(
       "ipfs://",
       "https://wen-exchange.quicknode-ipfs.com/ipfs/"
@@ -773,69 +789,96 @@ async function fetchTokenData(tokenId) {
       attributes
     };
   } catch (error) {
+
     console.error("Error fetching token data for token ID:", tokenId, error);
     // Differentiate between 'ERC721NonexistentToken' and other errors
-    if (error.errorName === "ERC721NonexistentToken") {
-      console.log("error", tokenId);
-      return "skip"; // Indicate to skip this token
-    } else {
-      throw { tokenId, errorName: error.errorName || error.message }; // Include error name for logging
-    }
+    return null
   }
 }
 
-// async function a() {
-//   console.log(await fetchTokenData(0));
-// }
-// a();
-
-async function fetchAllTokensAndSave(collectionData) {
-
-const {total_supply, token_id_list, contract_address} = collectionData
-
-  const chunkSize = 200;
-  const chunks = [];
-
-  for (let i = 0; i < token_id_list.length; i += chunkSize) {
-    chunks.push(token_id_list.slice(i, i + chunkSize));
+const createDB = async (contract_address) => {
+  const collectionContract =  new ethers.Contract(contract_address, contractABI, jsonRpcProvider);
+  let total_supply = await collectionContract.totalSupply();
+  total_supply = total_supply.toNumber()
+  let start_token_id = 0
+  try {
+    const tokenURI = await collectionContract.tokenURI(start_token_id);
+    if (!tokenURI)  start_token_id = 1
+  } catch (error) {
+    start_token_id = 1
   }
 
-  const allTokensData = [];
+  return {
+    collectionContractProvider : collectionContract, 
+    contract_address,
+    total_supply,
+    token_id_list: Array.from(
+      { length: total_supply },
+      (_, i) => i + start_token_id
+    )
 
-  for (const chunk of chunks) {
-    const fetchPromises = chunk.map((tokenId) =>
-      fetchTokenData(tokenId).catch((error) => error)
-    );
-    const results = await Promise.all(fetchPromises);
-    allTokensData.push(...results);
   }
+}
 
-  // Filter out successful and failed data
-  const successfulData = allTokensData.filter(
-    (data) => !(data instanceof Error)
-  );
-  const failedTokenIds = allTokensData
-    .map((data, index) => (data instanceof Error ? token_id_list[index] : null))
-    .filter((id) => id !== null)
+const willListingCollecitons = [
+  {
+    name: "Super Sushi Samurai",
+    description: "Dive into the world of decentralised gaming and unleash your Sushi Samurai and pet to dominate Rice Kingdom. A social strategy focussed idle game powered by the Blast network.",
+    contract_address: "0xdd22cee7fb6257f3bad43cc66562fb7925756114",
+    twitter: "https://twitter.com/SSS_HQ",
+    logo_url: "https://v5.airtableusercontent.com/v3/u/26/26/1710705600000/0-b-rXfS8xZEBpVpEXuTgw/zphYCbuUUzkpBmhmyhdtNdzEBwK8ojQmujLqDIZ8k-xf546oC0Wfns6JzzVVQbxLc9wlj-FZ2I84RL1Gc2fwXhr1Szcq-CNBWj9kKkxG0IEbUMfVWgAWFmebOQYzmMONz4AZInJR01lyW7GRC9Ie0A/qbIsH09BdOZKpqBYLsOrnFTxVDhdmzQP5I6JVpAaElY",
+    banner_url: "https://v5.airtableusercontent.com/v3/u/26/26/1710705600000/YSVnN4z2SzmPTtcdT1DWyQ/FjV9eHOMYCaSjmWwRTKm1K7uPnyFKMx9Gi3lkXmM3uYYiZMFdbzRGNJlLDsmgrvyCQePWnx-52r9n75YFYtk8JAK6HFHvitWygeW3pqfe4KjgpNAm4Z7Ybggzi9vBzEJUQV8NRqOtxPUkYcdwqFClQ/4M8r-7X7nkE1DzrbhhXT7e9pWIDuk0uWm5zcGYbrSWs",
+    
+  }
+]
 
-    if (failedTokenIds.length > 0) {
-      return  
-    }
+const getEthersData = async (listingCollectionInfo) => {
+  const collectionData = await getCollectionDataByContract(listingCollectionInfo.contract_address)
+  const nftDataList =  await fetchAllTokensAndSave(collectionData)
+  return {
+    collectionData,
+    nftDataList
+  }
+}
+
+const checkCollectionDataForDB = (collectionDataForDB) => {
+  const {name, description,contract_address } = collectionDataForDB
+  if ()
+}
+
+const createCollectionAndNFTData = async ({strapi, collectionDataForDB}) => {
+
   
-
-  fs.writeFile(`${contract_address}.json`, JSON.stringify(successfulData, null, 2), (writeErr) => {
-    if (writeErr) {
-      console.error("Error saving the file:", writeErr);
-    } else {
-      console.log(
-        `Successfully updated token data in ${contract_address}.json, total Supply ${total_supply} arrayLength : ${successfulData.length}`
-      );
-      if (failedTokenIds.length > 0) {
-        console.log("Retrying failed token IDs...");
-        // You may call the function again with failedTokenIds or handle them as needed
-      } else {
-        console.log("All tokens processed successfully.");
-      }
+  const addredEarlyUser = await strapi.entityService.create(
+    "api::collection.collection",
+    {
+      data: {
+        ...collectionDataForDB
+      },
     }
-  });
+  );
 }
+
+const listing = async ({strapi}) => {
+  try {
+    for (let i = 0; i < willListingCollecitons.length; i++) {
+      const willListingColleciton = willListingCollecitons[i];
+      console.log(`Start Listing Process - ${willListingColleciton.name}`);
+      const collectionDataByEthers = await getEthersData(willListingColleciton)
+      const collectionDataForDB = {
+        ...willListingColleciton,
+        total_supply: collectionDataByEthers.collectionData.total_supply,
+        nftDataList: collectionDataByEthers.nftDataList
+      }
+
+      
+    }
+
+
+    
+  } catch (error) {
+    console.error(error.message)
+  }
+}
+
+listing()

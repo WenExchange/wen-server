@@ -990,7 +990,7 @@ async function processItem(
     {
       data: {
         type: LOG_TYPE_LISTING,
-        price: item.erc20TokenAmount,
+        price: weiToEther(item.erc20TokenAmount.toString()),
         from: data.maker,
         nft: nftData.id,
         expired_at: expirationTime,

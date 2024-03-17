@@ -1,6 +1,7 @@
 const { ethers } = require("ethers");
 const fs = require("fs");
 const path = require("path");
+const slugify = require('slugify');
 const contractABI = [
   {
     inputs: [
@@ -736,7 +737,9 @@ const {total_supply, token_id_list, contract_address, collectionContractProvider
 
   const allTokensData = [];
 
+  let chunkCount = 0
   for (const chunk of chunks) {
+    console.log(`start chunk ${chunkCount}`);
     const fetchPromises = chunk.map((tokenId) =>
       fetchTokenData(collectionContractProvider, tokenId).then(res => {
         return {
@@ -747,6 +750,7 @@ const {total_supply, token_id_list, contract_address, collectionContractProvider
     );
     const results = await Promise.all(fetchPromises);
     allTokensData.push(...results);
+    chunkCount += 1
   }
 
   // Filter out successful and failed data
@@ -754,15 +758,16 @@ const {total_supply, token_id_list, contract_address, collectionContractProvider
     (data) => data !== null
   );
 
-  fs.writeFile(`${contract_address}.json`, JSON.stringify(successfulData, null, 2), (writeErr) => {
-    if (writeErr) {
-      console.error("Error saving the file:", writeErr);
-    } else {
-      console.log(
-        `Successfully updated token data in ${contract_address}.json, total Supply ${total_supply} arrayLength : ${successfulData.length}`
-      );
-    }
-  });
+  console.log(`Success nft data - ${successfulData[0]}`);
+  // fs.writeFile(`./src/utils/${contract_address}.json`, JSON.stringify(successfulData, null, 2), (writeErr) => {
+  //   if (writeErr) {
+  //     console.error("Error saving the file:", writeErr);
+  //   } else {
+  //     console.log(
+  //       `Successfully updated token data in ${contract_address}.json, total Supply ${total_supply} arrayLength : ${successfulData.length}`
+  //     );
+  //   }
+  // });
   return successfulData
 }
 
@@ -770,6 +775,7 @@ async function fetchTokenData(collectionContractProvider, tokenId) {
   try {
     // console.log("token id", tokenId);
     const tokenURI = await collectionContractProvider.tokenURI(tokenId);
+    const owner = await collectionContractProvider.ownerOf(tokenId)
     const httpURL = tokenURI.replace(
       "ipfs://",
       "https://wen-exchange.quicknode-ipfs.com/ipfs/"
@@ -786,7 +792,8 @@ async function fetchTokenData(collectionContractProvider, tokenId) {
       name: metadata.name,
       image_url,
       token_id: tokenId,
-      attributes
+      traits: attributes,
+      owner
     };
   } catch (error) {
 
@@ -796,28 +803,66 @@ async function fetchTokenData(collectionContractProvider, tokenId) {
   }
 }
 
-const createDB = async (contract_address) => {
-  const collectionContract =  new ethers.Contract(contract_address, contractABI, jsonRpcProvider);
-  let total_supply = await collectionContract.totalSupply();
-  total_supply = total_supply.toNumber()
-  let start_token_id = 0
-  try {
-    const tokenURI = await collectionContract.tokenURI(start_token_id);
-    if (!tokenURI)  start_token_id = 1
-  } catch (error) {
-    start_token_id = 1
-  }
 
+
+const getEthersData = async (listingCollectionInfo) => {
+  console.log(`Start Fetch Ethers Data - ${listingCollectionInfo.name}`)
+  const collectionData = await getCollectionDataByContract(listingCollectionInfo.contract_address)
+  const nftDataList =  await fetchAllTokensAndSave(collectionData)
   return {
-    collectionContractProvider : collectionContract, 
-    contract_address,
-    total_supply,
-    token_id_list: Array.from(
-      { length: total_supply },
-      (_, i) => i + start_token_id
-    )
-
+    collectionData,
+    nftDataList
   }
+}
+
+const checkIsValidCollectionDataForDB = (collectionDataForDB) => {
+  try {
+    const {name, description,contract_address, slug, nftDataList} = collectionDataForDB
+    const isValidName = name && typeof name === "string" && name.length > 0
+    const isValidSlug = slug && typeof slug === "string" && slug.length > 0
+    const isValidDes = description && typeof description === "string" 
+    const isValidContractAddress = contract_address && typeof contract_address === "string" && contract_address.length === 42
+
+    const isValidList = nftDataList.map(nftData => {
+      const {name, image_url, token_id} = nftData
+      const isValidName = name && typeof name === "string" && name.length > 0
+      const isValidImage = image_url && typeof image_url === "string" && image_url.length > 0
+      const isValidTokenId = typeof token_id === "number" && token_id >= 0
+      return isValidName && isValidImage && isValidTokenId
+    })
+
+    const isValidNFTData = isValidList.filter(_ => _ === false).length === 0
+
+    return isValidName && isValidSlug && isValidDes && isValidContractAddress && isValidNFTData
+  } catch (error) {
+    return false
+  }
+  
+}
+
+const createCollectionAndNFTData = async ({strapi, collectionDataForDB}) => {
+  console.log(`Create Collection DB - ${collectionDataForDB.name}`);
+  const collection = await strapi.entityService.create(
+    "api::collection.collection",
+    {
+      data: {
+        ...collectionDataForDB,
+      },
+    }
+  );
+
+  const {nftDataList} = collectionDataForDB
+  const nftCreatePromises = nftDataList.map(nftData => {
+    return strapi.entityService.create('api::nft.nft', {
+      data: {
+          ...nftData,
+          collection: collection.id
+      },
+  });
+  })
+
+  await Promise.all(nftCreatePromises)
+  
 }
 
 const willListingCollecitons = [
@@ -832,32 +877,6 @@ const willListingCollecitons = [
   }
 ]
 
-const getEthersData = async (listingCollectionInfo) => {
-  const collectionData = await getCollectionDataByContract(listingCollectionInfo.contract_address)
-  const nftDataList =  await fetchAllTokensAndSave(collectionData)
-  return {
-    collectionData,
-    nftDataList
-  }
-}
-
-const checkCollectionDataForDB = (collectionDataForDB) => {
-  const {name, description,contract_address } = collectionDataForDB
-  if ()
-}
-
-const createCollectionAndNFTData = async ({strapi, collectionDataForDB}) => {
-
-  
-  const addredEarlyUser = await strapi.entityService.create(
-    "api::collection.collection",
-    {
-      data: {
-        ...collectionDataForDB
-      },
-    }
-  );
-}
 
 const listing = async ({strapi}) => {
   try {
@@ -865,11 +884,27 @@ const listing = async ({strapi}) => {
       const willListingColleciton = willListingCollecitons[i];
       console.log(`Start Listing Process - ${willListingColleciton.name}`);
       const collectionDataByEthers = await getEthersData(willListingColleciton)
+      const slug = slugify(willListingColleciton.name, {
+        lower: true,      
+        remove: /[*+~.()'"!:@]/g,
+        strict: true
+    });
       const collectionDataForDB = {
         ...willListingColleciton,
+        slug,
         total_supply: collectionDataByEthers.collectionData.total_supply,
         nftDataList: collectionDataByEthers.nftDataList
       }
+
+      if (!checkIsValidCollectionDataForDB(collectionDataForDB)) {
+        console.log(`Not Valid Data - ${willListingColleciton.name}`)
+        continue
+      }
+      
+      await createCollectionAndNFTData({strapi,collectionDataForDB })
+
+
+
 
       
     }
@@ -881,4 +916,8 @@ const listing = async ({strapi}) => {
   }
 }
 
-listing()
+// listing({strapi: null})
+
+module.exports = {
+  listing
+}

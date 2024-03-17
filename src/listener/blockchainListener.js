@@ -74,7 +74,9 @@ async function createTransferListener({ strapi }) {
 
       // 2. Get Transaction details
 
-      await jsonRpcProvider.getTransaction(log.transactionHash);
+      const txReceipt = await jsonRpcProvider.getTransaction(
+        log.transactionHash
+      );
 
       let tradeLogExists = await strapi.db
         .query("api::nft-trade-log.nft-trade-log")
@@ -93,10 +95,9 @@ async function createTransferListener({ strapi }) {
           if (nftData.sell_order != null) {
             if (
               nftData.sell_order.maker == transferFrom &&
-              log.address == WEN_EX_CONTRACT_ADDRESS
+              txReceipt.to == WEN_EX_CONTRACT_ADDRESS
             ) {
               // SALE임
-
               deletingOrder = await strapi.entityService.delete(
                 "api::order.order",
                 nftData.sell_order.id,

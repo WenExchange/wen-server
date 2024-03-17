@@ -29,7 +29,7 @@ module.exports = {
    */
   async bootstrap({ strapi }) {
     try {
-      const {uploadNFTImageWithFile, updateNFT} = require("./utils/UploadImages")
+      const {uploadNFTImageWithFile, updateNFT, updateNFTImageURL} = require("./utils/UploadImages")
       const {listing} = require("./utils/collectionListing")
       // createTransferListener({ strapi });
       // uploadNFTImageWithFile({strapi})
@@ -37,6 +37,7 @@ module.exports = {
       const ccm = CollectionCacheManager.getInstance(strapi);
 
       // listing({strapi}).catch(err => console.log(333, err.message))
+      // updateNFTImageURL({strapi})
     } catch (error) {
       console.log(error.message);
     }

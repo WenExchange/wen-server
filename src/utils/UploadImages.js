@@ -1,12 +1,28 @@
 const axios = require("axios");
 const { parse } = require("url");
-const {API_TOKEN} = require("./constants")
+const {API_TOKEN, IPFS} = require("./constants")
 const fs = require('fs');
 
 async function uploadNFTImageWithFile({ strapi }) {
   console.log(333);
   try {
-    const nftDatas = require("./49.json")
+
+    const nftDatas = await strapi.db.query("api::nft.nft").findMany({
+      where: {
+        collection: {
+          id: {
+            $notNull: true
+          }
+        },
+      },
+      orderBy: { token_id: "asc" }, 
+      populate: { collection: true },
+      offset: 0,
+      limit: 1
+    });
+
+    console.log(333, "nftDatas",nftDatas);
+
 
     const uploadPromises = nftDatas.map(nftData => {
       return axios({
@@ -15,7 +31,7 @@ async function uploadNFTImageWithFile({ strapi }) {
         responseType: "blob",
   
       }).then(response => {
-        return new Blob([response.data], { type: 'image/svg+xml' });
+        return new Blob([response.data], { type: 'image/png' });
       }).then(blob => {
         const form = new FormData();
         form.append('files', blob, `${nftData.contractAddress}-${nftData.token_id}.png`);
@@ -126,7 +142,39 @@ async function updateNFT({strapi}) {
 // uploadNFTImageWithFile({strapi: null})
 
 
+async function updateNFTImageURL({strapi}) {
+  
+  const nftDatas = await strapi.db.query("api::nft.nft").findMany({
+    where: {
+      image_url: {
+        $contains: "quicknode"
+      },
+    }
+  });
+
+  console.log(333, nftDatas.length);
+  // return
+
+  // const filteredUploadedInfoList  = require("./filteredUploadedInfoList.json")
+  for (let i = 0; i < nftDatas.length; i++) {
+      const willUpdateNFTInfo = nftDatas[i];
+      
+      if (!willUpdateNFTInfo.image_url.startsWith("https://wen-exchange.quicknode-ipfs.com/ipfs/")) continue
+      const updatedNFT = await strapi.entityService.update("api::nft.nft",willUpdateNFTInfo.id,{
+        data: {
+          image_url: willUpdateNFTInfo.image_url.replace('https://wen-exchange.quicknode-ipfs.com/ipfs/', IPFS.GATEWAY_URL)
+        }
+      }, );
+
+
+   
+
+      console.log(333, "updatedNFT",updatedNFT.name);
+}
+}
+
 module.exports = {
   uploadNFTImageWithFile,
-  updateNFT
+  updateNFT,
+  updateNFTImageURL
 };

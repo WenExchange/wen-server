@@ -9,7 +9,11 @@ const {
 } = require("./collectionStats");
 
 //TODO: change it to mainnet
-const { jsonRpcProvider, NFT_LOG_TYPE } = require("../utils/constants");
+const {
+  jsonRpcProvider,
+  NFT_LOG_TYPE,
+  WEN_EX_CONTRACT_ADDRESS,
+} = require("../utils/constants");
 
 const {
   LOG_TYPE_SALE,
@@ -38,8 +42,8 @@ async function createTransferListener({ strapi }) {
   jsonRpcProvider.on(filter, async (log, _) => {
     // // exit early if it's not our NFT
     try {
-      const ccm = CollectionCacheManager.getInstance(strapi)
-      const myCollections = ccm.getCollectionAddresses()
+      const ccm = CollectionCacheManager.getInstance(strapi);
+      const myCollections = ccm.getCollectionAddresses();
       if (!myCollections.includes(log.address.toLowerCase())) return;
 
       const transferFrom = `0x${log.topics[1].slice(-40)}`;
@@ -87,7 +91,10 @@ async function createTransferListener({ strapi }) {
         let deletingOrder;
         if (transferFrom != "0x0000000000000000000000000000000000000000") {
           if (nftData.sell_order != null) {
-            if (nftData.sell_order.maker == transferFrom) {
+            if (
+              nftData.sell_order.maker == transferFrom &&
+              log.address == WEN_EX_CONTRACT_ADDRESS
+            ) {
               // SALE임
 
               deletingOrder = await strapi.entityService.delete(

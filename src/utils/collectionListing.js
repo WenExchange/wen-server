@@ -702,6 +702,7 @@ const listing = async () => {
   try {
     const SSS_LAND_OFFICIAL = "0xdd22cee7fb6257f3bad43cc66562fb7925756114"
     const collectionData = await getCollectionDataByContract(SSS_LAND_OFFICIAL)
+    await fetchAllTokensAndSave(collectionData)
     
   } catch (error) {
     
@@ -817,7 +818,9 @@ const {total_supply, token_id_list, contract_address} = collectionData
     .map((data, index) => (data instanceof Error ? token_id_list[index] : null))
     .filter((id) => id !== null)
 
-    if (failedTokenIds.length > 0) return
+    if (failedTokenIds.length > 0) {
+      return  
+    }
   
 
   fs.writeFile(`${contract_address}.json`, JSON.stringify(successfulData, null, 2), (writeErr) => {

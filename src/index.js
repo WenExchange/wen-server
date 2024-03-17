@@ -36,7 +36,7 @@ module.exports = {
       // updateNFT({strapi})
       const ccm = CollectionCacheManager.getInstance(strapi);
 
-      listing({strapi}).catch(err => console.log(333, err.message))
+      // listing({strapi}).catch(err => console.log(333, err.message))
     } catch (error) {
       console.log(error.message);
     }

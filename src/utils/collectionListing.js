@@ -1,5 +1,6 @@
 const { ethers } = require("ethers");
 const fs = require("fs");
+const axios = require("axios")
 const path = require("path");
 const slugify = require('slugify');
 const contractABI = [
@@ -690,7 +691,7 @@ const contractABI = [
     type: "receive",
   },
 ];
-const {jsonRpcProvider} = require("./constants")
+const {jsonRpcProvider, PROTOCOL_FEE, IPFS} = require("./constants")
 
 
 // 1. [ethers] fetch colleciton info (total_supply, start_id_index ) => Collection DB
@@ -699,8 +700,8 @@ const {jsonRpcProvider} = require("./constants")
 // 4. [db] nft db create 
 // 5. (optional) Image Upload
 
-const getCollectionDataByContract = async (contract_address) => {
-  const collectionContract =  new ethers.Contract(contract_address, contractABI, jsonRpcProvider);
+const getCollectionDataByContract = async (listingCollectionInfo) => {
+  const collectionContract =  new ethers.Contract(listingCollectionInfo.contract_address, contractABI, jsonRpcProvider);
   let total_supply = await collectionContract.totalSupply();
   total_supply = total_supply.toNumber()
   let start_token_id = 0
@@ -712,8 +713,8 @@ const getCollectionDataByContract = async (contract_address) => {
   }
 
   return {
+    ...listingCollectionInfo,
     collectionContractProvider : collectionContract, 
-    contract_address,
     total_supply,
     token_id_list: Array.from(
       { length: total_supply },
@@ -726,8 +727,7 @@ const getCollectionDataByContract = async (contract_address) => {
 async function fetchAllTokensAndSave(collectionData) {
 
 const {total_supply, token_id_list, contract_address, collectionContractProvider} = collectionData
-
-  const chunkSize = 50;
+  const chunkSize = 200;
   const chunks = [];
 
   for (let i = 0; i < token_id_list.length; i += chunkSize) {
@@ -741,7 +741,7 @@ const {total_supply, token_id_list, contract_address, collectionContractProvider
   for (const chunk of chunks) {
     console.log(`start chunk ${chunkCount}`);
     const fetchPromises = chunk.map((tokenId) =>
-      fetchTokenData(collectionContractProvider, tokenId).then(res => {
+      fetchTokenData({collectionData, collectionContractProvider, tokenId}).then(res => {
         return {
           ...res,
           contract_address
@@ -758,35 +758,25 @@ const {total_supply, token_id_list, contract_address, collectionContractProvider
     (data) => data !== null
   );
 
-  console.log(`Success nft data - ${successfulData[0]}`);
-  // fs.writeFile(`./src/utils/${contract_address}.json`, JSON.stringify(successfulData, null, 2), (writeErr) => {
-  //   if (writeErr) {
-  //     console.error("Error saving the file:", writeErr);
-  //   } else {
-  //     console.log(
-  //       `Successfully updated token data in ${contract_address}.json, total Supply ${total_supply} arrayLength : ${successfulData.length}`
-  //     );
-  //   }
-  // });
+  console.log(`Success nft data list`);
+
   return successfulData
 }
 
-async function fetchTokenData(collectionContractProvider, tokenId) {
+async function fetchTokenData({collectionData, collectionContractProvider, tokenId}) {
   try {
     // console.log("token id", tokenId);
-    const tokenURI = await collectionContractProvider.tokenURI(tokenId);
+    let tokenURI = await collectionContractProvider.tokenURI(tokenId)
+    // if (collectionData.name === "Eryndor") tokenURI = `ipfs://QmX2aQgepNMxFjsozGnLkPzkyV6nBUhgwDjCpBbAj5dkHa/${tokenId}`
+    
     const owner = await collectionContractProvider.ownerOf(tokenId)
-    const httpURL = tokenURI.replace(
-      "ipfs://",
-      "https://wen-exchange.quicknode-ipfs.com/ipfs/"
-    );
-    const response = await fetch(httpURL);
-    const metadata = await response.json();
+    if (tokenURI.startsWith('ipfs://')) 
+      tokenURI = tokenURI.replace('ipfs://', IPFS.GATEWAY_URL);
+  
+
+    const metadata = await axios.get(tokenURI).then(res => res.data);
 
     let image_url = metadata?.image || "";
-    if (image_url.startsWith('ipfs://')) {
-      image_url = image_url.replace('ipfs://', 'https://wen-exchange.quicknode-ipfs.com/ipfs/');
-  }
   const attributes = Array.isArray(metadata?.attributes) && metadata?.attributes.length > 0 ? metadata.attributes : null;
     return {
       name: metadata.name,
@@ -807,7 +797,7 @@ async function fetchTokenData(collectionContractProvider, tokenId) {
 
 const getEthersData = async (listingCollectionInfo) => {
   console.log(`Start Fetch Ethers Data - ${listingCollectionInfo.name}`)
-  const collectionData = await getCollectionDataByContract(listingCollectionInfo.contract_address)
+  const collectionData = await getCollectionDataByContract(listingCollectionInfo)
   const nftDataList =  await fetchAllTokensAndSave(collectionData)
   return {
     collectionData,
@@ -851,6 +841,8 @@ const createCollectionAndNFTData = async ({strapi, collectionDataForDB}) => {
     }
   );
 
+  console.log(`Complete Collection DB - ${collection.id} ${collection.name}`);
+
   const {nftDataList} = collectionDataForDB
   const nftCreatePromises = nftDataList.map(nftData => {
     return strapi.entityService.create('api::nft.nft', {
@@ -858,30 +850,64 @@ const createCollectionAndNFTData = async ({strapi, collectionDataForDB}) => {
           ...nftData,
           collection: collection.id
       },
-  });
+  }).then(nft => console.log(`NFT Created - ${nft.id} - ${nft.name}`));
   })
-
+  console.log(`Create NFT DB - ${collectionDataForDB.name}`);
   await Promise.all(nftCreatePromises)
   
 }
 
+
 const willListingCollecitons = [
-  {
-    name: "Super Sushi Samurai",
-    description: "Dive into the world of decentralised gaming and unleash your Sushi Samurai and pet to dominate Rice Kingdom. A social strategy focussed idle game powered by the Blast network.",
-    contract_address: "0xdd22cee7fb6257f3bad43cc66562fb7925756114",
-    twitter: "https://twitter.com/SSS_HQ",
-    logo_url: "https://v5.airtableusercontent.com/v3/u/26/26/1710705600000/0-b-rXfS8xZEBpVpEXuTgw/zphYCbuUUzkpBmhmyhdtNdzEBwK8ojQmujLqDIZ8k-xf546oC0Wfns6JzzVVQbxLc9wlj-FZ2I84RL1Gc2fwXhr1Szcq-CNBWj9kKkxG0IEbUMfVWgAWFmebOQYzmMONz4AZInJR01lyW7GRC9Ie0A/qbIsH09BdOZKpqBYLsOrnFTxVDhdmzQP5I6JVpAaElY",
-    banner_url: "https://v5.airtableusercontent.com/v3/u/26/26/1710705600000/YSVnN4z2SzmPTtcdT1DWyQ/FjV9eHOMYCaSjmWwRTKm1K7uPnyFKMx9Gi3lkXmM3uYYiZMFdbzRGNJlLDsmgrvyCQePWnx-52r9n75YFYtk8JAK6HFHvitWygeW3pqfe4KjgpNAm4Z7Ybggzi9vBzEJUQV8NRqOtxPUkYcdwqFClQ/4M8r-7X7nkE1DzrbhhXT7e9pWIDuk0uWm5zcGYbrSWs",
+
+  // {
+  //   name: "Blade Module NFT",
+  //   description: "Blade Module NFTs, obtained from Daily Loot Boxes, contain Blast Gold, $BLADE, and all future airdrops happening on Blast_L2!",
+  //   contract_address: "0x7571058f0423d9bd24b798ecd4135c47f78dbf08",
+  //   twitter: "https://twitter.com/bladeswapxyz",
+  //   discord: "https://discord.com/invite/QX85NaC9h2",
+  //   website: "https://bladeswap.xyz/",
+  //   logo_url: "https://d1kb1oeulsx0pq.cloudfront.net/blade_module_logo_20a2822bf6.jpeg",
+  //   banner_url: "https://d1kb1oeulsx0pq.cloudfront.net/blade_module_banner_e62c23fbb3.jpeg",
     
-  }
+  // },
+
+  // {
+  //   name: "Blast pepe",
+  //   description: "First pepe NFT on blast",
+  //   contract_address: "0x28bde6a47bf489a595f02cd528f021cf6756dc98",
+  //   twitter: "https://twitter.com/blastpepes",
+  //   discord: "https://discord.com/invite/blastpepe",
+  //   website: "https://blastpepes.com/",
+  //   logo_url: "https://d1kb1oeulsx0pq.cloudfront.net/blast_pepe_logo_aa34c1ca4c.png",
+  //   banner_url: "https://d1kb1oeulsx0pq.cloudfront.net/blast_pepe_banner_b48df357bd.jpeg",
+    
+  // },
+
+
+  // {
+  //   name: "Pigs Get Blasted",
+  //   description: "Diabolical game theory with art by NOMOZ. Award winner in Blast Competition",
+  //   contract_address: "0xf6d13f878f95ebf06a0e468cebf4d97e759a7e2e",
+  //   twitter: "https://twitter.com/pigsgetblasted",
+  //   discord: "",
+  //   website: "https://www.pigsgetblasted.com/",
+  //   logo_url: "https://d1kb1oeulsx0pq.cloudfront.net/blade_module_logo_20a2822bf6.jpeg",
+  //   banner_url: "https://d1kb1oeulsx0pq.cloudfront.net/blade_module_banner_e62c23fbb3.jpeg",
+    
+  // },
+
+
 ]
 
 
 const listing = async ({strapi}) => {
-  try {
+  let failCollection
     for (let i = 0; i < willListingCollecitons.length; i++) {
+      try {
+
       const willListingColleciton = willListingCollecitons[i];
+      failCollection = willListingCollecitons[i];
       console.log(`Start Listing Process - ${willListingColleciton.name}`);
       const collectionDataByEthers = await getEthersData(willListingColleciton)
       const slug = slugify(willListingColleciton.name, {
@@ -892,6 +918,8 @@ const listing = async ({strapi}) => {
       const collectionDataForDB = {
         ...willListingColleciton,
         slug,
+        protocol_fee_receiver: PROTOCOL_FEE.RECEIVER,
+        protocol_fee_point: PROTOCOL_FEE.POINT,
         total_supply: collectionDataByEthers.collectionData.total_supply,
         nftDataList: collectionDataByEthers.nftDataList
       }
@@ -900,23 +928,35 @@ const listing = async ({strapi}) => {
         console.log(`Not Valid Data - ${willListingColleciton.name}`)
         continue
       }
+
+      fs.writeFile(`./src/utils/${collectionDataForDB.slug}.json`, JSON.stringify(collectionDataForDB, null, 2), (writeErr) => {
+        if (writeErr) {
+          console.error("Error saving the file:", writeErr);
+        } else {
+          console.log(
+            `Successfully updated token data in ${collectionDataForDB.slug}.json`
+          );
+        }
+      });
       
       await createCollectionAndNFTData({strapi,collectionDataForDB })
 
 
 
-
+    } catch (error) {
+      console.error(error.message)
+      console.log(`Fail Listing - ${failCollection.name}`);
+      continue
+    }
       
     }
 
 
     
-  } catch (error) {
-    console.error(error.message)
-  }
+
 }
 
-// listing({strapi: null})
+listing({strapi: null})
 
 module.exports = {
   listing

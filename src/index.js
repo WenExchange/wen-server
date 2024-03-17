@@ -30,7 +30,7 @@ module.exports = {
   async bootstrap({ strapi }) {
     try {
       const {uploadNFTImageWithFile, updateNFT} = require("./utils/UploadImages")
-      createTransferListener({ strapi });
+      // createTransferListener({ strapi });
       // uploadNFTImageWithFile({strapi})
       // updateNFT({strapi})
       const ccm = CollectionCacheManager.getInstance(strapi);

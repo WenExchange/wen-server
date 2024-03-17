@@ -1,31 +1,90 @@
 const axios = require("axios");
 const { parse } = require("url");
+const {API_TOKEN} = require("./constants")
+const fs = require('fs');
 
-async function uploadByUrl({ strapi }) {
+async function uploadNFTImageWithFile({ strapi }) {
   console.log(333);
   try {
-    const url = "https://api.blastopians.io/1.png";
-    // const imageName = parse(url).pathname.split("/").pop();
-    const response = await axios({
-      method: "GET",
-      url,
-      responseType: "arraybuffer",
-    });
-    const buffer = Buffer.from(response.data, "binary");
-    console.log(333, "buffer",buffer);
-    // const file = files["files.uploadedFile"];
+    const nftDatas = require("./49.json")
 
-    // const updatedFile = await strapi.plugins.upload.services.upload.upload({
-    //   data: {
-    //     fileInfo: {
-    //       name: "test",
-    //       caption: "test Caption",
-    //       alternativeText: "test Alternative Text",
+    const uploadPromises = nftDatas.map(nftData => {
+      return axios({
+        method: "GET",
+        url: nftData.image_url,
+        responseType: "blob",
+  
+      }).then(response => {
+        return new Blob([response.data], { type: 'image/svg+xml' });
+      }).then(blob => {
+        const form = new FormData();
+        form.append('files', blob, `${nftData.contractAddress}-${nftData.token_id}.png`);
+        return axios({
+          method: "POST",
+          url: "http://127.0.0.1:1337/api/upload",
+          data: form,
+          headers: {
+            authorization: `Bearer ${API_TOKEN.UPLOAD}`,
+          },
+        }).then(res => {
+          
+         return {
+           contract_address: nftData.contractAddress,
+           token_id: nftData.token_id,
+           image_url: res.data[0].url
+         }
+        })
+      }).catch(e => {
+        console.log(333, e.message);
+        return null
+      })
+
+    })
+
+    const uploadedInfoList = await Promise.all(uploadPromises)
+    const filteredUploadedInfoList = uploadedInfoList.filter(_ => _ !== null)
+    console.log(333, "filteredPploadedInfoList",filteredUploadedInfoList);
+    fs.writeFile('filteredUploadedInfoList.json', JSON.stringify(filteredUploadedInfoList, null, 2), (err) => {
+      if (err) throw err;
+      console.log('filteredUploadedInfoList.json has been saved.');
+    });
+    // for (let i = 0; i < filteredPploadedInfoList.length; i++) {
+    //   const willUpdateNFTInfo = filteredPploadedInfoList[i];
+
+    //   // const updatedNFT = await strapi.db.query("api::nft.nft").update({
+    //   //   where: { 
+    //   //     $and: [
+    //   //       {token_id: willUpdateNFTInfo.token_id},
+    //   //       {collection: {
+    //   //         contract_address: willUpdateNFTInfo.contract_address
+    //   //       }}
+    //   //     ]
+    //   //   },
+    //   //   data: {
+    //   //     image_url: willUpdateNFTInfo.image_url
+    //   //   },
+    //   // });
+
+
+    //   const updatedNFT = await strapi.db.query("api::nft.nft").findOne({
+    //     where: { 
+    //       $and: [
+    //         {token_id: willUpdateNFTInfo.token_id},
+    //         {collection: {
+    //           contract_address: willUpdateNFTInfo.contract_address
+    //         }}
+    //       ]
     //     },
-    //   },
-    //   files: file,
-    // });
-    // ctx.send({ message: "Image uploaded successfully!" });
+    //     data: {
+    //       image_url: willUpdateNFTInfo.image_url
+    //     },
+    //   });
+
+    //   console.log(333, "updatedNFT",updatedNFT.name);
+
+
+      
+    // }
   } catch (error) {
     console.error(error.message
       );
@@ -33,218 +92,41 @@ async function uploadByUrl({ strapi }) {
   }
 }
 
-uploadByUrl({strapi: null}).then()
+async function updateNFT({strapi}) {
+  
+  const filteredUploadedInfoList  = require("./filteredUploadedInfoList.json")
+  for (let i = 0; i < filteredUploadedInfoList.length; i++) {
+      const willUpdateNFTInfo = filteredUploadedInfoList[i];
 
-async function uploadNFTImages({ strapi }) {
-  const imageURL = "https://api.blastopians.io/1.png";
-  const myImage = await fetch(imageURL);
-  const myBlob = await myImage.blob();
+      const updatedNFT = await strapi.db.query("api::nft.nft").update({
+        populate: {
+          collection: true
+        },
+        where: { 
 
-  // const formData = new FormData();
-  // formData.append("files", myBlob, imageURL);
-  // // formData.append("ref", "api::event.event");
-  // // formData.append("refId", eventId);
-  // formData.append("field", "image/png");
-  // // console.log(formData);
-  // // const response = await fetch("http://localhost:1337/api/upload", {
-  // //   method: "post",
-  // //   body: formData,
-  // // });
-
-  // const response = await axios({
-  //   method: "GET",
-  //   url: imageURL,
-  //   responseType: "arraybuffer",
-  // });
-
-  const arrayBuffer = await myBlob.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-
-  const formData = new FormData();
-  formData.append("files", buffer);
-  formData.append("name", "hehe");
-
-  await strapi.plugins.upload.services.upload.upload({
-    data: {
-      fileInfo: {
-        name: "Name",
-        caption: "Caption",
-        alternativeText: "Alternative Text",
-      },
-    },
-    files: formData,
-  });
-  // await strapi.query("plugin::upload.file").create({ data: buffer });
-  // console.log(response);
-}
-
-// async function uploadByUrl(imageUrls) {
-//   try {
-//     const formData = new FormData();
-
-//     for (let imageUrl of imageUrls) {
-//       const image = await fetch(imageUrl);
-//       const imagetoUpload = await image.blob();
-//       formData.append("files", imagetoUpload);
-//     }
-
-//     const uploadedBlobToStrapi = await fetch(
-//       "http://localhost:1337/api/upload",
-//       {
-//         method: "POST",
-//         headers: {
-//           authorization: `Bearer 8fb15f482edd0150963bc7cb8d7ef28431a8fa89fe7307a98faec92cea0d59b0bf0637264c883dd5ba83f205f1e486698ebb677ad650bb8c6d14d4ac951522061d5abd1f70527138a5875638f80e35ac68ce3af6c7b9c96bca37ace9d3528f8b5d87d545d5eca5cca8f8748f7d1202e2debe60076048d17dab64bd35aaeaf3c1`,
-//         },
-//         body: formData,
-//       }
-//     );
-//     const results = await uploadedBlobToStrapi.json();
-//     // console.log(results);
-//     return results;
-//   } catch (error) {
-//     console.log(error);
-//     console.log(error.message);
-//   }
-// }
-const fs = require("fs").promises;
-const path = require("path");
-
-// Assuming uploadByUrl function is defined as shown earlier
-
-async function processAndUploadImages() {
-  const filePath = path.join(__dirname, "48_1.json");
-  let data = await fs.readFile(filePath, "utf8");
-  let objects = JSON.parse(data);
-
-  const objectsToProcess = objects.filter((obj) => !obj.strapi_image_url);
-
-  // Processing in batches of 10
-  for (let i = 0; i < objectsToProcess.length; i += 10) {
-    const batch = objectsToProcess.slice(i, i + 10);
-    console.log("batch : ", i, i + 10);
-    const imageUrls = batch.map((obj) =>
-      obj.image_url.replace(
-        "ipfs://",
-        "https://wen-exchange.quicknode-ipfs.com/ipfs/"
-      )
-    ); // Convert IPFS URL to HTTP URL
-
-    // Upload images by URL and update objects with returned URLs
-    const uploadResults = await uploadByUrl(imageUrls);
-    if (uploadResults) {
-      uploadResults.forEach((result, index) => {
-        // Find original object and update strapi_image_url
-        const originalIndex = objects.findIndex(
-          (obj) => obj.image_url === batch[index].image_url
-        );
-        if (originalIndex !== -1) {
-          objects[originalIndex].strapi_image_url = result.url;
+          $and: [
+            {token_id: willUpdateNFTInfo.token_id},
+            {collection: {
+              contract_address: willUpdateNFTInfo.contract_address
+            }}
+          ]
+        },
+        data: {
+          image_url: willUpdateNFTInfo.image_url
         }
-      });
-    }
-  }
+      }, );
 
-  // Save the updated array back to "a.json"
-  await fs.writeFile(filePath, JSON.stringify(objects, null, 2));
+
+   
+
+      console.log(333, "updatedNFT",updatedNFT.name);
+}
 }
 
-async function processAndUploadImagesIncrementally() {
-  const filePath = path.join(__dirname, "48_1.json");
+// uploadNFTImageWithFile({strapi: null})
 
-  for (;;) {
-    // Infinite loop, will break when no more items to process
-    let data = await fs.readFile(filePath, "utf8");
-    let objects = JSON.parse(data);
-
-    // Find first 10 objects without strapi_image_url
-    const objectsToProcess = objects
-      .filter((obj) => !obj.strapi_image_url)
-      .slice(0, 30);
-
-    // If there are no objects left to process, break the loop
-    if (objectsToProcess.length === 0) {
-      break;
-    }
-
-    const imageUrls = objectsToProcess.map((obj) =>
-      obj.image_url.replace(
-        "ipfs://",
-        "https://wen-exchange.quicknode-ipfs.com/ipfs/"
-      )
-    ); // Convert IPFS URL to HTTP URL
-    console.log("object start", objectsToProcess[0].token_id);
-
-    // Upload images by URL and update objects with returned URLs
-    const uploadResults = await uploadByUrl(imageUrls);
-
-    if (uploadResults) {
-      uploadResults.forEach((result, index) => {
-        // Find original object and update strapi_image_url
-        const originalIndex = objects.findIndex(
-          (obj) => obj.image_url === objectsToProcess[index].image_url
-        );
-        if (originalIndex !== -1) {
-          objects[originalIndex].strapi_image_url = result.url;
-        }
-      });
-
-      // Save the partially updated array back to "a.json"
-      await fs.writeFile(filePath, JSON.stringify(objects, null, 2));
-    }
-  }
-
-  console.log("Image processing and upload complete.");
-}
-// processAndUploadImagesIncrementally();
-
-// async function processAndUploadImagesIncrementally2() {
-//   const filePath = path.join(__dirname, "48_1.json");
-//   let data = await fs.readFile(filePath, "utf8");
-//   let objects = JSON.parse(data);
-//   const batchSize = 200; // Processing in larger batches
-
-//   for (let i = 0; i < objects.length; i += batchSize) {
-//     const chunk = objects.slice(i, i + batchSize);
-//     const objectsToProcess = chunk.filter((obj) => !obj.strapi_image_url);
-
-//     if (objectsToProcess.length === 0) {
-//       console.log(`Chunk starting at index ${i} has no items to process.`);
-//       continue;
-//     }
-
-//     const imageUrls = objectsToProcess.map((obj) =>
-//       obj.image_url.replace(
-//         "ipfs://",
-//         "https://wen-exchange.quicknode-ipfs.com/ipfs/"
-//       )
-//     );
-//     const uploadPromises = imageUrls.map((url) => uploadByUrl([url])); // Assuming uploadByUrl can handle individual URLs
-//     const uploadResults = await Promise.all(uploadPromises);
-
-//     uploadResults.flat().forEach((result, index) => {
-//       if (result && result.url) {
-//         const originalIndex = objects.findIndex(
-//           (obj) => obj.image_url === objectsToProcess[index].image_url
-//         );
-//         if (originalIndex !== -1) {
-//           objects[originalIndex].strapi_image_url = result.url;
-//         }
-//       }
-//     });
-
-//     // Save the updated objects after processing this chunk
-//     await fs.writeFile(filePath, JSON.stringify(objects, null, 2));
-//     console.log(
-//       `Chunk processed and saved. Last token_id in this chunk: ${
-//         objectsToProcess[objectsToProcess.length - 1].token_id
-//       }`
-//     );
-//   }
-
-//   console.log("Image processing and upload complete.");
-// }
 
 module.exports = {
-  uploadByUrl,
-  uploadNFTImages,
+  uploadNFTImageWithFile,
+  updateNFT
 };

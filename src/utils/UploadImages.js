@@ -9,21 +9,27 @@ async function uploadNFTImageWithFile({ strapi }) {
 
     const nftDatas = await strapi.db.query("api::nft.nft").findMany({
       where: {
-        collection: {
-          id: {
-            $notNull: true
-          }
-        },
+        // collection: {
+        //   id: {
+        //     $notNull: true
+        //   }
+        // },
+        image_url: {
+          $notContainsi: 'https://d1kb1oeulsx0pq.cloudfront.net/',
+        }
       },
       orderBy: { token_id: "asc" }, 
-      populate: { collection: true },
-      offset: 0,
-      limit: 1
+      // populate: { collection: true },
+      // offset: 0,
+      // limit: 1
     });
 
-    console.log(333, "nftDatas",nftDatas);
-
-
+    // console.log(333, "nftDatas",nftDatas);
+    fs.writeFile('./src/utils/willUpdateImageData.json', JSON.stringify(nftDatas, null, 2), (err) => {
+      if (err) throw err;
+      console.log('filteredUploadedInfoList.json has been saved.');
+    });
+    return
     const uploadPromises = nftDatas.map(nftData => {
       return axios({
         method: "GET",

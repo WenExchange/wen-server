@@ -898,6 +898,18 @@ const willListingCollecitons = [
   // },
 
 
+  {
+    name: "FlashBabies",
+    description: "A new paradigm in GambleFi, built on Blast L2",
+    contract_address: "0x12cbf3c26fbf393bbdfaee2c17eb652bcc87d757",
+    twitter: "https://twitter.com/flashbitxyz",
+    discord: "https://discord.com/invite/flashbit",
+    website: "https://flashbit.xyz/nft",
+    logo_url: "https://d1kb1oeulsx0pq.cloudfront.net/flashbit_logo_49161659f4.jpeg",
+    banner_url: "https://d1kb1oeulsx0pq.cloudfront.net/flashbit_banner_1d4285d08d.jpeg",
+  },
+
+
 ]
 
 
@@ -929,15 +941,15 @@ const listing = async ({strapi}) => {
         continue
       }
 
-      fs.writeFile(`./src/utils/${collectionDataForDB.slug}.json`, JSON.stringify(collectionDataForDB, null, 2), (writeErr) => {
-        if (writeErr) {
-          console.error("Error saving the file:", writeErr);
-        } else {
-          console.log(
-            `Successfully updated token data in ${collectionDataForDB.slug}.json`
-          );
-        }
-      });
+      // fs.writeFile(`./src/utils/${collectionDataForDB.slug}.json`, JSON.stringify(collectionDataForDB, null, 2), (writeErr) => {
+      //   if (writeErr) {
+      //     console.error("Error saving the file:", writeErr);
+      //   } else {
+      //     console.log(
+      //       `Successfully updated token data in ${collectionDataForDB.slug}.json`
+      //     );
+      //   }
+      // });
       
       await createCollectionAndNFTData({strapi,collectionDataForDB })
 
@@ -956,7 +968,7 @@ const listing = async ({strapi}) => {
 
 }
 
-listing({strapi: null})
+// listing({strapi: null})
 
 module.exports = {
   listing

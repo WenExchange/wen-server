@@ -93,19 +93,19 @@ async function createTransferListener({ strapi }) {
         let deletingOrder;
         if (transferFrom != "0x0000000000000000000000000000000000000000") {
           if (nftData.sell_order != null) {
+            deletingOrder = await strapi.entityService.delete(
+              "api::order.order",
+              nftData.sell_order.id,
+              {
+                populate: { nft: true },
+              }
+            );
+
             if (
               nftData.sell_order.maker == transferFrom &&
               txReceipt.to == WEN_EX_CONTRACT_ADDRESS
             ) {
               // SALE임
-              deletingOrder = await strapi.entityService.delete(
-                "api::order.order",
-                nftData.sell_order.id,
-                {
-                  populate: { nft: true },
-                }
-              );
-
               // 1. nft last sale price update
               await strapi.entityService.update("api::nft.nft", nftData.id, {
                 data: {
@@ -151,7 +151,6 @@ async function createTransferListener({ strapi }) {
 
               console.log("CANCEL LISTING HERE 1: ");
             } else {
-              // 에러상황. owner 를 잘못 tracking 하고 있었다는 것.
               await strapi.entityService.create(
                 "api::nft-trade-log.nft-trade-log",
                 {

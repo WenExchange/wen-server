@@ -173,18 +173,19 @@ const stats_1h_collection =  async ({ strapi }) => {
      
               let change_24h = 0
               const collectionStats_24h = collectionStats.slice(0, 24)
-              if (Array.isArray(collectionStats_24h && collectionStats_24h > 0)) {
+              if (Array.isArray(collectionStats_24h) && collectionStats_24h.length > 0) {
                 const currentFloorPrice = collectionStats_24h[0].floor_price_1h
                 const pastFloorPrice = collectionStats_24h[collectionStats.length - 1].floor_price_1h
                 change_24h = calculatePriceChangeRate(currentFloorPrice, pastFloorPrice) 
               }
 
               let change_7d = 0
-              if (Array.isArray(collectionStats && collectionStats.length > 0)) {
+              if (Array.isArray(collectionStats) && collectionStats.length > 0) {
                 const _currentFloorPrice = collectionStats[0].floor_price_1h
                 const _pastFloorPrice = collectionStats[collectionStats.length - 1].floor_price_1h
                 change_7d = calculatePriceChangeRate(_currentFloorPrice, _pastFloorPrice) 
               }
+              
 
             
 

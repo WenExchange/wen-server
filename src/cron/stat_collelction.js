@@ -1,7 +1,7 @@
 const { NFT_LOG_TYPE }  = require("../utils/constants") 
 
 const dayjs = require("dayjs");
-
+const seconds_1h = 60 * 60
 const stats_1h_collection =  async ({ strapi }) => {
     console.log("[CRON TASK] 1H COLLECTION STATS");
     try {
@@ -11,11 +11,11 @@ const stats_1h_collection =  async ({ strapi }) => {
         const collection_id = collection.id
         const floor_price_1h = collection.floor_price
        
-        const seconds_1h = 60 * 60
+      
         return strapi.db.query("api::collection-stat-log.collection-stat-log").findOne({
             where: {
               timestamp: {
-                $gte: timestamp - seconds_1h 
+                $gte: timestamp - seconds_1h / 2
               },
               collection: {
                 id: {
@@ -86,17 +86,40 @@ const stats_1h_collection =  async ({ strapi }) => {
       })
       const collectionStatDatas = await Promise.all(statUpdatePromises)
       const filteredCollectionStateDatas = collectionStatDatas.filter(_ => _ !== null)
-      const collectionStatCreatePromises = filteredCollectionStateDatas.map(collectionStatData => {
-        return strapi.entityService.create("api::collection-stat-log.collection-stat-log", {
+
+           /** Create */ 
+      for (let i = 0; i < filteredCollectionStateDatas.length; i++) {
+        const collectionStatData = filteredCollectionStateDatas[i];
+        const {timestamp, collection_id} = collectionStatData
+        const existingStatLog = await strapi.db.query("api::collection-stat-log.collection-stat-log").findOne({
+          where: {
+            timestamp: {
+              $gte: timestamp - seconds_1h / 2
+            },
+            collection: {
+              id: {
+                $eq: collection_id
+              }
+            }
+          },
+          populate: {
+            collection: true
+          }
+        })
+        if (existingStatLog)  {
+          return
+        }
+        await strapi.entityService.create("api::collection-stat-log.collection-stat-log", {
           data: {
             ...collectionStatData,
             collection: collectionStatData.collection_id
           }
         })
-      })
+        
+        
+      }
 
-     /** Create */ 
-      await Promise.all(collectionStatCreatePromises).catch(error=> console.error(error.message))
+
 
       /** Update Volume Stats */
       updateCollectionVolumes({strapi,filteredCollectionStateDatas }).catch(error=> console.error)
@@ -150,18 +173,19 @@ const stats_1h_collection =  async ({ strapi }) => {
      
               let change_24h = 0
               const collectionStats_24h = collectionStats.slice(0, 24)
-              if (Array.isArray(collectionStats_24h && collectionStats_24h > 0)) {
+              if (Array.isArray(collectionStats_24h) && collectionStats_24h.length > 0) {
                 const currentFloorPrice = collectionStats_24h[0].floor_price_1h
                 const pastFloorPrice = collectionStats_24h[collectionStats.length - 1].floor_price_1h
                 change_24h = calculatePriceChangeRate(currentFloorPrice, pastFloorPrice) 
               }
 
               let change_7d = 0
-              if (Array.isArray(collectionStats && collectionStats.length > 0)) {
+              if (Array.isArray(collectionStats) && collectionStats.length > 0) {
                 const _currentFloorPrice = collectionStats[0].floor_price_1h
                 const _pastFloorPrice = collectionStats[collectionStats.length - 1].floor_price_1h
                 change_7d = calculatePriceChangeRate(_currentFloorPrice, _pastFloorPrice) 
               }
+              
 
             
 

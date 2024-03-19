@@ -941,15 +941,15 @@ const listing = async ({strapi}) => {
         continue
       }
 
-      fs.writeFile(`./src/utils/${collectionDataForDB.slug}.json`, JSON.stringify(collectionDataForDB, null, 2), (writeErr) => {
-        if (writeErr) {
-          console.error("Error saving the file:", writeErr);
-        } else {
-          console.log(
-            `Successfully updated token data in ${collectionDataForDB.slug}.json`
-          );
-        }
-      });
+      // fs.writeFile(`./src/utils/${collectionDataForDB.slug}.json`, JSON.stringify(collectionDataForDB, null, 2), (writeErr) => {
+      //   if (writeErr) {
+      //     console.error("Error saving the file:", writeErr);
+      //   } else {
+      //     console.log(
+      //       `Successfully updated token data in ${collectionDataForDB.slug}.json`
+      //     );
+      //   }
+      // });
       
       await createCollectionAndNFTData({strapi,collectionDataForDB })
 
@@ -968,7 +968,7 @@ const listing = async ({strapi}) => {
 
 }
 
-listing({strapi: null})
+// listing({strapi: null})
 
 module.exports = {
   listing

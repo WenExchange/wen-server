@@ -4,7 +4,6 @@ const {API_TOKEN, IPFS} = require("./constants")
 const fs = require('fs');
 
 async function uploadNFTImageWithFile({ strapi }) {
-  console.log(333);
   try {
 
     const nftDatas = await strapi.db.query("api::nft.nft").findMany({
@@ -25,11 +24,10 @@ async function uploadNFTImageWithFile({ strapi }) {
     });
 
     // console.log(333, "nftDatas",nftDatas);
-    fs.writeFile('./src/utils/willUpdateImageData.json', JSON.stringify(nftDatas, null, 2), (err) => {
-      if (err) throw err;
-      console.log('filteredUploadedInfoList.json has been saved.');
-    });
-    return
+    // fs.writeFile('./src/utils/willUpdateImageData.json', JSON.stringify(nftDatas, null, 2), (err) => {
+    //   if (err) throw err;
+    //   console.log('filteredUploadedInfoList.json has been saved.');
+    // });
     const uploadPromises = nftDatas.map(nftData => {
       return axios({
         method: "GET",

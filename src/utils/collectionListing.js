@@ -899,14 +899,14 @@ const willListingCollecitons = [
 
 
   {
-    name: "FlashBabies",
-    description: "A new paradigm in GambleFi, built on Blast L2",
-    contract_address: "0x12cbf3c26fbf393bbdfaee2c17eb652bcc87d757",
-    twitter: "https://twitter.com/flashbitxyz",
+    name: "LightCycle",
+    description: "LightCycle - a hyper-realistic virtual commercial city, has been created using Unreal Engine 5 and real-time edge rendering.",
+    contract_address: "0xa56cac24af898429e6fedb98173fb8b849c81e98",
+    twitter: "https://twitter.com/LightCycle_City",
     discord: "https://discord.com/invite/flashbit",
-    website: "https://flashbit.xyz/nft",
-    logo_url: "https://d1kb1oeulsx0pq.cloudfront.net/flashbit_logo_49161659f4.jpeg",
-    banner_url: "https://d1kb1oeulsx0pq.cloudfront.net/flashbit_banner_1d4285d08d.jpeg",
+    website: "https://side.xyz/lightcycle",
+    logo_url: "https://d1kb1oeulsx0pq.cloudfront.net/light_cycle_logo_74ee246e7f.jpeg",
+    banner_url: "https://d1kb1oeulsx0pq.cloudfront.net/light_cycle_banner_9f45afe353.jpeg",
   },
 
 
@@ -941,15 +941,15 @@ const listing = async ({strapi}) => {
         continue
       }
 
-      // fs.writeFile(`./src/utils/${collectionDataForDB.slug}.json`, JSON.stringify(collectionDataForDB, null, 2), (writeErr) => {
-      //   if (writeErr) {
-      //     console.error("Error saving the file:", writeErr);
-      //   } else {
-      //     console.log(
-      //       `Successfully updated token data in ${collectionDataForDB.slug}.json`
-      //     );
-      //   }
-      // });
+      fs.writeFile(`./src/utils/${collectionDataForDB.slug}.json`, JSON.stringify(collectionDataForDB, null, 2), (writeErr) => {
+        if (writeErr) {
+          console.error("Error saving the file:", writeErr);
+        } else {
+          console.log(
+            `Successfully updated token data in ${collectionDataForDB.slug}.json`
+          );
+        }
+      });
       
       await createCollectionAndNFTData({strapi,collectionDataForDB })
 
@@ -968,7 +968,7 @@ const listing = async ({strapi}) => {
 
 }
 
-// listing({strapi: null})
+listing({strapi: null})
 
 module.exports = {
   listing

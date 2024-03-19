@@ -1,0 +1,19 @@
+{
+  "name": "LightCycle",
+  "description": "LightCycle - a hyper-realistic virtual commercial city, has been created using Unreal Engine 5 and real-time edge rendering.",
+  "contract_address": "0xa56cac24af898429e6fedb98173fb8b849c81e98",
+  "twitter": "https://twitter.com/LightCycle_City",
+  "discord": "https://discord.com/invite/flashbit",
+  "website": "https://side.xyz/lightcycle",
+  "logo_url": "https://d1kb1oeulsx0pq.cloudfront.net/light_cycle_logo_74ee246e7f.jpeg",
+  "banner_url": "https://d1kb1oeulsx0pq.cloudfront.net/light_cycle_banner_9f45afe353.jpeg",
+  "slug": "lightcycle",
+  "protocol_fee_receiver": "0x4123B6B29006Ed7160B2EEDB89A0c062F976b511",
+  "protocol_fee_point": 200,
+  "total_supply": 1,
+  "nftDataList": [
+    {
+      "contract_address": "0xa56cac24af898429e6fedb98173fb8b849c81e98"
+    }
+  ]
+}

@@ -42,6 +42,7 @@ const createNFTAtMint = async ({strapi, log}) => {
 
 
 
+
 module.exports = {
     createNFTAtMint
 }

@@ -47,24 +47,39 @@ async function listenTransfer({ strapi }) {
     //   if (!myCollections.includes(log.address.toLowerCase())) return;
   
     console.log(333, log.topics.length)
-    if (log.topics.length <= 3) {
-        // console.log(333, "topics length < 3")
-        return
-    }
+    // if (log.topics.length <= 3) {
+    //     // console.log(333, "topics length < 3")
+    //     return
+    // }
       const transferFrom = `0x${log.topics[1].slice(-40)}`;
       const transferTo = `0x${log.topics[2].slice(-40)}`;
-      const tokenId = BigInt(log.topics[3]);
+      const tokenId = BigInt(log.topics[3])
 
       const txReceipt = await jsonRpcProvider.getTransaction(
         log.transactionHash
       );
 
+      
+
 
       if (transferFrom === "0x0000000000000000000000000000000000000000") {
         console.log(`colleciton:${log.address} Mint - ${transferFrom} -> ${transferTo} with token id:${tokenId}`);
+        console.log("txReceipt",txReceipt);
+        const receipt = await txReceipt.wait()
+        console.log("receipt",receipt);
       } else {
         console.log(`colleciton:${log.address} transfer with value - ${transferFrom} -> ${transferTo} with token id:${tokenId} with value: ${ethers.utils.formatEther(txReceipt.value)} || txHash ${log.transactionHash}`);
-        console.log(txReceipt);
+
+        const value = txReceipt.value.toNumber()
+        if (value <= 0 ) {
+          console.log("Zero value transfer");
+          return 
+        }
+      
+        txReceipt.wait().then(res => {
+          console.log(`Sale - ${transferFrom} -> ${transferTo}(exchange) with token id:${tokenId} with tx fee ${ethers.utils.formatEther(res.gasUsed.mul(txReceipt.gasPrice))}`);
+        })
+       
       }
       
       

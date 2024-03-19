@@ -1,6 +1,14 @@
 const { discordClient } = require("./DiscordClient");
 const { EmbedBuilder } = require("discord.js");
 let instance = null;
+const DISCORD_INFO = {
+  GUILD_ID: "1205136052289806396",
+  CHANNEL: {
+    LISTING: "1219606689918222336",
+    YIELD: "1212042486785245214"
+  }
+
+}
 module.exports = class DiscordManager {
   constructor(strapi) {
     this.strapi = strapi;
@@ -65,8 +73,8 @@ module.exports = class DiscordManager {
   
   /** Send Messages */
   async logWenBotDiscordChannel({  data }) {
-    const guild = await this.getGuild("1205136052289806396")
-    const channelId = "1212042486785245214"
+    const guild = await this.getGuild(DISCORD_INFO.GUILD_ID)
+    const channelId = DISCORD_INFO.CHANNEL.YIELD
     
     const embed = new EmbedBuilder()
     .setColor(0x4aff36)
@@ -90,6 +98,53 @@ module.exports = class DiscordManager {
     })
     trackerChannel.send({ embeds: [embed] });
   }
+
+  async logListingCollection(createdCollection) {
+    const guild = await this.getGuild(DISCORD_INFO.GUILD_ID)
+    const channelId = DISCORD_INFO.CHANNEL.LISTING
+    
+    const embed = new EmbedBuilder()
+    .setColor(0x4aff36)
+    .setTitle('Start Listing Process')
+    .setTimestamp()
+    .addFields(
+      { name: 'id', value: createdCollection.id },
+      { name: 'Contract Address', value: `${createdCollection.contract_address}` },
+      { name: 'Creator Address', value: `${createdCollection.creator_address}` },
+      { name: 'Collection Name', value: `${createdCollection.name}` },
+      { name: 'Type', value: createdCollection.token_type },
+    )
+    .setFooter({
+      text: "Powered by Wen Exchange",
+      iconURL: "https://d1kb1oeulsx0pq.cloudfront.net/logo_64eb3dad15.png",
+    });
+
+    const trackerChannel = await this.getChannel({
+      guild,
+      channelId,
+    })
+    trackerChannel.send({ embeds: [embed] });
+  }
+
+  async logListingCollectionError(error) {
+    const guild = await this.getGuild(DISCORD_INFO.GUILD_ID)
+    const channelId = DISCORD_INFO.CHANNEL.LISTING
+    
+    const embed = new EmbedBuilder()
+    .setColor(0xFF0000)
+    .setTimestamp()
+    .setFooter({
+      text: error.message
+    });
+
+    const trackerChannel = await this.getChannel({
+      guild,
+      channelId,
+    })
+    trackerChannel.send({ embeds: [embed] });
+  }
+
+
 
   
 };

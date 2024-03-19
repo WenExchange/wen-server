@@ -1,6 +1,7 @@
 const ethers = require("ethers");
 const { Web3 } = require("web3");
 const dayjs = require("dayjs");
+const DiscordManager = require("../discord/DiscordManager")
 const web3 = new Web3();
 const {
   updateFloorPrice,
@@ -35,33 +36,40 @@ const getContractMetadata = async (address) => {
   }
 };
 
-const createCollection = async ({strapi, contract_address, creator_address, name, type, total_supply }) => {
-  const existedCollection = await strapi.db.query('api::collection.collection').findOne({
-    where: { contract_address }
-  });
-  if (existedCollection) {
-    console.log("Already exist collection contract");
-    return
-  }
-  await strapi.entityService.create("api::collection.collection", {
-    data: {
-      contract_address, creator_address, name, type, description: "This collection has no description yet. Contact the owner of this collection about setting it up on Element!",
-      protocol_fee_receiver: PROTOCOL_FEE.RECEIVER,
-      protocol_fee_point: PROTOCOL_FEE.POINT,
-      total_supply
-
+const createCollection = async ({strapi, contract_address, creator_address, name, token_type, total_supply }) => {
+  const dm = DiscordManager.getInstance()
+  try {
+    const existedCollection = await strapi.db.query('api::collection.collection').findOne({
+      where: { contract_address }
+    });
+    if (existedCollection) {
+      console.log("Already exist collection contract");
+      return
     }
-  })
+    const createdCollection = await strapi.entityService.create("api::collection.collection", {
+      data: {
+        contract_address, creator_address, name, token_type, description: "This collection has no description yet. Contact the owner of this collection about setting it up on Element!",
+        protocol_fee_receiver: PROTOCOL_FEE.RECEIVER,
+        protocol_fee_point: PROTOCOL_FEE.POINT,
+        total_supply
+  
+      }
+    })
+    dm.logListingCollection(createdCollection).catch(err => console.error(err.message))
+  } catch (error) {
+    dm.logListingCollectionError(error).catch(err => console.error(err.message))
+  }
+  
+
+  
 }
 
 
 async function blockListenerForERC721And1155({ strapi }) {
-
-  await jsonRpcProvider.removeAllListeners();
   jsonRpcProvider.on("block", async (blockNumber) => {
     // // exit early if it's not our NFT
     try {
-      console.log(`Checking block ${blockNumber} for ERC721 deployments...`);
+      console.log(`Checking block ${blockNumber} for ERC721, ERC1155 deployments...`);
       const block = await jsonRpcProvider.getBlockWithTransactions(blockNumber);
       for (const tx of block.transactions) {
           if (tx.to === null) {
@@ -74,16 +82,14 @@ async function blockListenerForERC721And1155({ strapi }) {
               const creator_address = tx.from
               const name = metadataInfo.name
               const total_supply = metadataInfo.total_supply
-              const type = metadataInfo.isERC721 ? "ERC721" : "ERC1155"
-
-              console.log(`${type} Contract Deployed! Name: ${name}, Deployer: ${creator_address}, Contract Address: ${contract_address}`);
-              // await createCollection({strapi, contract_address, creator_address, name, type, total_supply})
+              const token_type = metadataInfo.isERC721 ? "ERC721" : "ERC1155"
+              await createCollection({strapi, contract_address, creator_address, name, token_type, total_supply})
           }
       }
 
 
     } catch (error) {
-      console.log("error", error);
+      console.log("blockListenerForERC721And1155 error", error.message);
     }
   });
 }

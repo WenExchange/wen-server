@@ -28,9 +28,10 @@ const {
 } = NFT_LOG_TYPE;
 
 const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
+const { createNFTAtMint } = require("./listingAtMint");
 
 async function createTransferListener({ strapi }) {
-  console.log("it's on");
+  console.log("[TRANSFER EVENT LISTENING ON]");
   let filter = {
     topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId
   };
@@ -40,7 +41,6 @@ async function createTransferListener({ strapi }) {
 
   await jsonRpcProvider.removeAllListeners();
   jsonRpcProvider.on(filter, async (log, _) => {
-    // // exit early if it's not our NFT
     try {
       const ccm = CollectionCacheManager.getInstance(strapi);
       const myCollections = ccm.getCollectionAddresses();
@@ -50,10 +50,10 @@ async function createTransferListener({ strapi }) {
       const transferTo = `0x${log.topics[2].slice(-40)}`;
       const tokenId = BigInt(log.topics[3])
 
+      /** Mint */
+      createNFTAtMint({strapi, log})
       // 1. NFT 의 sell order가 존재함?
       // 1-1. YES. NFT Owner 가 transferFrom 임?
-
-      //
 
       // 1. Get NFT
       const nftData = await strapi.db.query("api::nft.nft").findOne({
@@ -101,24 +101,24 @@ async function createTransferListener({ strapi }) {
       let deletingOrder;
       if (transferFrom === "0x0000000000000000000000000000000000000000") {
         /** Mint */
-        await strapi.entityService.create(
-          "api::nft-trade-log.nft-trade-log",
-          {
-            data: {
-              type: LOG_TYPE_MINT,
-              from: transferFrom,
-              to: transferTo,
-              nft: nftData.id,
-              tx_hash: log.transactionHash,
-              timestamp: dayjs().unix(),
-            },
-          }
-        );
-        console.log(
-          "MINT ADDED HERE 2 Hash : ",
-          log.transactionHash,
-          transferFrom
-        );
+        // await strapi.entityService.create(
+        //   "api::nft-trade-log.nft-trade-log",
+        //   {
+        //     data: {
+        //       type: LOG_TYPE_MINT,
+        //       from: transferFrom,
+        //       to: transferTo,
+        //       nft: nftData.id,
+        //       tx_hash: log.transactionHash,
+        //       timestamp: dayjs().unix(),
+        //     },
+        //   }
+        // );
+        // console.log(
+        //   "MINT ADDED HERE 2 Hash : ",
+        //   log.transactionHash,
+        //   transferFrom
+        // );
       } else {
         if (nftData.sell_order != null) {
           // sell order 가 존재하는 상태에서 transfer 가 일어났으면, Sale 혹은 cancel

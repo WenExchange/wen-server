@@ -28,19 +28,17 @@ const {
 } = NFT_LOG_TYPE;
 
 const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
+const { createNFTAtMint } = require("./listingAtMint");
+const { collectionDeployerERC721And1155Listener } = require("./collectionDeployerERC721And1155Listener");
 
 async function createTransferListener({ strapi }) {
-  console.log("it's on");
+  console.log("[TRANSFER EVENT LISTENING ON]");
+  
+  await jsonRpcProvider.removeAllListeners();
   let filter = {
     topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId
   };
-  let cancelFilter = {
-    topics: [ethers.utils.id("ERC721OrderCancelled(address,uint256)")],
-  };
-
-  await jsonRpcProvider.removeAllListeners();
   jsonRpcProvider.on(filter, async (log, _) => {
-    // // exit early if it's not our NFT
     try {
       const ccm = CollectionCacheManager.getInstance(strapi);
       const myCollections = ccm.getCollectionAddresses();
@@ -48,12 +46,12 @@ async function createTransferListener({ strapi }) {
 
       const transferFrom = `0x${log.topics[1].slice(-40)}`;
       const transferTo = `0x${log.topics[2].slice(-40)}`;
-      const tokenId = BigInt(log.topics[3]);
+      const tokenId = BigInt(log.topics[3])
 
+      /** Mint */
+      // createNFTAtMint({strapi, log})
       // 1. NFT 의 sell order가 존재함?
       // 1-1. YES. NFT Owner 가 transferFrom 임?
-
-      //
 
       // 1. Get NFT
       const nftData = await strapi.db.query("api::nft.nft").findOne({
@@ -89,85 +87,97 @@ async function createTransferListener({ strapi }) {
           },
         });
 
-      if (!tradeLogExists) {
-        let deletingOrder;
-        if (transferFrom != "0x0000000000000000000000000000000000000000") {
-          if (nftData.sell_order != null) {
-            deletingOrder = await strapi.entityService.delete(
-              "api::order.order",
-              nftData.sell_order.id,
+      if (tradeLogExists) {
+        console.log("log is already exist.");
+        return
+      }
+
+      /** Common Tasks */
+      await updateOwner({strapi,nftData,transferTo })
+      await updateOwnerCount({ strapi }, log.address);
+
+      let deletingOrder;
+      if (transferFrom === "0x0000000000000000000000000000000000000000") {
+        /** Mint */
+        // await strapi.entityService.create(
+        //   "api::nft-trade-log.nft-trade-log",
+        //   {
+        //     data: {
+        //       type: LOG_TYPE_MINT,
+        //       from: transferFrom,
+        //       to: transferTo,
+        //       nft: nftData.id,
+        //       tx_hash: log.transactionHash,
+        //       timestamp: dayjs().unix(),
+        //     },
+        //   }
+        // );
+        // console.log(
+        //   "MINT ADDED HERE 2 Hash : ",
+        //   log.transactionHash,
+        //   transferFrom
+        // );
+      } else {
+        if (nftData.sell_order != null) {
+          // sell order 가 존재하는 상태에서 transfer 가 일어났으면, Sale 혹은 cancel
+          deletingOrder = await strapi.entityService.delete(
+            "api::order.order",
+            nftData.sell_order.id,
+            {
+              populate: { nft: true },
+            }
+          );
+
+          if (
+            nftData.sell_order.maker == transferFrom &&
+            txReceipt.to == WEN_EX_CONTRACT_ADDRESS
+          ) {
+            /** Sale */
+            // 1. nft last sale price update
+            await strapi.entityService.update("api::nft.nft", nftData.id, {
+              data: {
+                last_sale_price: deletingOrder.price_eth,
+              },
+            });
+            // 2. NFT TradeLog에 추가
+            await strapi.entityService.create(
+              "api::nft-trade-log.nft-trade-log",
               {
-                populate: { nft: true },
+                data: {
+                  type: LOG_TYPE_SALE,
+                  price: deletingOrder.price_eth,
+                  from: transferFrom,
+                  to: transferTo,
+                  nft: nftData.id,
+                  tx_hash: log.transactionHash,
+                  timestamp: dayjs().unix(),
+                },
+              }
+            );
+            //3. log added
+            await strapi.entityService.create(
+              "api::nft-trade-log.nft-trade-log",
+              {
+                data: {
+                  type: LOG_TYPE_AUTO_CANCEL_LISTING,
+                  from: deletingOrder.maker,
+                  nft: deletingOrder.nft.id,
+                  tx_hash: log.transactionHash,
+                  timestamp: dayjs().unix(),
+                },
               }
             );
 
-            if (
-              nftData.sell_order.maker == transferFrom &&
-              txReceipt.to == WEN_EX_CONTRACT_ADDRESS
-            ) {
-              // SALE임
-              // 1. nft last sale price update
-              await strapi.entityService.update("api::nft.nft", nftData.id, {
-                data: {
-                  last_sale_price: deletingOrder.price_eth,
-                },
-              });
-              // 2. NFT TradeLog에 추가
-              await strapi.entityService.create(
-                "api::nft-trade-log.nft-trade-log",
-                {
-                  data: {
-                    type: LOG_TYPE_SALE,
-                    price: deletingOrder.price_eth,
-                    from: transferFrom,
-                    to: transferTo,
-                    nft: nftData.id,
-                    tx_hash: log.transactionHash,
-                    timestamp: dayjs().unix(),
-                  },
-                }
-              );
-              //3. log added
-              await strapi.entityService.create(
-                "api::nft-trade-log.nft-trade-log",
-                {
-                  data: {
-                    type: LOG_TYPE_AUTO_CANCEL_LISTING,
-                    from: deletingOrder.maker,
-                    nft: deletingOrder.nft.id,
-                    tx_hash: log.transactionHash,
-                    timestamp: dayjs().unix(),
-                  },
-                }
-              );
+            console.log("SALE : Order deleted Id", deletingOrder.id);
 
-              console.log("SALE : Order deleted Id", deletingOrder.id);
+            // 4. floor price update
+            await updateFloorPrice({ strapi }, log.address);
 
-              // 4. floor price update
-              await updateFloorPrice({ strapi }, log.address);
+            // 5. update listing count
+            await updateOrdersCount({ strapi }, log.address);
 
-              // 5. update listing count
-              await updateOrdersCount({ strapi }, log.address);
-
-              console.log("CANCEL LISTING HERE 1: ");
-            } else {
-              await strapi.entityService.create(
-                "api::nft-trade-log.nft-trade-log",
-                {
-                  data: {
-                    type: LOG_TYPE_TRANSFER,
-                    from: transferFrom,
-                    to: transferTo,
-                    nft: nftData.id,
-                    tx_hash: log.transactionHash,
-                    timestamp: dayjs().unix(),
-                  },
-                }
-              );
-              console.log("ERROR Owner traking failed: ", log.transactionHash);
-            }
+            console.log("CANCEL LISTING HERE 1: ");
           } else {
-            // 그냥 Transfer 임
             await strapi.entityService.create(
               "api::nft-trade-log.nft-trade-log",
               {
@@ -181,14 +191,15 @@ async function createTransferListener({ strapi }) {
                 },
               }
             );
-            console.log("TRANSFER ADDED HERE 1 Hash : ", log.transactionHash);
+            console.log("ERROR Owner traking failed: ", log.transactionHash);
           }
         } else {
+          // 그냥 Transfer 임
           await strapi.entityService.create(
             "api::nft-trade-log.nft-trade-log",
             {
               data: {
-                type: LOG_TYPE_MINT,
+                type: LOG_TYPE_TRANSFER,
                 from: transferFrom,
                 to: transferTo,
                 nft: nftData.id,
@@ -197,32 +208,18 @@ async function createTransferListener({ strapi }) {
               },
             }
           );
-          console.log(
-            "MINT ADDED HERE 2 Hash : ",
-            log.transactionHash,
-            transferFrom
-          );
+          console.log("TRANSFER ADDED HERE 1 Hash : ", log.transactionHash);
         }
-
-        // 4. 공통
-        // 4-1. Owner 를 변경
-        // if the SELL order, update the sell_order of the NFT
-        await strapi.entityService.update("api::nft.nft", nftData.id, {
-          data: {
-            owner: transferTo,
-          },
-        });
-
-        //4-2. Owner Count 를 변경
-        await updateOwnerCount({ strapi }, log.address);
-      } else {
-        console.log("log is already exist.");
       }
+       
     } catch (error) {
       console.log("error", error);
     }
   });
 
+  let cancelFilter = {
+    topics: [ethers.utils.id("ERC721OrderCancelled(address,uint256)")],
+  };
   jsonRpcProvider.on(cancelFilter, async (log, _) => {
     const parametersTypes = [
       "address", // additional1
@@ -283,6 +280,19 @@ async function createTransferListener({ strapi }) {
       console.log("it's null", userAddress, nonceId);
     }
   });
+
+  // jsonRpcProvider.on("block", async (blockNumber) => {
+  //   collectionDeployerERC721And1155Listener({blockNumber, strapi})
+  // });
 }
+
+const updateOwner = async ({strapi,nftData,transferTo  }) => {
+  await strapi.entityService.update("api::nft.nft", nftData.id, {
+    data: {
+      owner: transferTo,
+    },
+  });
+}
+
 
 module.exports = { createTransferListener };

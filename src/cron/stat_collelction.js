@@ -60,24 +60,24 @@ const stats_1h_collection =  async ({ strapi }) => {
           }).then(nftTradeLogs => {
             const volume_1h = nftTradeLogs.reduce((accumulator, currentValue) => {
               return accumulator + currentValue.price;
-          }, 0);
-          const sale_1h = nftTradeLogs.length
+            }, 0);
+            const sale_1h = nftTradeLogs.length
 
-          return {
-            timestamp,
-            collection_id,
-            floor_price_1h,
-            volume_1h,
-            sale_1h,
-            volume_update_info: {
-                prev_volume_total: collection.volume_total,
-                prev_volume_24h: collection.volume_24h,
-                prev_volume_7d: collection.volume_7d
+            return {
+              timestamp,
+              collection_id,
+              floor_price_1h,
+              volume_1h,
+              sale_1h,
+              volume_update_info: {
+                  prev_volume_total: collection.volume_total,
+                  prev_volume_24h: collection.volume_24h,
+                  prev_volume_7d: collection.volume_7d
+              }
             }
-          }
-       
+        
+            })
           })
-        })
         
         
 
@@ -175,7 +175,7 @@ const stats_1h_collection =  async ({ strapi }) => {
               const collectionStats_24h = collectionStats.slice(0, 24)
               if (Array.isArray(collectionStats_24h) && collectionStats_24h.length > 0) {
                 const currentFloorPrice = collectionStats_24h[0].floor_price_1h
-                const pastFloorPrice = collectionStats_24h[collectionStats.length - 1].floor_price_1h
+                const pastFloorPrice = collectionStats_24h[collectionStats_24h.length - 1].floor_price_1h
                 change_24h = calculatePriceChangeRate(currentFloorPrice, pastFloorPrice) 
               }
 

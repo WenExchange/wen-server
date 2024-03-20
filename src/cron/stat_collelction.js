@@ -179,8 +179,8 @@ const stats_1h_collection =  async ({ strapi }) => {
               }, 0);
 
               const sale_24h = collectionStats_24h.reduce((acc, item) => acc + item.sale_1h, 0);
-     
-     
+
+              /** Changes */
               let change_24h = 0
               if (Array.isArray(collectionStats_24h) && collectionStats_24h.length > 0) {
                 const currentFloorPrice = collectionStats_24h[0].floor_price_1h

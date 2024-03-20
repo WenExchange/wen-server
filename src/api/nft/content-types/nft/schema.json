@@ -24,7 +24,7 @@
       "unique": false
     },
     "image_url": {
-      "type": "string",
+      "type": "text",
       "required": true,
       "unique": false
     },

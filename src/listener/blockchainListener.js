@@ -49,7 +49,7 @@ async function createTransferListener({ strapi }) {
       const tokenId = BigInt(log.topics[3])
 
       /** Mint */
-      createNFTAtMint({strapi, log})
+      // createNFTAtMint({strapi, log})
       // 1. NFT 의 sell order가 존재함?
       // 1-1. YES. NFT Owner 가 transferFrom 임?
 
@@ -281,9 +281,9 @@ async function createTransferListener({ strapi }) {
     }
   });
 
-  jsonRpcProvider.on("block", async (blockNumber) => {
-    collectionDeployerERC721And1155Listener({blockNumber, strapi})
-  });
+  // jsonRpcProvider.on("block", async (blockNumber) => {
+  //   collectionDeployerERC721And1155Listener({blockNumber, strapi})
+  // });
 }
 
 const updateOwner = async ({strapi,nftData,transferTo  }) => {

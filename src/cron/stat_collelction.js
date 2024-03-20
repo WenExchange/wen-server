@@ -164,23 +164,24 @@ const stats_1h_collection =  async ({ strapi }) => {
               }
             }).then(collectionStats => {
 
+              const collectionStats_24h = collectionStats.slice(0, 24)
+
               /** Volumes */
               const volume_7d = collectionStats.reduce((accumulator, currentValue) => {
                   return accumulator + currentValue.volume_1h;
               }, 0);
   
-              const volume_24h = collectionStats.slice(0, 24).reduce((acc, item) => acc + item.volume_1h, 0);
+              const volume_24h = collectionStats_24h.reduce((acc, item) => acc + item.volume_1h, 0);
 
               /** Sales */
               const sale_7d = collectionStats.reduce((accumulator, currentValue) => {
                 return accumulator + currentValue.sale_1h;
               }, 0);
 
-              const sale_24h = collectionStats.slice(0, 24).reduce((acc, item) => acc + item.sale_1h, 0);
+              const sale_24h = collectionStats_24h.reduce((acc, item) => acc + item.sale_1h, 0);
      
      
               let change_24h = 0
-              const collectionStats_24h = collectionStats.slice(0, 24)
               if (Array.isArray(collectionStats_24h) && collectionStats_24h.length > 0) {
                 const currentFloorPrice = collectionStats_24h[0].floor_price_1h
                 const pastFloorPrice = collectionStats_24h[collectionStats_24h.length - 1].floor_price_1h

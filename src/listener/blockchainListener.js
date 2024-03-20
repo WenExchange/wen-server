@@ -29,17 +29,15 @@ const {
 
 const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
 const { createNFTAtMint } = require("./listingAtMint");
+const { collectionDeployerERC721And1155Listener } = require("./collectionDeployerERC721And1155Listener");
 
 async function createTransferListener({ strapi }) {
   console.log("[TRANSFER EVENT LISTENING ON]");
+  
+  await jsonRpcProvider.removeAllListeners();
   let filter = {
     topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId
   };
-  let cancelFilter = {
-    topics: [ethers.utils.id("ERC721OrderCancelled(address,uint256)")],
-  };
-
-  await jsonRpcProvider.removeAllListeners();
   jsonRpcProvider.on(filter, async (log, _) => {
     try {
       const ccm = CollectionCacheManager.getInstance(strapi);
@@ -219,6 +217,9 @@ async function createTransferListener({ strapi }) {
     }
   });
 
+  let cancelFilter = {
+    topics: [ethers.utils.id("ERC721OrderCancelled(address,uint256)")],
+  };
   jsonRpcProvider.on(cancelFilter, async (log, _) => {
     const parametersTypes = [
       "address", // additional1
@@ -278,6 +279,10 @@ async function createTransferListener({ strapi }) {
     } else {
       console.log("it's null", userAddress, nonceId);
     }
+  });
+
+  jsonRpcProvider.on("block", async (blockNumber) => {
+    collectionDeployerERC721And1155Listener({blockNumber, strapi})
   });
 }
 

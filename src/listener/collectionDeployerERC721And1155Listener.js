@@ -37,6 +37,7 @@ const getContractMetadata = async (address) => {
 };
 
 const createCollection = async ({strapi, contract_address, creator_address, name, token_type, total_supply }) => {
+  console.log(`Checked Collection Contract Deploy`);
   const dm = DiscordManager.getInstance()
   try {
     const existedCollection = await strapi.db.query('api::collection.collection').findOne({
@@ -65,35 +66,30 @@ const createCollection = async ({strapi, contract_address, creator_address, name
 }
 
 
-async function blockListenerForERC721And1155({ strapi }) {
-  jsonRpcProvider.on("block", async (blockNumber) => {
-    // // exit early if it's not our NFT
-    try {
-      console.log(`Checking block ${blockNumber} for ERC721, ERC1155 deployments...`);
-      const block = await jsonRpcProvider.getBlockWithTransactions(blockNumber);
-      for (const tx of block.transactions) {
-          if (tx.to === null) {
-            console.log(`Checking Deplaying`);
-              const receipt = await jsonRpcProvider.getTransactionReceipt(tx.hash);
-              const contract_address = receipt.contractAddress;
-              const metadataInfo = await getContractMetadata(contract_address);
-              if (typeof metadataInfo === "boolean") return 
-              if (!metadataInfo.isERC721 &&  !metadataInfo.isERC1155) return
-              const creator_address = tx.from
-              const name = metadataInfo.name
-              const total_supply = metadataInfo.total_supply
-              const token_type = metadataInfo.isERC721 ? "ERC721" : "ERC1155"
-              await createCollection({strapi, contract_address, creator_address, name, token_type, total_supply})
-          }
-      }
-
-
-    } catch (error) {
-      console.log("blockListenerForERC721And1155 error", error.message);
+const collectionDeployerERC721And1155Listener =  async ({blockNumber, strapi}) => {
+  // // exit early if it's not our NFT
+  try {
+    const block = await jsonRpcProvider.getBlockWithTransactions(blockNumber);
+    for (const tx of block.transactions) {
+        if (tx.to === null) {
+   
+            const receipt = await jsonRpcProvider.getTransactionReceipt(tx.hash);
+            const contract_address = receipt.contractAddress;
+            const metadataInfo = await getContractMetadata(contract_address);
+            if (typeof metadataInfo === "boolean") return 
+            if (!metadataInfo.isERC721 &&  !metadataInfo.isERC1155) return
+   
+            const creator_address = tx.from
+            const name = metadataInfo.name
+            const total_supply = metadataInfo.total_supply
+            const token_type = metadataInfo.isERC721 ? "ERC721" : "ERC1155"
+            await createCollection({strapi, contract_address, creator_address, name, token_type, total_supply})
+        }
     }
-  });
+
+
+  } catch (error) {
+    console.log("collectionDeployerERC721And1155Listener error", error.message);
+  }
 }
-
-
-blockListenerForERC721And1155({strapi : null})
-module.exports = { blockListenerForERC721And1155 };
+module.exports = { collectionDeployerERC721And1155Listener };

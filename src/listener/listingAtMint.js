@@ -1,6 +1,7 @@
 const { ethers } = require("../../node_modules/ethers/lib/index");
 const axios = require("axios")
 const dayjs = require("dayjs");
+const DiscordManager = require("../discord/DiscordManager")
 const {
     jsonRpcProvider,
     NFT_LOG_TYPE,
@@ -35,13 +36,15 @@ const createNFTAtMint = async ({strapi, log}) => {
     
         if (!existedCollection)  return 
         console.log(`Start Create NFT at Mint`);
-    
-        // 1. fetch metadata
+        const dm = DiscordManager.getInstance()
+        try {
+            // 1. fetch metadata
         const collectionContract =  new ethers.Contract(contract_address, ERC721, jsonRpcProvider);
         const metadata = await fetchMetadata({collectionContract, tokenId})
         console.log(`${metadata.name} NFT at Mint`);
         // 2. create NFT
-        
+   
+
         const createdNFT = await strapi.entityService.create("api::nft.nft", {
             data: {
                 collection: existedCollection.id,
@@ -64,7 +67,23 @@ const createNFTAtMint = async ({strapi, log}) => {
               );
           })
 
-          console.log(333, "createdNFT",createdNFT);
+       
+          dm.logListingNFT({collection:existedCollection, createdNFT })
+
+          // publish
+          if (!existedCollection.publishedAt && existedCollection.type === "ERC721") {
+            const updatedCollection = await strapi.entityService.update("api::collection.collection", existedCollection.id,{
+                data: {
+                    publishedAt: new Date()
+            
+                }
+              })
+              dm.logListingCollectionPublish(updatedCollection)
+          }
+        } catch (error) {
+            dm.logListingNFTError({existedCollection, error,tokenId })
+        }
+        
     } catch (error) {
         
     }

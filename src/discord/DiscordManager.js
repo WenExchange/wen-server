@@ -126,6 +126,25 @@ module.exports = class DiscordManager {
     trackerChannel.send({ embeds: [embed] });
   }
 
+  async logListingCollectionPublish(collection) {
+    const guild = await this.getGuild(DISCORD_INFO.GUILD_ID)
+    const channelId = DISCORD_INFO.CHANNEL.LISTING
+    
+    const embed = new EmbedBuilder()
+    .setColor(0x4aff36)
+    .setTimestamp()
+    .setFooter({
+      text: `${collection.name} is published`
+    });
+
+    const trackerChannel = await this.getChannel({
+      guild,
+      channelId,
+    })
+    trackerChannel.send({ embeds: [embed] });
+  }
+
+
   async logListingCollectionError(error) {
     const guild = await this.getGuild(DISCORD_INFO.GUILD_ID)
     const channelId = DISCORD_INFO.CHANNEL.LISTING
@@ -142,6 +161,29 @@ module.exports = class DiscordManager {
       channelId,
     })
     trackerChannel.send({ embeds: [embed] });
+  }
+
+
+  async logListingNFT({collection, createdNFT}) {
+    const guild = await this.getGuild(DISCORD_INFO.GUILD_ID)
+    const channelId = DISCORD_INFO.CHANNEL.LISTING
+
+    const trackerChannel = await this.getChannel({
+      guild,
+      channelId,
+    })
+    trackerChannel.send(`${collection.name} - NFT listed ${createdNFT.name}`);
+  }
+
+  async logListingNFTError({collection, tokenId,error}) {
+    const guild = await this.getGuild(DISCORD_INFO.GUILD_ID)
+    const channelId = DISCORD_INFO.CHANNEL.LISTING
+
+    const trackerChannel = await this.getChannel({
+      guild,
+      channelId,
+    })
+    trackerChannel.send(`[Listing NFT Error]\n ${collection.name} - NFT tokenId ${tokenId} - ${error.message}`);
   }
 
 

@@ -163,12 +163,20 @@ const stats_1h_collection =  async ({ strapi }) => {
                   timestamp: "desc"
               }
             }).then(collectionStats => {
+
+              /** Volumes */
               const volume_7d = collectionStats.reduce((accumulator, currentValue) => {
                   return accumulator + currentValue.volume_1h;
               }, 0);
   
               const volume_24h = collectionStats.slice(0, 24).reduce((acc, item) => acc + item.volume_1h, 0);
 
+              /** Sales */
+              const sale_7d = collectionStats.reduce((accumulator, currentValue) => {
+                return accumulator + currentValue.sale_1h;
+              }, 0);
+
+              const sale_24h = collectionStats.slice(0, 24).reduce((acc, item) => acc + item.sale_1h, 0);
      
      
               let change_24h = 0
@@ -195,7 +203,7 @@ const stats_1h_collection =  async ({ strapi }) => {
                   volume_7d,
                   volume_24h,
                   volume_total: volume_update_info.prev_volume_total + volume_1h,
-                  change_24h,change_7d
+                  change_24h,change_7d,sale_24h,sale_7d
               }
   
             })

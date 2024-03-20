@@ -10,14 +10,6 @@ const {
   } = require("../utils/constants");
   const ERC721 = require("../web3/abis/ERC721.json")
   const {
-    LOG_TYPE_SALE,
-    LOG_TYPE_TRANSFER,
-    LOG_TYPE_LISTING,
-    LOG_TYPE_OFFER,
-    LOG_TYPE_COLLECTION_OFFER,
-    LOG_TYPE_CANCEL_LISTING,
-    LOG_TYPE_AUTO_CANCEL_LISTING,
-    LOG_TYPE_CANCEL_OFFER,
     LOG_TYPE_MINT,
   } = NFT_LOG_TYPE;
 

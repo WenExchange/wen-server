@@ -116,7 +116,7 @@ module.exports = {
       }
     },
     options: {
-      rule: `*/10 * * * *`,
+      rule: `*/1 * * * *`,
     },
   },
   stats_1h_collection: {

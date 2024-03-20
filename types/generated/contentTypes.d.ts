@@ -787,13 +787,14 @@ export interface ApiCoinPriceCoinPrice extends Schema.CollectionType {
     singularName: 'coin-price';
     pluralName: 'coin-prices';
     displayName: 'CoinPrice';
+    description: '';
   };
   options: {
     draftAndPublish: false;
   };
   attributes: {
     price: Attribute.Decimal & Attribute.Required & Attribute.DefaultTo<0>;
-    symbol: Attribute.String & Attribute.Required & Attribute.Unique;
+    symbol: Attribute.Text & Attribute.Required & Attribute.Unique;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -859,6 +860,7 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     sale_24h: Attribute.Integer & Attribute.DefaultTo<0>;
     boost_point: Attribute.Integer & Attribute.DefaultTo<0>;
     change_7d: Attribute.Float;
+    creator_address: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -1067,7 +1069,7 @@ export interface ApiNftNft extends Schema.CollectionType {
       'api::collection.collection'
     >;
     name: Attribute.String & Attribute.Required;
-    image_url: Attribute.String & Attribute.Required;
+    image_url: Attribute.Text & Attribute.Required;
     token_id: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
     rarity_score: Attribute.Float & Attribute.DefaultTo<0>;
     rarity_rank: Attribute.Integer;

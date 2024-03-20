@@ -1,15 +1,6 @@
 const ethers = require("ethers");
-const { Web3 } = require("web3");
 const dayjs = require("dayjs");
 const DiscordManager = require("../discord/DiscordManager")
-const web3 = new Web3();
-const {
-  updateFloorPrice,
-  updateOrdersCount,
-  updateOwnerCount,
-} = require("./collectionStats");
-
-//TODO: change it to mainnet
 const {
   jsonRpcProvider,
   NFT_LOG_TYPE,

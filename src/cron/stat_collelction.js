@@ -27,7 +27,7 @@ const stats_1h_collection =  async ({ strapi }) => {
               collection: true
             }
           }).then(statLog => {
-          // if (statLog) return null
+          if (statLog) return null
           return strapi.db.query( "api::nft-trade-log.nft-trade-log").findMany({
             where: {
               $and: [
@@ -186,7 +186,6 @@ const stats_1h_collection =  async ({ strapi }) => {
                 const currentFloorPrice = collectionStats_24h[0].floor_price_1h
                 const pastFloorPrice = collectionStats_24h[collectionStats_24h.length - 1].floor_price_1h
                 change_24h = calculatePriceChangeRate(currentFloorPrice, pastFloorPrice) 
-                console.log(`collection ${collection_id} || 24h change ${currentFloorPrice} ${pastFloorPrice}`);
               }
 
               let change_7d = 0
@@ -194,14 +193,7 @@ const stats_1h_collection =  async ({ strapi }) => {
                 const _currentFloorPrice = collectionStats[0].floor_price_1h
                 const _pastFloorPrice = collectionStats[collectionStats.length - 1].floor_price_1h
                 change_7d = calculatePriceChangeRate(_currentFloorPrice, _pastFloorPrice) 
-                console.log(`collection ${collection_id} || 7d change ${_currentFloorPrice} ${_pastFloorPrice}`);
               }
-
-            
-              
-
-            
-
 
               return {
                   collection_id,

@@ -8,11 +8,13 @@ const {
   updateOwnerCount,
 } = require("./collectionStats");
 
+const ExchangeContractABI = require("../web3/abis/ExchangeContractABI.json")
+
 //TODO: change it to mainnet
 const {
   jsonRpcProvider,
   NFT_LOG_TYPE,
-  WEN_EX_CONTRACT_ADDRESS,
+  CONTRACT_ADDRESSES
 } = require("../utils/constants");
 
 const {
@@ -28,8 +30,7 @@ const {
 } = NFT_LOG_TYPE;
 
 const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
-const { createNFTAtMint } = require("./listingAtMint");
-const { collectionDeployerERC721And1155Listener } = require("./collectionDeployerERC721And1155Listener");
+const { elementContractListener } = require("./elementContractListener");
 
 async function createTransferListener({ strapi }) {
   console.log("[TRANSFER EVENT LISTENING ON]");
@@ -107,7 +108,7 @@ async function createTransferListener({ strapi }) {
 
           if (
             nftData.sell_order.maker == transferFrom &&
-            txReceipt.to == WEN_EX_CONTRACT_ADDRESS
+            txReceipt.to == CONTRACT_ADDRESSES.WEN_EX
           ) {
             /** Sale */
             // 1. nft last sale price update
@@ -258,9 +259,16 @@ async function createTransferListener({ strapi }) {
     }
   });
 
-  // jsonRpcProvider.on("block", async (blockNumber) => {
-  //   collectionDeployerERC721And1155Listener({blockNumber, strapi})
-  // });
+  /** Element Listener */
+  const elementContract = new ethers.Contract(
+    CONTRACT_ADDRESSES.EL_EX,
+    ExchangeContractABI,
+    jsonRpcProvider
+  );
+  elementContract.on("*", elementContractListener);
+
+
+  
 }
 
 const updateOwner = async ({strapi,nftData,transferTo  }) => {

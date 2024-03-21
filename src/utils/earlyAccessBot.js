@@ -1,5 +1,4 @@
-const { TwitterApi } = require("twitter-api-v2");
-const DiscordManager = require("../discord/DiscordManager");
+
 
 /**
  * 1. Fetch All Early User 
@@ -73,43 +72,6 @@ const updateEarlyUserPoint = async ({strapi}) => {
 
   console.log("earlyUsers", earlyUsers.length);
   await processInChunks({earlyUsers, chunkSize: 100, strapi}).then(() => console.log('All chunks processed.'));
-
-  return
-  const promises = earlyUsers.map(earlyUser => {
-    const {id ,own_code, bridging_eth, bridging_dai} = earlyUser
-    return strapi.db.query("api::early-user.early-user").findMany({
-      where: {
-        ref_code: own_code
-      },
-    }).then(refEealyUsers => {
-     
-      const total_invite_point = refEealyUsers.reduce((accumulator, currentValue) => {
-        return accumulator + currentValue.invite_point;
-      }, 0);
-      const guests = refEealyUsers.length
-      const ethPoint = bridging_eth ? bridging_eth*25000 : 0
-      const daiPoint = bridging_dai ? bridging_dai*10 : 0
-      const bridging_point = ethPoint + daiPoint
-      const updatedData = {
-        total_invite_point,
-        guests,
-        bridging_point,
-        isFinalized: true
-
-      }
-      console.log(`will updated - ${id}`);
-      return strapi.entityService.update("api::early-user.early-user", id, {
-        data: {
-          ...updatedData
-        }
-      })
-
-      
-    })
-  })
-
-  await Promise.all(promises)
-
   
   
 }

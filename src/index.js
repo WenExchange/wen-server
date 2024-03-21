@@ -1,5 +1,4 @@
 "use strict";
-
 const { createTransferListener } = require("./listener/blockchainListener");
 const CollectionCacheManager = require("./cache-managers/CollectionCacheManager");
 const dayjs = require("dayjs");
@@ -24,6 +23,7 @@ module.exports = {
    * run jobs, or perform some special logic.
    */
   async bootstrap({ strapi }) {
+    
     try {
       createTransferListener({ strapi });
       const ccm = CollectionCacheManager.getInstance(strapi);

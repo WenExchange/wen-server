@@ -1,4 +1,4 @@
-const isProduction = true;
+const isProduction = process.env.NODE_ENV === "production"
 const ethers = require("ethers");
 module.exports = {
     API_TOKEN: {

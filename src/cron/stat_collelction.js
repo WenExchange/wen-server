@@ -123,7 +123,7 @@ const stats_1h_collection =  async ({ strapi }) => {
 
 
       /** Update Volume Stats */
-      updateCollectionVolumes({strapi,filteredCollectionStateDatas }).catch(error=> console.error)
+      updateCollectionsStats({strapi,filteredCollectionStateDatas }).catch(error=> console.error)
 
     }
       
@@ -132,8 +132,7 @@ const stats_1h_collection =  async ({ strapi }) => {
     }
   }
 
-  const updateCollectionVolumes = async ({strapi, filteredCollectionStateDatas}) => {
-      // total volume 추가하기
+  const updateCollectionsStats = async ({strapi, filteredCollectionStateDatas}) => {
 
       try {
         const seconds_1h = 60 * 60
@@ -159,13 +158,13 @@ const stats_1h_collection =  async ({ strapi }) => {
                 collection: true
               },
               offset: 0,
-              limit: 24 * 7,
+              limit: 6 * 24 * 7, // 10 분 간격
               orderBy: {
                   timestamp: "desc"
               }
             }).then(collectionStats => {
 
-              const collectionStats_24h = collectionStats.slice(0, 24)
+              const collectionStats_24h = collectionStats.slice(0, 6 * 24)
 
               /** Volumes */
               const volume_7d = collectionStats.reduce((accumulator, currentValue) => {

@@ -158,13 +158,13 @@ const stats_1h_collection =  async ({ strapi }) => {
                 collection: true
               },
               offset: 0,
-              limit: 6 * 24 * 7, // 10 분 간격
+              limit: 24 * 7, // 10 분 간격
               orderBy: {
                   timestamp: "desc"
               }
             }).then(collectionStats => {
 
-              const collectionStats_24h = collectionStats.slice(0, 6 * 24)
+              const collectionStats_24h = collectionStats.slice(0, 24)
 
               /** Volumes */
               const volume_7d = collectionStats.reduce((accumulator, currentValue) => {

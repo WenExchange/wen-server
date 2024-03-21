@@ -84,6 +84,18 @@
     "is_main_wl": {
       "type": "boolean",
       "default": false
+    },
+    "total_invite_point": {
+      "type": "integer",
+      "default": 0
+    },
+    "bridging_point": {
+      "type": "biginteger",
+      "default": "0"
+    },
+    "isFinalized": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

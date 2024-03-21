@@ -194,10 +194,6 @@ const stats_1h_collection =  async ({ strapi }) => {
                 const _pastFloorPrice = collectionStats[collectionStats.length - 1].floor_price_1h
                 change_7d = calculatePriceChangeRate(_currentFloorPrice, _pastFloorPrice) 
               }
-              
-
-            
-
 
               return {
                   collection_id,
@@ -232,6 +228,8 @@ const stats_1h_collection =  async ({ strapi }) => {
   
   function calculatePriceChangeRate(currentFloorPrice, pastFloorPrice) {
     const changeRate = ((currentFloorPrice - pastFloorPrice) / pastFloorPrice) * 100;
+    if (Number.isNaN(changeRate)) return 0
+    if (!Number.isFinite(changeRate)) return 0
     return Number(changeRate.toFixed(2));
 }
 

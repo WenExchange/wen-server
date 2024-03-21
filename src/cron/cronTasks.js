@@ -23,8 +23,9 @@ module.exports = {
   stats_1h_collection: {
     task: stats_1h_collection,
     options: {
-      rule: `00 * * * *`,
+      rule: `*/10 * * * *`,
       tz: "Asia/Seoul",
+      start: 1711020600000
     },
   },
 

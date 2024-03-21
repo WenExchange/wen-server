@@ -1,6 +1,7 @@
 const { NFT_LOG_TYPE }  = require("../utils/constants") 
 
 const dayjs = require("dayjs");
+const seconds_1m = 60
 const seconds_1h = 60 * 60
 const stats_1h_collection =  async ({ strapi }) => {
     console.log("[CRON TASK] 1H COLLECTION STATS");
@@ -15,7 +16,7 @@ const stats_1h_collection =  async ({ strapi }) => {
         return strapi.db.query("api::collection-stat-log.collection-stat-log").findOne({
             where: {
               timestamp: {
-                $gte: timestamp - seconds_1h / 2
+                $gte: timestamp - seconds_1m
               },
               collection: {
                 id: {
@@ -94,7 +95,7 @@ const stats_1h_collection =  async ({ strapi }) => {
         const existingStatLog = await strapi.db.query("api::collection-stat-log.collection-stat-log").findOne({
           where: {
             timestamp: {
-              $gte: timestamp - seconds_1h / 2
+              $gte: timestamp - seconds_1m
             },
             collection: {
               id: {
@@ -146,7 +147,7 @@ const stats_1h_collection =  async ({ strapi }) => {
           return   strapi.db.query("api::collection-stat-log.collection-stat-log").findMany({
               where: {
                 timestamp: {
-                  $gte: timestamp - seconds_7d +  seconds_1h / 2
+                  $gte: timestamp - seconds_7d +  seconds_1m
                 },
                 collection: {
                   id: {

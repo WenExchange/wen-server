@@ -5,6 +5,7 @@ const CollectionCacheManager = require("./cache-managers/CollectionCacheManager"
 const dayjs = require("dayjs");
 var utc = require("dayjs/plugin/utc");
 var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
+const { updateEarlyUserPoint } = require("./utils/earlyAccessBot");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 module.exports = {
@@ -25,8 +26,9 @@ module.exports = {
    */
   async bootstrap({ strapi }) {
     try {
-      createTransferListener({ strapi });
-      const ccm = CollectionCacheManager.getInstance(strapi);
+      // createTransferListener({ strapi });
+      // const ccm = CollectionCacheManager.getInstance(strapi);
+      // updateEarlyUserPoint({strapi}) 
     } catch (error) {
       console.log(error.message);
     }

@@ -953,6 +953,9 @@ export interface ApiEarlyUserEarlyUser extends Schema.CollectionType {
     bridging_eth: Attribute.Float & Attribute.DefaultTo<0>;
     bridging_dai: Attribute.Float & Attribute.DefaultTo<0>;
     is_main_wl: Attribute.Boolean & Attribute.DefaultTo<false>;
+    total_invite_point: Attribute.Integer & Attribute.DefaultTo<0>;
+    bridging_point: Attribute.BigInteger & Attribute.DefaultTo<'0'>;
+    isFinalized: Attribute.Boolean & Attribute.DefaultTo<false>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

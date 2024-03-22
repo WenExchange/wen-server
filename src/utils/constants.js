@@ -1,6 +1,6 @@
-// const isProduction = process.env.NODE_ENV === "production"
-const isProduction = true
-const ethers = require("ethers");
+const isProduction = process.env.NODE_ENV === "production"
+// const isProduction = true
+const {ethers} = require("ethers");
 module.exports = {
   CONTRACT_ADDRESSES : {
     WEN_EX: "0x5958dC6cdc5df14b92699eABf17c7a19A1B22712",
@@ -29,7 +29,7 @@ module.exports = {
 
 
   jsonRpcProvider: new ethers.providers.JsonRpcProvider(
-    isProduction
+    true
       ? "https://rpc.ankr.com/blast/d347c8e224d87a27991df14f8963b6b858f52617aec0cc0d1278bca0fcb0178c"
       : "https://rpc.ankr.com/blast_testnet_sepolia/d347c8e224d87a27991df14f8963b6b858f52617aec0cc0d1278bca0fcb0178c"
   ),

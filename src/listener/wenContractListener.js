@@ -135,7 +135,7 @@ const wenContractListener = async ({event, strapi}) => {
   
   
       case EVENT_TYPE.ERC1155SellOrderFilled: {
-        //ERC1155SellOrderFilled - ETH 로 산경우
+        return 
         const eventData = decodeData(
           ERC1155Event.abi,
           "ERC1155SellOrderFilled",
@@ -156,7 +156,7 @@ const wenContractListener = async ({event, strapi}) => {
   
   
       case EVENT_TYPE.ERC1155BuyOrderFilled: {
-        //ERC1155BuyOrderFilled -WETH 를 받고 판경우
+        return
         const eventData = decodeData(
           ERC1155Event.abi,
           "ERC1155BuyOrderFilled",

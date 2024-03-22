@@ -110,7 +110,7 @@ const elementContractListener = async ({event, strapi}) => {
       }
 
       case EVENT_TYPE.ERC721OrderCancelled: {
-        //ERC721BuyOrderFilled - WETH를 받고 판 경우
+        return 
         const eventData = decodeData(
           ERC721Event.abi,
           "ERC721OrderCancelled",
@@ -127,14 +127,13 @@ const elementContractListener = async ({event, strapi}) => {
           tx_hash: event.transactionHash,
           timestamp: dayjs().unix(),
         }
-
-        cancelProcessInWen({data,strapi}).catch()
         
         break;
       }
   
   
       case EVENT_TYPE.ERC1155SellOrderFilled: {
+        return 
         //ERC1155SellOrderFilled - ETH 로 산경우
         const eventData = decodeData(
           ERC1155Event.abi,
@@ -156,6 +155,7 @@ const elementContractListener = async ({event, strapi}) => {
   
   
       case EVENT_TYPE.ERC1155BuyOrderFilled: {
+        return 
         //ERC1155BuyOrderFilled -WETH 를 받고 판경우
         const eventData = decodeData(
           ERC1155Event.abi,
@@ -421,45 +421,5 @@ const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   );
 }
 
-
-const cancelProcessInWen = async ({data, strapi}) => {
-/**
- * 1. Order 가 있다면 지웁니다.
- * 2. 오더가 지워진 경우 nft trade log 를 생성합니다.
- * 3. collection floor price, orderscount 를 순서대로 업데이트 합니다.
- */
-const result = await strapi.db.query("api::order.order").delete({
-  where: {
-    $and: [
-      {
-        maker: data.maker,
-      },
-      {
-        nonce: data.nonce,
-      },
-    ],
-  },
-  populate: {
-    nft: true,
-  },
-});
-
-if (result && result.id && result.nft) {
-  strapi.entityService.create("api::nft-trade-log.nft-trade-log", {
-    data: {
-      ex_type: EX_TYPE.ELEMENT,
-      type: LOG_TYPE_CANCEL_LISTING,
-      from: data.maker,
-      nft: result.nft.id,
-      tx_hash: data.tx_hash,
-      timestamp: data.timestamp
-    },
-  }).catch()
-  updateFloorPrice({ strapi }, result.contract_address).then(_ => {
-    return updateOrdersCount({ strapi }, result.contract_address)
-  }).catch()
-  
-}
-}
 
 module.exports = { elementContractListener };

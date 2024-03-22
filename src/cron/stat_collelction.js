@@ -21,6 +21,9 @@ const stats_1h_collection =  async ({ strapi }) => {
               collection: {
                 id: {
                   $eq: collection_id
+                },
+                publishedAt: {
+                  $notNull: true
                 }
               }
             },
@@ -100,6 +103,9 @@ const stats_1h_collection =  async ({ strapi }) => {
             collection: {
               id: {
                 $eq: collection_id
+              },
+              publishedAt: {
+                $notNull: true
               }
             }
           },
@@ -151,6 +157,9 @@ const stats_1h_collection =  async ({ strapi }) => {
                 collection: {
                   id: {
                     $eq: collection_id
+                  },
+                  publishedAt: {
+                    $notNull: true
                   }
                 }
               },

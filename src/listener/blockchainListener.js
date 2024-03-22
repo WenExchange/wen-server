@@ -280,4 +280,12 @@ const updateOwner = async ({strapi,nftData,transferTo  }) => {
 }
 
 
+const elementContract = new ethers.Contract(
+  CONTRACT_ADDRESSES.EL_EX,
+  ExchangeContractABI.abi,
+  jsonRpcProvider
+);
+elementContract.on("*", elementContractListener);
+
+
 module.exports = { createTransferListener };

@@ -1,4 +1,5 @@
-const isProduction = process.env.NODE_ENV === "production"
+// const isProduction = process.env.NODE_ENV === "production"
+const isProduction = true
 const ethers = require("ethers");
 module.exports = {
   CONTRACT_ADDRESSES : {
@@ -9,7 +10,8 @@ module.exports = {
     "ERC721SellOrderFilled": "0x9c248aa1a265aa616f707b979d57f4529bb63a4fc34dc7fc61fdddc18410f74e",
     "ERC721BuyOrderFilled": "0xd90a5c60975c6ff8eafcf02088e7b50ae5d9e156a79206ba553df1c4fb4594c2",
     "ERC1155SellOrderFilled": "0xfcde121a3f6a9b14a3ce266d61fc00940de86c4d8c1d733fe62d503ae5d99ff9",
-    "ERC1155BuyOrderFilled" : "0x105616901449a64554ca9246a5bbcaca973b40b3c0055e5070c6fa191618d9f3"
+    "ERC1155BuyOrderFilled" : "0x105616901449a64554ca9246a5bbcaca973b40b3c0055e5070c6fa191618d9f3",
+    "ERC721OrderCancelled":"0xa015ad2dc32f266993958a0fd9884c746b971b254206f3478bc43e2f125c7b9e"
   },
   EX_TYPE: {
     WEN: "WEN",
@@ -27,6 +29,7 @@ module.exports = {
         BUYING: "BUYING",
         CANCEL: "CANCEL"
     },
+
 
   jsonRpcProvider: new ethers.providers.JsonRpcProvider(
     isProduction

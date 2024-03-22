@@ -7,7 +7,7 @@ var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const {stats_1h_collection} = require("./cron/stat_collelction")
+const {stats_1h_collection} = require("./cron/stat_collelction");
 module.exports = {
   /**
    * An asynchronous register function that runs before
@@ -29,6 +29,7 @@ module.exports = {
     try {
       createTransferListener({ strapi });
       const ccm = CollectionCacheManager.getInstance(strapi);
+
     } catch (error) {
       console.log(error.message);
     }

@@ -8,7 +8,6 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const {stats_1h_collection} = require("./cron/stat_collelction");
-const { listing_cancel_detector } = require("./cron/listing_cancel_detector");
 module.exports = {
   /**
    * An asynchronous register function that runs before

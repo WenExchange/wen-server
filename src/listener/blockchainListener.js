@@ -31,6 +31,7 @@ const {
 
 const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
 const { elementContractListener } = require("./elementContractListener");
+const { wenContractListener } = require("./wenContractListener");
 
 async function createTransferListener({ strapi }) {
   console.log("[TRANSFER EVENT LISTENING ON]");
@@ -265,7 +266,18 @@ async function createTransferListener({ strapi }) {
     ExchangeContractABI,
     jsonRpcProvider
   );
-  elementContract.on("*", elementContractListener);
+  elementContract.on("*", async event => {
+    wenContractListener({event, strapi}).catch(e => console.error(e.message))
+  });
+
+
+  /** Wen Contract Listener */
+  const wenContract = new ethers.Contract(
+    CONTRACT_ADDRESSES.WEN_EX,
+    ExchangeContractABI,
+    jsonRpcProvider
+  );
+  wenContract.on("*", wenContractListener);
 
 
   
@@ -288,4 +300,4 @@ const elementContract = new ethers.Contract(
 elementContract.on("*", elementContractListener);
 
 
-module.exports = { createTransferListener };
+module.exports = { createTransferListener,updateOwner };

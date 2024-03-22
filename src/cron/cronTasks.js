@@ -2,6 +2,7 @@
 
 const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
 const {stats_1h_collection}  = require("./stat_collelction")
+const {listing_cancel_detector} = require("./listing_cancel_detector")
 module.exports = {
   cacheCollection: {
     task: async ({ strapi }) => {
@@ -44,6 +45,13 @@ module.exports = {
       tz: "Asia/Seoul",
     },
   },
+
+  listing_cancel_detector: {
+    task: listing_cancel_detector,
+    options: {
+      rule: `*/1 * * * *`
+    },
+  }
 
 
 

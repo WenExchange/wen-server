@@ -6,7 +6,8 @@ const {
   NFT_LOG_TYPE,
   PROTOCOL_FEE,
   EVENT_TYPE,
-  EX_TYPE
+  EX_TYPE,
+  CONTRACT_ADDRESSES
 } = require("../utils/constants");
 const { updateFloorPrice, updateOrdersCount, updateOwnerCount } = require("./collectionStats");
 const { updateOwner } = require("./blockchainListener");
@@ -51,6 +52,10 @@ const transferListener = async ({log, strapi}) => {
     })
     const  isIncludeBuyEventType = checkReceiptTopicsForEventTypes(receiptTopics)
     if (isIncludeBuyEventType) return 
+    const exchangeAddresses = Object.keys(CONTRACT_ADDRESSES).map(key => CONTRACT_ADDRESSES[key].toLowerCase())
+    const isIncludeWenOrElExchange = exchangeAddresses.includes(txReceipt.to.toLowerCase())
+    
+    if (isIncludeWenOrElExchange && isIncludeBuyEventType) return 
 
     // 1. Get NFT
     const nftData = await strapi.db.query("api::nft.nft").findOne({

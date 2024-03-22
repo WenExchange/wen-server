@@ -40,10 +40,10 @@ const transferListener = async ({log, strapi}) => {
     if (transferFrom === "0x0000000000000000000000000000000000000000") return  
 
      // Buy Event 제외
-    const txReceipt = await jsonRpcProvider.getTransaction(
+    const tx = await jsonRpcProvider.getTransaction(
       log.transactionHash
     );
-    const receipt = await txReceipt.wait()
+    const receipt = await tx.wait()
     const receiptLogs = receipt.logs
     if (!Array.isArray(receiptLogs)) return 
     const receiptTopics = receiptLogs.map(log => {
@@ -53,8 +53,8 @@ const transferListener = async ({log, strapi}) => {
     const  isIncludeBuyEventType = checkReceiptTopicsForEventTypes(receiptTopics)
     if (isIncludeBuyEventType) return 
     const exchangeAddresses = Object.keys(CONTRACT_ADDRESSES).map(key => CONTRACT_ADDRESSES[key].toLowerCase())
-    const isIncludeWenOrElExchange = exchangeAddresses.includes(txReceipt.to.toLowerCase())
-    
+    const isIncludeWenOrElExchange = exchangeAddresses.includes(tx.to.toLowerCase())
+
     if (isIncludeWenOrElExchange && isIncludeBuyEventType) return 
 
     // 1. Get NFT

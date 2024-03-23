@@ -78,7 +78,6 @@ const transferListener = async ({log, strapi}) => {
 
     /** Common Tasks */
     await updateOwner({strapi,nftData,transferTo })
-    console.log(333, `updated owner ${nftData.owner} -> ${transferTo}`);
     await updateOwnerCount({ strapi }, log.address);
 
     await strapi.entityService.create(

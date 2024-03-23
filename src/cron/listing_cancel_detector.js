@@ -1,4 +1,4 @@
-const { NFT_LOG_TYPE, jsonRpcProvider, WEN_EX_CONTRACT_ADDRESS, CONTRACT_ADDRESSES, EX_TYPE }  = require("../utils/constants") 
+const { NFT_LOG_TYPE, jsonRpcProvider, CONTRACT_ADDRESSES, EX_TYPE }  = require("../utils/constants") 
 const { ethers }  = require("ethers") 
 
 const dayjs = require("dayjs");

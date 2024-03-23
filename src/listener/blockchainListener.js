@@ -21,7 +21,7 @@ async function createTransferListener({ strapi }) {
     topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId
   };
   jsonRpcProvider.on(filter, async (log, _) => {
-    transferListener({log, strapi}).catch(e => console.error(444,e.message))
+    transferListener({log, strapi}).catch(e => console.error(e.message))
   });
 
   /** Element Listener */

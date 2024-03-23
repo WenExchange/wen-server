@@ -296,7 +296,7 @@ const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
    */
   // order 지우고 로그 찍어주긔
   if (nftData.sell_order) {
-    strapi.entityService.delete(
+    await strapi.entityService.delete(
       "api::order.order",
       nftData.sell_order.id,
       {
@@ -333,9 +333,7 @@ const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   },
   }).then(_ => {
   // update owner count after nft owner update
-  return updateOwnerCount({ strapi }, data.contract_address).then(_ => {
-    return updateFloorPrice({ strapi }, data.contract_address)
-  })
+  return updateOwnerCount({ strapi }, data.contract_address)
   }).catch(e => console.error(e.message))
 
   // SALE log
@@ -370,7 +368,7 @@ const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   // TODO offer 테이블 지워주기
 
   if (nftData.sell_order) {
-    strapi.entityService.delete(
+    await strapi.entityService.delete(
       "api::order.order",
       nftData.sell_order.id,
       {
@@ -407,9 +405,7 @@ const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   },
   }).then(_ => {
   // update owner count after nft owner update
-  return updateOwnerCount({ strapi }, data.contract_address).then(_ => {
-    return updateFloorPrice({ strapi }, data.contract_address)
-  })
+  return updateOwnerCount({ strapi }, data.contract_address)
   }).catch(e => console.error(e.message))
 
   // SALE log

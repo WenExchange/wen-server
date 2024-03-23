@@ -4,11 +4,12 @@ let instance = null;
 const DISCORD_INFO = {
   GUILD_ID: "1205136052289806396",
   CHANNEL: {
-    LISTING: "1219606689918222336",
+    LISTING_COLLECTION: "1219606689918222336",
+    DETECTING_COLLECTION: "1220181262409535519",
+    LISTING_NFT: "1220172329309573202",
     YIELD: "1212042486785245214"
   }
-
-}
+};
 module.exports = class DiscordManager {
   constructor(strapi) {
     this.strapi = strapi;

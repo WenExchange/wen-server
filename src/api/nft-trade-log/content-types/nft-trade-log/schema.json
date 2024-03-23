@@ -40,6 +40,9 @@
     "timestamp": {
       "type": "biginteger",
       "required": false
+    },
+    "ex_type": {
+      "type": "string"
     }
   }
 }

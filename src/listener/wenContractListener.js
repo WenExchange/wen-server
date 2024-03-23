@@ -12,6 +12,7 @@ const { decodeData } = require("./listenerhelpers");
 const ERC721Event = require("../web3/abis/ERC721Event.json")
 const ERC1155Event = require("../web3/abis/ERC1155Event.json");
 const { updateFloorPrice, updateOrdersCount, updateOwnerCount } = require("./collectionStats");
+const { wait } = require("../utils/helpers");
 
 const {
   LOG_TYPE_SALE,
@@ -299,7 +300,7 @@ const sellOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
 
   // TODO : test 끝나고 지우기
   if (nftData.sell_order) {
-    strapi.entityService.delete(
+    await strapi.entityService.delete(
       "api::order.order",
       nftData.sell_order.id,
       {
@@ -318,7 +319,11 @@ const sellOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
             timestamp: dayjs().unix(),
           },
         }
-      );
+      ).then(_ => {
+        return  updateFloorPrice({ strapi }, data.contract_address).then(_ => {
+          return updateOrdersCount({ strapi }, data.contract_address)
+        }).catch(e => console.error(e.message))
+      });
     }).catch(e => console.error(e.message))
   }
   
@@ -331,9 +336,7 @@ const sellOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
   }).then(_ => {
     console.log(`sellOrderSaleProcessInWen - update owner ${nftData.owner} -> ${data.to}`);
   // update owner count after nft owner update
-  return updateOwnerCount({ strapi }, data.contract_address).then(_ => {
-    return updateFloorPrice({ strapi }, data.contract_address)
-  })
+  return updateOwnerCount({ strapi }, data.contract_address)
   }).catch(e => console.error(e.message))
   // SALE log
   strapi.entityService.create(
@@ -368,7 +371,7 @@ const buyOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
 
 
   if (nftData.sell_order) {
-    strapi.entityService.delete(
+    await strapi.entityService.delete(
       "api::order.order",
       nftData.sell_order.id,
       {
@@ -387,7 +390,12 @@ const buyOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
             timestamp: dayjs().unix(),
           },
         }
-      );
+      ).then(_ => {
+        return  updateFloorPrice({ strapi }, data.contract_address).then(_ => {
+          return updateOrdersCount({ strapi }, data.contract_address)
+        }).catch(e => console.error(e.message))
+
+      });
     }).catch(e => console.error(e.message))
   }
   // update NFT
@@ -397,10 +405,8 @@ const buyOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
     owner: data.to
   },
   }).then(_ => {
-  // update owner count after nft owner update
-  return updateOwnerCount({ strapi }, data.contract_address).then(_ => {
-    return updateFloorPrice({ strapi }, data.contract_address)
-  })
+    // update owner count after nft owner update
+    return updateOwnerCount({ strapi }, data.contract_address)
   }).catch(e => console.error(e.message))
 
   // SALE log

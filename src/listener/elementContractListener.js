@@ -315,7 +315,11 @@ const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
             timestamp: dayjs().unix(),
           },
         }
-      );
+      ).then(_ => {
+        return  updateFloorPrice({ strapi }, data.contract_address).then(_ => {
+          return updateOrdersCount({ strapi }, data.contract_address)
+        }).catch(e => console.error(e.message))
+      })
     }).catch(e => console.error(e.message))
   }
  
@@ -385,7 +389,11 @@ const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
             timestamp: dayjs().unix(),
           },
         }
-      );
+      ).then(_ => {
+        return  updateFloorPrice({ strapi }, data.contract_address).then(_ => {
+          return updateOrdersCount({ strapi }, data.contract_address)
+        }).catch(e => console.error(e.message))
+      })
     }).catch(e => console.error(e.message))
   }
 

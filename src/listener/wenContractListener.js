@@ -318,7 +318,11 @@ const sellOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
             timestamp: dayjs().unix(),
           },
         }
-      );
+      ).then(_ => {
+        return  updateFloorPrice({ strapi }, data.contract_address).then(_ => {
+          return updateOrdersCount({ strapi }, data.contract_address)
+        }).catch(e => console.error(e.message))
+      });
     }).catch(e => console.error(e.message))
   }
   
@@ -387,7 +391,12 @@ const buyOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
             timestamp: dayjs().unix(),
           },
         }
-      );
+      ).then(_ => {
+        return  updateFloorPrice({ strapi }, data.contract_address).then(_ => {
+          return updateOrdersCount({ strapi }, data.contract_address)
+        }).catch(e => console.error(e.message))
+
+      });
     }).catch(e => console.error(e.message))
   }
   // update NFT

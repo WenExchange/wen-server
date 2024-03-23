@@ -107,6 +107,7 @@ const createNFTAtMint = async ({ log, strapi }) => {
             }
           })
           .catch();
+          return nftData
       })
       .catch((e) => null); 
 

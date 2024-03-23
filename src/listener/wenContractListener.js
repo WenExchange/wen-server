@@ -329,6 +329,7 @@ const sellOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
     owner: data.to
   },
   }).then(_ => {
+    console.log(`sellOrderSaleProcessInWen - update owner ${nftData.owner} -> ${data.to}`);
   // update owner count after nft owner update
   return updateOwnerCount({ strapi }, data.contract_address).then(_ => {
     return updateFloorPrice({ strapi }, data.contract_address)

@@ -295,28 +295,30 @@ const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
    * 
    */
   // order 지우고 로그 찍어주긔
- 
-  strapi.entityService.delete(
-    "api::order.order",
-    nftData.sell_order.id,
-    {
-      populate: { nft: true },
-    }
-  ).then(deletedOrder => {
-    return strapi.entityService.create(
-      "api::nft-trade-log.nft-trade-log",
+  if (nftData.sell_order) {
+    strapi.entityService.delete(
+      "api::order.order",
+      nftData.sell_order.id,
       {
-        data: {
-          ex_type: EX_TYPE.ELEMENT,
-          type: LOG_TYPE_AUTO_CANCEL_LISTING,
-          from: data.from,
-          nft: nftData.id,
-          tx_hash: data.tx_hash,
-          timestamp: dayjs().unix(),
-        },
+        populate: { nft: true },
       }
-    );
-  }).catch(e => console.error(e.message))
+    ).then(deletedOrder => {
+      return strapi.entityService.create(
+        "api::nft-trade-log.nft-trade-log",
+        {
+          data: {
+            ex_type: EX_TYPE.ELEMENT,
+            type: LOG_TYPE_AUTO_CANCEL_LISTING,
+            from: data.from,
+            nft: nftData.id,
+            tx_hash: data.tx_hash,
+            timestamp: dayjs().unix(),
+          },
+        }
+      );
+    }).catch(e => console.error(e.message))
+  }
+ 
 
   
   // update NFT

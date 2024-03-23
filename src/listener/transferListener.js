@@ -10,7 +10,8 @@ const {
   CONTRACT_ADDRESSES
 } = require("../utils/constants");
 const { updateFloorPrice, updateOrdersCount, updateOwnerCount } = require("./collectionStats");
-const CollectionCacheManager = require("../cache-managers/CollectionCacheManager")
+const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
+const { createNFTAtMint } = require("./listingAtMint");
 const {
   LOG_TYPE_SALE,
   LOG_TYPE_TRANSFER,
@@ -37,7 +38,10 @@ const transferListener = async ({log, strapi}) => {
     const tokenId = BigInt(log.topics[3])
           
     // Mint 제외
-    if (transferFrom === "0x0000000000000000000000000000000000000000") return  
+    if (transferFrom === "0x0000000000000000000000000000000000000000") {
+      createNFTAtMint({ log,strapi });
+      return 
+    }
 
      // Buy Event 제외
     const tx = await jsonRpcProvider.getTransaction(

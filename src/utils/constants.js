@@ -29,7 +29,7 @@ module.exports = {
 
 
   jsonRpcProvider: new ethers.providers.JsonRpcProvider(
-    true
+    isProduction
       ? "https://rpc.ankr.com/blast/d347c8e224d87a27991df14f8963b6b858f52617aec0cc0d1278bca0fcb0178c"
       : "https://rpc.ankr.com/blast_testnet_sepolia/d347c8e224d87a27991df14f8963b6b858f52617aec0cc0d1278bca0fcb0178c"
   ),

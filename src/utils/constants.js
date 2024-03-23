@@ -1,5 +1,6 @@
 const isProduction = process.env.NODE_ENV === "production"
-const ethers = require("ethers");
+// const isProduction = true
+const {ethers} = require("ethers");
 module.exports = {
   CONTRACT_ADDRESSES : {
     WEN_EX: "0x5958dC6cdc5df14b92699eABf17c7a19A1B22712",
@@ -26,6 +27,7 @@ module.exports = {
         CANCEL: "CANCEL"
     },
 
+
   jsonRpcProvider: new ethers.providers.JsonRpcProvider(
     isProduction
       ? "https://rpc.ankr.com/blast/d347c8e224d87a27991df14f8963b6b858f52617aec0cc0d1278bca0fcb0178c"
@@ -42,7 +44,6 @@ module.exports = {
     LOG_TYPE_CANCEL_OFFER: "CANCEL_OFFER",
     LOG_TYPE_MINT: "MINT",
   },
-  WEN_EX_CONTRACT_ADDRESS: "0x5958dC6cdc5df14b92699eABf17c7a19A1B22712",
   PROTOCOL_FEE: {
     RECEIVER: "0x4123B6B29006Ed7160B2EEDB89A0c062F976b511",
     POINT: 200

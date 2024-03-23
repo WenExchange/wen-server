@@ -1,109 +1,189 @@
-const { ethers } = require("../../node_modules/ethers/lib/index");
-const axios = require("axios")
+const { ethers } = require("ethers");
+const axios = require("axios");
 const dayjs = require("dayjs");
-const DiscordManager = require("../discord/DiscordManager")
+const DiscordManager = require("../discord/DiscordManager");
 const {
-    jsonRpcProvider,
-    NFT_LOG_TYPE,
-    WEN_EX_CONTRACT_ADDRESS,
-    IPFS,
-  } = require("../utils/constants");
-  const ERC721 = require("../web3/abis/ERC721.json")
-  const {
-    LOG_TYPE_MINT,
-  } = NFT_LOG_TYPE;
+  jsonRpcProvider,
+  NFT_LOG_TYPE,
+  IPFS
+} = require("../utils/constants");
+const ERC721 = require("../web3/abis/ERC721.json");
+const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
+const { wait } = require("../utils/helpers");
+const { LOG_TYPE_MINT } = NFT_LOG_TYPE;
 
+const createNFTAtMint = async ({ log, strapi }) => {
+  try {
+    const transferFrom = `0x${log.topics[1].slice(-40)}`;
+    const transferTo = `0x${log.topics[2].slice(-40)}`;
+    let bigIntTokenId = BigInt(log.topics[3]);
+    const tokenId = Number(bigIntTokenId);
+    if (transferFrom !== "0x0000000000000000000000000000000000000000") return;
+    const contract_address = log.address;
 
-const createNFTAtMint = async ({strapi, log}) => {
+    const ccm = CollectionCacheManager.getInstance(strapi);
+
+    const collection = ccm.getCollectionByAddress(contract_address);
+
+    const existedCollection = await strapi.db.query("api::collection.collection")
+      .findOne({
+        where: {
+          id: collection.id
+        }
+      })
+      .catch((e) => null);
+
+    if (!existedCollection) return;
+    console.log(`Start Create NFT at Mint`);
+    const dm = DiscordManager.getInstance();
     try {
-        const transferFrom = `0x${log.topics[1].slice(-40)}`;
-        const transferTo = `0x${log.topics[2].slice(-40)}`;
-        const tokenId = BigInt(log.topics[3])
-        if (transferFrom !== "0x0000000000000000000000000000000000000000") return
-        const contract_address = log.address
-    
-        const existedCollection = await strapi.db.query('api::collection.collection').findOne({
-            where: { contract_address },
-          });
-    
-        if (!existedCollection)  return 
-        console.log(`Start Create NFT at Mint`);
-        const dm = DiscordManager.getInstance()
-        try {
-            // 1. fetch metadata
-        const collectionContract =  new ethers.Contract(contract_address, ERC721, jsonRpcProvider);
-        const metadata = await fetchMetadata({collectionContract, tokenId})
-        console.log(`${metadata.name} NFT at Mint`);
-        // 2. create NFT
-   
+      // 1. fetch metadata
+      const collectionContract = new ethers.Contract(
+        contract_address,
+        ERC721,
+        jsonRpcProvider
+      );
+      let metadata = await fetchMetadata({ collectionContract, tokenId });
+      if (!metadata) {
+        await wait(1);
+        metadata = await fetchMetadata({ collectionContract, tokenId });
+        if (!metadata) throw new Error("Invalid metadata");
+      }
+      console.log(`${metadata.name} NFT at Mint`);
 
-        const createdNFT = await strapi.entityService.create("api::nft.nft", {
+      // 1.1 check exist nft
+      const existNFT = await strapi.db.query("api::nft.nft").findOne({
+        where: {
+          collection: existedCollection.id,
+          name: metadata.name,
+          token_id: metadata.token_id,
+          owner: metadata.owner
+        }
+      })
+      if (existNFT) {
+        dm.logListingNFTError({ collection: existedCollection, tokenId:existNFT.token_id, error: new Error(`${existNFT.name} NFT already exist`)  }).catch(
+          (err) => console.error(err.message)
+        );
+        return 
+      }
+      // 2. create NFT
+      const createdNFT = await strapi.db.query("api::nft.nft")
+      .create({
+        data: {
+          collection: existedCollection.id,
+          ...metadata
+        }
+      }).then(nftData => {
+        strapi.db.query("api::nft-trade-log.nft-trade-log")
+          .create({
             data: {
-                collection: existedCollection.id,
-                ...metadata
-        
+              type: LOG_TYPE_MINT,
+              from: transferFrom,
+              to: transferTo,
+              nft: nftData.id,
+              tx_hash: log.transactionHash,
+              timestamp: dayjs().unix()
             }
-          }).then(nftData => {
-              return strapi.entityService.create(
-                "api::nft-trade-log.nft-trade-log",
-                {
-                  data: {
-                    type: LOG_TYPE_MINT,
-                    from: transferFrom,
-                    to: transferTo,
-                    nft: nftData.id,
-                    tx_hash: log.transactionHash,
-                    timestamp: dayjs().unix(),
-                  },
-                }
-              );
-          })
-
-       
-          dm.logListingNFT({collection:existedCollection, createdNFT })
-
-          // publish
-          if (!existedCollection.publishedAt && existedCollection.type === "ERC721") {
-            const updatedCollection = await strapi.entityService.update("api::collection.collection", existedCollection.id,{
+          }).catch()
+          
+          collectionContract
+          .totalSupply()
+          .then((_total_supply) => {
+            const total_supply = _total_supply.toNumber();
+            if (
+              !Number.isNaN(total_supply) &&
+              total_supply > 0 &&
+              existedCollection.total_supply !== total_supply
+            ) {
+              return strapi.db.query("api::collection.collection")
+              .update({
+                where: {
+                  id: existedCollection.id,
+                },
                 data: {
-                    publishedAt: new Date()
-            
+                  total_supply
                 }
               })
-              dm.logListingCollectionPublish(updatedCollection)
+            }
+          })
+          .catch();
+      })
+      .catch((e) => null); 
+
+
+      dm.logListingNFT({ collection: existedCollection, createdNFT }).catch(
+        (err) => console.error(err.message)
+      );
+
+      // publish
+      if (
+        !existedCollection.publishedAt &&
+        existedCollection.token_type === "ERC721"
+      ) {
+        const updatedCollection = await strapi.db.query("api::collection.collection")
+        .update({
+          where: {
+            id: existedCollection.id,
+          },
+          data: {
+            publishedAt: new Date()
           }
-        } catch (error) {
-            dm.logListingNFTError({existedCollection, error,tokenId })
-        }
+        })
         
+
+        dm.logListingCollectionPublish(updatedCollection).catch((err) =>
+          console.error(err.message)
+        );
+      }
     } catch (error) {
-        
+      console.error(error.message);
+      dm.logListingNFTError({
+        collection: existedCollection,
+        error,
+        tokenId
+      }).catch((err) => console.error(err.message));
     }
-}
+  } catch (error) {
+    console.log(error.message);
+  }
+};
 
-const fetchMetadata = async ({collectionContract,tokenId }) => {
+const fetchMetadata = async ({ collectionContract, tokenId }) => {
+  try {
     let tokenURI = await collectionContract.tokenURI(tokenId);
-    if (tokenURI.startsWith('ipfs://')) 
-      tokenURI = tokenURI.replace('ipfs://', IPFS.GATEWAY_URL);
-      const owner = await collectionContract.ownerOf(tokenId)
-      const metadata = await axios.get(tokenURI).then(res => res.data);
+    if (tokenURI.startsWith("ipfs://"))
+      tokenURI = tokenURI.replace("ipfs://", IPFS.GATEWAY_URL);
+    const owner = await collectionContract.ownerOf(tokenId);
+    let metadata = await axios.get(tokenURI).then((res) => res.data);
+    if (Buffer.isBuffer(metadata)) {
+      // Read Buffer Data
+      const dataString = metadata.toString("utf-8");
+      const jsonData = JSON.parse(dataString);
+      metadata = jsonData;
+    }
 
-      let image_url = metadata?.image || "";
-  const attributes = Array.isArray(metadata?.attributes) && metadata?.attributes.length > 0 ? metadata.attributes : null;
-  
-  return {
-    name: metadata.name,
-    image_url,
-    token_id: tokenId,
-    traits: attributes,
-    owner
-  };
+    let image_url = metadata?.image || "";
+    if (image_url.startsWith("ipfs://"))
+      image_url = image_url.replace("ipfs://", IPFS.GATEWAY_URL);
+    const attributes =
+      Array.isArray(metadata?.attributes) && metadata?.attributes.length > 0
+        ? metadata.attributes
+        : null;
 
-}
-
-
-
+    return {
+      name: metadata.name,
+      image_url,
+      token_id: tokenId,
+      traits: attributes,
+      owner
+    };
+  } catch (error) {
+    console.log(error.message);
+    return null;
+  }
+};
 
 module.exports = {
-    createNFTAtMint
-}
+  createNFTAtMint,
+  fetchMetadata
+};

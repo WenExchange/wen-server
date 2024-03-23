@@ -99,91 +99,133 @@ module.exports = class DiscordManager {
     trackerChannel.send({ embeds: [embed] });
   }
 
-  async logListingCollection(createdCollection) {
-    const guild = await this.getGuild(DISCORD_INFO.GUILD_ID)
-    const channelId = DISCORD_INFO.CHANNEL.LISTING
-    
-    const embed = new EmbedBuilder()
-    .setColor(0x4aff36)
-    .setTitle('Start Listing Process')
-    .setTimestamp()
-    .addFields(
-      { name: 'id', value: createdCollection.id },
-      { name: 'Contract Address', value: `${createdCollection.contract_address}` },
-      { name: 'Creator Address', value: `${createdCollection.creator_address}` },
-      { name: 'Collection Name', value: `${createdCollection.name}` },
-      { name: 'Type', value: createdCollection.token_type },
-    )
-    .setFooter({
-      text: "Powered by Wen Exchange",
-      iconURL: "https://d1kb1oeulsx0pq.cloudfront.net/logo_64eb3dad15.png",
-    });
-
-    const trackerChannel = await this.getChannel({
-      guild,
-      channelId,
-    })
-    trackerChannel.send({ embeds: [embed] });
+  async logDetectingCollection(createdCollection) {
+    try {
+      const guild = await this.getGuild(DISCORD_INFO.GUILD_ID);
+      const channelId = DISCORD_INFO.CHANNEL.DETECTING_COLLECTION;
+      const embed = new EmbedBuilder()
+        .setColor(0x4aff36)
+        .setTitle("Detection of New Collection")
+        .setTimestamp()
+        .addFields(
+          { name: "Collection Name", value: `${createdCollection.name}` },
+          {
+            name: "Contract Address",
+            value: `${createdCollection.contract_address}`
+          },
+          {
+            name: "Creator Address",
+            value: `${createdCollection.creator_address}`
+          },
+          { name: "Type", value: createdCollection.token_type }
+        )
+        .setFooter({
+          text: "Powered by Wen Exchange",
+          iconURL: "https://d1kb1oeulsx0pq.cloudfront.net/logo_64eb3dad15.png"
+        });
+      const trackerChannel = await this.getChannel({
+        guild,
+        channelId
+      });
+      trackerChannel.send({ embeds: [embed] });
+    } catch (error) {
+      console.error(error.message);
+    }
   }
 
   async logListingCollectionPublish(collection) {
-    const guild = await this.getGuild(DISCORD_INFO.GUILD_ID)
-    const channelId = DISCORD_INFO.CHANNEL.LISTING
-    
+    try {
+      const guild = await this.getGuild(DISCORD_INFO.GUILD_ID);
+      const channelId = DISCORD_INFO.CHANNEL.LISTING_COLLECTION;
+
+      const embed = new EmbedBuilder()
+        .setColor(0x4aff36)
+        .setTitle("Listing of New Collection")
+        .setTimestamp()
+        .addFields(
+          { name: "Collection Name", value: `${collection.name}` },
+          {
+            name: "Contract Address",
+            value: `${collection.contract_address}`
+          },
+          {
+            name: "Creator Address",
+            value: `${collection.creator_address}`
+          },
+          { name: "Type", value: collection.token_type }
+        )
+        .setFooter({
+          text: "Powered by Wen Exchange",
+          iconURL: "https://d1kb1oeulsx0pq.cloudfront.net/logo_64eb3dad15.png"
+        });
+
+      const trackerChannel = await this.getChannel({
+        guild,
+        channelId
+      });
+      trackerChannel.send({ embeds: [embed] });
+    } catch (error) {
+      console.error(error.message);
+    }
+  }
+
+  async logListingCollectionError({ error, collection }) {
+    const guild = await this.getGuild(DISCORD_INFO.GUILD_ID);
+    const channelId = DISCORD_INFO.CHANNEL.DETECTING_COLLECTION;
+
     const embed = new EmbedBuilder()
-    .setColor(0x4aff36)
-    .setTimestamp()
-    .setFooter({
-      text: `${collection.name} is published`
-    });
+      .setColor(0xff0000)
+      .setTimestamp()
+      .addFields(
+        { name: "Error Message", value: `${error.message}` },
+        {
+          name: "Details",
+          value: `${JSON.stringify(collection)}`
+        }
+      );
 
     const trackerChannel = await this.getChannel({
       guild,
-      channelId,
-    })
+      channelId
+    });
     trackerChannel.send({ embeds: [embed] });
   }
 
+  async logListingNFT({ collection, createdNFT }) {
+    const guild = await this.getGuild(DISCORD_INFO.GUILD_ID);
+    const channelId = DISCORD_INFO.CHANNEL.LISTING_NFT;
 
-  async logListingCollectionError(error) {
-    const guild = await this.getGuild(DISCORD_INFO.GUILD_ID)
-    const channelId = DISCORD_INFO.CHANNEL.LISTING
-    
-    const embed = new EmbedBuilder()
-    .setColor(0xFF0000)
-    .setTimestamp()
-    .setFooter({
-      text: error.message
+    const trackerChannel = await this.getChannel({
+      guild,
+      channelId
     });
+    trackerChannel.send(
+      `[Listing of New NFT] ${collection.name} - ${createdNFT.name}`
+    );
+  }
 
+  async logListingNFTError({ collection, tokenId, error }) {
+    const guild = await this.getGuild(DISCORD_INFO.GUILD_ID);
+    const channelId = DISCORD_INFO.CHANNEL.LISTING_NFT;
+    const embed = new EmbedBuilder()
+      .setColor(0xff0000)
+      .setTimestamp()
+      .addFields(
+        {
+          name: "Collection",
+          value: `${collection.id} - ${collection.name} - ${collection.contract_address}`
+        },
+        {
+          name: "Token",
+          value: `${tokenId}`
+        },
+        { name: "Error details", value: `${error.message}` }
+      );
     const trackerChannel = await this.getChannel({
       guild,
-      channelId,
-    })
+      channelId
+    });
     trackerChannel.send({ embeds: [embed] });
-  }
-
-
-  async logListingNFT({collection, createdNFT}) {
-    const guild = await this.getGuild(DISCORD_INFO.GUILD_ID)
-    const channelId = DISCORD_INFO.CHANNEL.LISTING
-
-    const trackerChannel = await this.getChannel({
-      guild,
-      channelId,
-    })
-    trackerChannel.send(`${collection.name} - NFT listed ${createdNFT.name}`);
-  }
-
-  async logListingNFTError({collection, tokenId,error}) {
-    const guild = await this.getGuild(DISCORD_INFO.GUILD_ID)
-    const channelId = DISCORD_INFO.CHANNEL.LISTING
-
-    const trackerChannel = await this.getChannel({
-      guild,
-      channelId,
-    })
-    trackerChannel.send(`[Listing NFT Error]\n ${collection.name} - NFT tokenId ${tokenId} - ${error.message}`);
   }
 
 

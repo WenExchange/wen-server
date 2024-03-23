@@ -1119,6 +1119,7 @@ export interface ApiNftTradeLogNftTradeLog extends Schema.CollectionType {
     >;
     tx_hash: Attribute.String;
     timestamp: Attribute.BigInteger;
+    ex_type: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

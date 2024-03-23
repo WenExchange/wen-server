@@ -12,7 +12,6 @@ const { decodeData } = require("./listenerhelpers");
 const ERC721Event = require("../web3/abis/ERC721Event.json")
 const ERC1155Event = require("../web3/abis/ERC1155Event.json");
 const { updateFloorPrice, updateOrdersCount, updateOwnerCount } = require("./collectionStats");
-const { updateOwner } = require("./blockchainListener");
 
 const {
   LOG_TYPE_SALE,
@@ -64,7 +63,7 @@ const elementContractListener = async ({event, strapi}) => {
         const checkedInfo = await checkIsValidSellOrderSaleAndGetData({strapi, data})
         if (typeof checkedInfo === "boolean") return
         const {nftData,existedTradeLog } = checkedInfo
-        sellOrderSaleProcessInElement({data, strapi,nftData}).catch()
+        sellOrderSaleProcessInElement({data, strapi,nftData}).catch(e => console.error(e.message))
         break;
       }
 
@@ -76,7 +75,7 @@ const elementContractListener = async ({event, strapi}) => {
           event
         );
 
-        // ERC721BuyOrderFilled (bytes32 orderHash, address maker, address taker, uint256 nonce, address erc20Token, uint256 erc20TokenAmount, tuple[] fees, address erc721Token, uint256 erc721TokenId)          console.log("111", eventData);
+        // ERC721BuyOrderFilled (bytes32 orderHash, address maker, address taker, uint256 nonce, address erc20Token, uint256 erc20TokenAmount, tuple[] fees, address erc721Token, uint256 erc721TokenId)  
   
         // 2. ERC 20 토큰의 양(낸 가격)
         const price = eventData["5"].toString();
@@ -105,7 +104,7 @@ const elementContractListener = async ({event, strapi}) => {
         const checkedInfo = await checkIsValidBuyOrderSaleAndGetData({strapi, data})
         if (typeof checkedInfo === "boolean") return
         const {nftData,existedTradeLog } = checkedInfo
-        buyOrderSaleProcessInElement({data, strapi,nftData}).catch()
+        buyOrderSaleProcessInElement({data, strapi,nftData}).catch(e => console.error(e.message))
         break;
       }
 
@@ -209,7 +208,7 @@ const checkIsValidSellOrderSaleAndGetData = async ({strapi, data}) => {
     });
 
     if (!nftData)  return false
-    if (!nftData.sell_order) return false
+    // if (!nftData.sell_order) return false
 
     /**
      * 하나의 NFT token id 당 하나의 hash
@@ -317,7 +316,7 @@ const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
         },
       }
     );
-  }).catch()
+  }).catch(e => console.error(e.message))
 
   
   // update NFT
@@ -331,7 +330,7 @@ const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   return updateOwnerCount({ strapi }, data.contract_address).then(_ => {
     return updateFloorPrice({ strapi }, data.contract_address)
   })
-  }).catch()
+  }).catch(e => console.error(e.message))
 
   // SALE log
   strapi.entityService.create(
@@ -348,7 +347,7 @@ const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
       timestamp: dayjs().unix(),
     },
   }
-  );
+  ).catch(e => console.error(e.message));
 }
 
 const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
@@ -385,7 +384,7 @@ const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
           },
         }
       );
-    }).catch()
+    }).catch(e => console.error(e.message))
   }
 
   
@@ -401,7 +400,7 @@ const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   return updateOwnerCount({ strapi }, data.contract_address).then(_ => {
     return updateFloorPrice({ strapi }, data.contract_address)
   })
-  }).catch()
+  }).catch(e => console.error(e.message))
 
   // SALE log
   strapi.entityService.create(
@@ -418,7 +417,7 @@ const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
       timestamp: dayjs().unix(),
     },
   }
-  );
+  ).catch(e => console.error(e.message));
 }
 
 

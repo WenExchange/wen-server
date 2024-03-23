@@ -21,13 +21,13 @@ async function createTransferListener({ strapi }) {
     topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId
   };
   jsonRpcProvider.on(filter, async (log, _) => {
-    transferListener({log, strapi}).catch(e => console.error(e.message))
+    transferListener({log, strapi}).catch(e => console.error(444,e.message))
   });
 
   /** Element Listener */
   const elementContract = new ethers.Contract(
     CONTRACT_ADDRESSES.EL_EX,
-    ExchangeContractABI,
+    ExchangeContractABI.abi,
     jsonRpcProvider
   );
   elementContract.on("*", async event => {
@@ -38,7 +38,7 @@ async function createTransferListener({ strapi }) {
   /** Wen Contract Listener */
   const wenContract = new ethers.Contract(
     CONTRACT_ADDRESSES.WEN_EX,
-    ExchangeContractABI,
+    ExchangeContractABI.abi,
     jsonRpcProvider
   );
   wenContract.on("*", async event => {
@@ -49,16 +49,10 @@ async function createTransferListener({ strapi }) {
   
 }
 
-const updateOwner = async ({strapi,nftData,transferTo  }) => {
-  await strapi.entityService.update("api::nft.nft", nftData.id, {
-    data: {
-      owner: transferTo,
-    },
-  });
-}
 
 
 
 
 
-module.exports = { createTransferListener,updateOwner };
+
+module.exports = { createTransferListener };

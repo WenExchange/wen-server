@@ -12,7 +12,6 @@ const { decodeData } = require("./listenerhelpers");
 const ERC721Event = require("../web3/abis/ERC721Event.json")
 const ERC1155Event = require("../web3/abis/ERC1155Event.json");
 const { updateFloorPrice, updateOrdersCount, updateOwnerCount } = require("./collectionStats");
-const { updateOwner } = require("./blockchainListener");
 
 const {
   LOG_TYPE_SALE,
@@ -60,11 +59,12 @@ const wenContractListener = async ({event, strapi}) => {
           contract_address: ERC721ContractAddress
         }
 
+
      
         const checkedInfo = await checkIsValidSellOrderSaleAndGetData({strapi, data})
         if (typeof checkedInfo === "boolean") return
         const {nftData,existedTradeLog } = checkedInfo
-        sellOrderSaleProcessInWen({data, strapi,nftData}).catch()
+        sellOrderSaleProcessInWen({data, strapi,nftData}).catch(e => console.error(e.message))
         break;
       }
 
@@ -76,7 +76,7 @@ const wenContractListener = async ({event, strapi}) => {
           event
         );
 
-        // ERC721BuyOrderFilled (bytes32 orderHash, address maker, address taker, uint256 nonce, address erc20Token, uint256 erc20TokenAmount, tuple[] fees, address erc721Token, uint256 erc721TokenId)          console.log("111", eventData);
+        // ERC721BuyOrderFilled (bytes32 orderHash, address maker, address taker, uint256 nonce, address erc20Token, uint256 erc20TokenAmount, tuple[] fees, address erc721Token, uint256 erc721TokenId)  s
   
         // 2. ERC 20 토큰의 양(낸 가격)
         const price = eventData["5"].toString();
@@ -105,7 +105,7 @@ const wenContractListener = async ({event, strapi}) => {
         const checkedInfo = await checkIsValidBuyOrderSaleAndGetData({strapi, data})
         if (typeof checkedInfo === "boolean") return
         const {nftData,existedTradeLog } = checkedInfo
-        buyOrderSaleProcessInWen({data, strapi,nftData}).catch()
+        buyOrderSaleProcessInWen({data, strapi,nftData}).catch(e => console.error(e.message))
         break;
       }
 
@@ -128,7 +128,7 @@ const wenContractListener = async ({event, strapi}) => {
           timestamp: dayjs().unix(),
         }
 
-        cancelProcessInWen({data,strapi}).catch()
+        cancelProcessInWen({data,strapi}).catch(e => console.error(e.message))
         
         break;
       }
@@ -209,7 +209,7 @@ const checkIsValidSellOrderSaleAndGetData = async ({strapi, data}) => {
     });
 
     if (!nftData)  return false
-    if (!nftData.sell_order) return false
+    if (!nftData.sell_order) return false // TODO , for test
 
     /**
      * 하나의 NFT token id 당 하나의 hash
@@ -296,29 +296,31 @@ const sellOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
    * 
    */
   // order 지우고 로그 찍어주긔
- 
-  strapi.entityService.delete(
-    "api::order.order",
-    nftData.sell_order.id,
-    {
-      populate: { nft: true },
-    }
-  ).then(deletedOrder => {
-    return strapi.entityService.create(
-      "api::nft-trade-log.nft-trade-log",
-      {
-        data: {
-          ex_type: EX_TYPE.WEN,
-          type: LOG_TYPE_AUTO_CANCEL_LISTING,
-          from: data.from,
-          nft: nftData.id,
-          tx_hash: data.tx_hash,
-          timestamp: dayjs().unix(),
-        },
-      }
-    );
-  }).catch()
 
+  // TODO : test 끝나고 지우기
+  if (nftData.sell_order) {
+    strapi.entityService.delete(
+      "api::order.order",
+      nftData.sell_order.id,
+      {
+        populate: { nft: true },
+      }
+    ).then(deletedOrder => {
+      return strapi.entityService.create(
+        "api::nft-trade-log.nft-trade-log",
+        {
+          data: {
+            ex_type: EX_TYPE.WEN,
+            type: LOG_TYPE_AUTO_CANCEL_LISTING,
+            from: data.from,
+            nft: nftData.id,
+            tx_hash: data.tx_hash,
+            timestamp: dayjs().unix(),
+          },
+        }
+      );
+    }).catch(e => console.error(e.message))
+  }
   
   // update NFT
   strapi.entityService.update("api::nft.nft", nftData.id, {
@@ -331,8 +333,7 @@ const sellOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
   return updateOwnerCount({ strapi }, data.contract_address).then(_ => {
     return updateFloorPrice({ strapi }, data.contract_address)
   })
-  }).catch()
-
+  }).catch(e => console.error(e.message))
   // SALE log
   strapi.entityService.create(
   "api::nft-trade-log.nft-trade-log",
@@ -348,7 +349,7 @@ const sellOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
       timestamp: dayjs().unix(),
     },
   }
-  );
+  ).catch(e => console.error(e.message))
 }
 
 const buyOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
@@ -386,7 +387,7 @@ const buyOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
           },
         }
       );
-    }).catch()
+    }).catch(e => console.error(e.message))
   }
   // update NFT
   strapi.entityService.update("api::nft.nft", nftData.id, {
@@ -399,7 +400,7 @@ const buyOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
   return updateOwnerCount({ strapi }, data.contract_address).then(_ => {
     return updateFloorPrice({ strapi }, data.contract_address)
   })
-  }).catch()
+  }).catch(e => console.error(e.message))
 
   // SALE log
   strapi.entityService.create(
@@ -416,7 +417,7 @@ const buyOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
       timestamp: dayjs().unix(),
     },
   }
-  );
+  ).catch(e => console.error(e.message))
 }
 
 
@@ -452,10 +453,10 @@ if (result && result.id && result.nft) {
       tx_hash: data.tx_hash,
       timestamp: data.timestamp
     },
-  }).catch()
+  }).catch(e => console.error(e.message))
   updateFloorPrice({ strapi }, result.contract_address).then(_ => {
     return updateOrdersCount({ strapi }, result.contract_address)
-  }).catch()
+  }).catch(e => console.error(e.message))
   
 }
 }

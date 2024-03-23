@@ -10,7 +10,6 @@ const {
   CONTRACT_ADDRESSES
 } = require("../utils/constants");
 const { updateFloorPrice, updateOrdersCount, updateOwnerCount } = require("./collectionStats");
-const { updateOwner } = require("./blockchainListener");
 const CollectionCacheManager = require("../cache-managers/CollectionCacheManager")
 const {
   LOG_TYPE_SALE,
@@ -27,14 +26,15 @@ const {
 
 const transferListener = async ({log, strapi}) => {
   try {
+  
     const ccm = CollectionCacheManager.getInstance(strapi);
     const myCollections = ccm.getCollectionAddresses();
+    // console.log(1);
     if (!myCollections.includes(log.address.toLowerCase())) return;
 
     const transferFrom = `0x${log.topics[1].slice(-40)}`;
     const transferTo = `0x${log.topics[2].slice(-40)}`;
     const tokenId = BigInt(log.topics[3])
-
           
     // Mint 제외
     if (transferFrom === "0x0000000000000000000000000000000000000000") return  
@@ -74,11 +74,13 @@ const transferListener = async ({log, strapi}) => {
       return;
     }
 
+
+
     /** Common Tasks */
     await updateOwner({strapi,nftData,transferTo })
     await updateOwnerCount({ strapi }, log.address);
 
-    strapi.entityService.create(
+    await strapi.entityService.create(
       "api::nft-trade-log.nft-trade-log",
       {
         data: {
@@ -90,7 +92,7 @@ const transferListener = async ({log, strapi}) => {
           timestamp: dayjs().unix(),
         },
       }
-    ).catch()
+    ).catch(e => console.error(e.message))
 
     // 리스팅 되있는 상황에서 transfer
     if (nftData.sell_order) {
@@ -114,11 +116,11 @@ const transferListener = async ({log, strapi}) => {
             },
           }
         );
-      }).catch()
+      }).catch(e => console.error(e.message))
     }
      
   } catch (error) {
-    console.log("error", error.message);
+    console.error("error", error.message);
   }
 
 
@@ -136,6 +138,14 @@ const checkReceiptTopicsForEventTypes = ( receiptTopics) => {
   }
   return false; // Return false if no matches are found after checking all topics
 };
+
+const updateOwner = async ({strapi,nftData,transferTo  }) => {
+  await strapi.entityService.update("api::nft.nft", nftData.id, {
+    data: {
+      owner: transferTo,
+    },
+  });
+}
 
 
 module.exports = { transferListener };

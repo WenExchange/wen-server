@@ -127,7 +127,8 @@ const createNFTAtMint = async ({ log, strapi }) => {
             id: existedCollection.id,
           },
           data: {
-            publishedAt: new Date()
+            publishedAt: new Date(),
+            logo_url: createdNFT?.image_url || ""
           }
         })
         

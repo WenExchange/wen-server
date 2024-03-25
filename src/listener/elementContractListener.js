@@ -326,7 +326,7 @@ const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
 
   
   // update NFT
-  strapi.entityService.update("api::nft.nft", nftData.id, {
+  await strapi.entityService.update("api::nft.nft", nftData.id, {
   data: {
     last_sale_price: data.price,
     owner: data.to
@@ -337,7 +337,7 @@ const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   }).catch(e => console.error(e.message))
 
   // SALE log
-  strapi.entityService.create(
+  await strapi.entityService.create(
   "api::nft-trade-log.nft-trade-log",
   {
     data: {
@@ -398,7 +398,7 @@ const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   
   
   // update NFT
-  strapi.entityService.update("api::nft.nft", nftData.id, {
+  await strapi.entityService.update("api::nft.nft", nftData.id, {
   data: {
     last_sale_price: data.price,
     owner: data.to
@@ -409,7 +409,7 @@ const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   }).catch(e => console.error(e.message))
 
   // SALE log
-  strapi.entityService.create(
+  await strapi.entityService.create(
   "api::nft-trade-log.nft-trade-log",
   {
     data: {

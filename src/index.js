@@ -27,8 +27,8 @@ module.exports = {
   async bootstrap({ strapi }) {
     
     try {
-      createTransferListener({ strapi });
-      const ccm = CollectionCacheManager.getInstance(strapi);
+      // createTransferListener({ strapi });
+      // const ccm = CollectionCacheManager.getInstance(strapi);
 
     } catch (error) {
       console.log(error.message);

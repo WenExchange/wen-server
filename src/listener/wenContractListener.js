@@ -328,7 +328,7 @@ const sellOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
   }
   
   // update NFT
-  strapi.entityService.update("api::nft.nft", nftData.id, {
+  await strapi.entityService.update("api::nft.nft", nftData.id, {
   data: {
     last_sale_price: data.price,
     owner: data.to
@@ -337,9 +337,9 @@ const sellOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
     console.log(`sellOrderSaleProcessInWen - update owner ${nftData.owner} -> ${data.to}`);
   // update owner count after nft owner update
   return updateOwnerCount({ strapi }, data.contract_address)
-  }).catch(e => console.error(e.message))
+  }).catch(e => console.error(`sellOrderSaleProcessInWen - update nft - ${e.message}`))
   // SALE log
-  strapi.entityService.create(
+  await strapi.entityService.create(
   "api::nft-trade-log.nft-trade-log",
   {
     data: {
@@ -399,7 +399,7 @@ const buyOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
     }).catch(e => console.error(e.message))
   }
   // update NFT
-  strapi.entityService.update("api::nft.nft", nftData.id, {
+  await strapi.entityService.update("api::nft.nft", nftData.id, {
   data: {
     last_sale_price: data.price,
     owner: data.to
@@ -410,7 +410,7 @@ const buyOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
   }).catch(e => console.error(e.message))
 
   // SALE log
-  strapi.entityService.create(
+  await strapi.entityService.create(
   "api::nft-trade-log.nft-trade-log",
   {
     data: {
@@ -451,7 +451,7 @@ const result = await strapi.db.query("api::order.order").delete({
 });
 
 if (result && result.id && result.nft) {
-  strapi.entityService.create("api::nft-trade-log.nft-trade-log", {
+  await strapi.entityService.create("api::nft-trade-log.nft-trade-log", {
     data: {
       ex_type: EX_TYPE.WEN,
       type: LOG_TYPE_CANCEL_LISTING,
@@ -460,8 +460,8 @@ if (result && result.id && result.nft) {
       tx_hash: data.tx_hash,
       timestamp: data.timestamp
     },
-  }).catch(e => console.error(e.message))
-  updateFloorPrice({ strapi }, result.contract_address).then(_ => {
+  }).catch(e => console.error(`cancelProcessInWen - create nft-trade-log - ${e.message}`))
+  await updateFloorPrice({ strapi }, result.contract_address).then(_ => {
     return updateOrdersCount({ strapi }, result.contract_address)
   }).catch(e => console.error(e.message))
   

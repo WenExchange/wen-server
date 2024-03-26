@@ -3,8 +3,8 @@ const { ethers }  = require("ethers")
 
 const dayjs = require("dayjs");
 const IERC721 = require("../api/sdk/controllers/IERC721");
-const listing_cancel_detector =  async ({ strapi }) => {
-    console.log("[CRON TASK] LISTING CANCEL DETECTOR");
+const listing_cancel_detector_expiration =  async ({ strapi }) => {
+    console.log("[CRON TASK] LISTING CANCEL DETECTOR - Expirtation");
     try {
       const current = dayjs().unix()
       const willDeleteOrders = await strapi.db.query("api::order.order").findMany({
@@ -32,11 +32,20 @@ const listing_cancel_detector =  async ({ strapi }) => {
       })
 
       await Promise.all(willDeletePromise)
+    } 
+    catch (error) {
+      console.error(`listing_cancel_detector_expiration error- ${error.message}`);
+    }
+  }
+
+  const listing_cancel_detector_approve =  async ({ strapi }) => {
+    console.log("[CRON TASK] LISTING CANCEL DETECTOR - isApprovedForAll");
+    try {
 
 
       const orders = await strapi.db.query("api::order.order").findMany({
         populate: {
-          collection:true,
+          collection: true,
           nft: true
         }
       })
@@ -69,9 +78,10 @@ const listing_cancel_detector =  async ({ strapi }) => {
       
     } 
     catch (error) {
-      console.error(`listing_cancel_detector error- ${error.message}`);
+      console.error(`listing_cancel_detector_approve error- ${error.message}`);
     }
   }
+
   
 
 
@@ -79,5 +89,6 @@ const listing_cancel_detector =  async ({ strapi }) => {
 
 
   module.exports = {
-    listing_cancel_detector
+    listing_cancel_detector_expiration,
+    listing_cancel_detector_approve
   }

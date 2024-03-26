@@ -1,4 +1,5 @@
 "use strict";
+require("dotenv").config();
 const { createTransferListener } = require("./listener/blockchainListener");
 const CollectionCacheManager = require("./cache-managers/CollectionCacheManager");
 const dayjs = require("dayjs");
@@ -27,6 +28,7 @@ module.exports = {
   async bootstrap({ strapi }) {
     
     try {
+      
       createTransferListener({ strapi });
       const ccm = CollectionCacheManager.getInstance(strapi);
 

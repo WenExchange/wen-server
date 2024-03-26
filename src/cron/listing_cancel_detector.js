@@ -26,8 +26,6 @@ const listing_cancel_detector =  async ({ strapi }) => {
               from: deletedOrder.maker,
               nft: deletedOrder.nft.id,
               timestamp: dayjs().unix()
-
-
             }
           } )
         })

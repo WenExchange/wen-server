@@ -100,7 +100,7 @@ const transferListener = async ({log, strapi}) => {
 
     // 리스팅 되있는 상황에서 transfer
     if (nftData.sell_order) {
-      strapi.entityService.delete(
+      await strapi.entityService.delete(
         "api::order.order",
         nftData.sell_order.id,
         {

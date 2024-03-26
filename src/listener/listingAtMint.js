@@ -83,7 +83,7 @@ const createNFTAtMint = async ({ log, strapi }) => {
         data: {
           collection: existedCollection.id,
           ...metadata,
-          owner: transferFrom
+          owner: transferTo
         }
       }).then(nftData => {
         strapi.db.query("api::nft-trade-log.nft-trade-log")

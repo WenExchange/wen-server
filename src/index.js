@@ -6,6 +6,7 @@ const CollectionCacheManager = require("./cache-managers/CollectionCacheManager"
 const dayjs = require("dayjs");
 var utc = require("dayjs/plugin/utc");
 var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
+const { getNFTsAndUpdateOwnerOfNFTs } = require("./utils/updateOwner");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 module.exports = {

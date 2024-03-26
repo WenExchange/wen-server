@@ -32,6 +32,12 @@ module.exports = {
       // createTransferListener({ strapi });
       // const ccm = CollectionCacheManager.getInstance(strapi);
       console.log(333, "process.env.SERVER_TYPE",process.env.SERVER_TYPE, process.env.SERVER_TYPE === SERVER_TYPE.API );
+      const collection = await strapi.db.query("api:collection.collection").findOne({
+        where: {
+          id: 119
+        }
+      })
+      console.log(333, "collection",collection );
     } catch (error) {
       console.log(error.message);
     }

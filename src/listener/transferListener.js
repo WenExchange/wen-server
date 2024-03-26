@@ -39,7 +39,7 @@ const transferListener = async ({log, strapi}) => {
           
     // Mint 제외
     if (transferFrom === "0x0000000000000000000000000000000000000000") {
-      createNFTAtMint({ log,strapi });
+      await createNFTAtMint({ log,strapi });
       return 
     }
 

@@ -157,7 +157,7 @@ const createNFTAtMint = async ({ log, strapi }) => {
       }).catch((err) => console.error(err.message));
     }
   } catch (error) {
-    console.log(error.message);
+    console.log(`createNFTAtMint error - ${error.message}`);
   }
 };
 

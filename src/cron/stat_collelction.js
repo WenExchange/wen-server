@@ -227,7 +227,8 @@ const stats_1h_collection =  async ({ strapi }) => {
             
         }
       } catch (error) {
-          console.error(error.message)
+        
+          console.error(`stats_1h_collection error - ${error.message}` )
       }
    
       

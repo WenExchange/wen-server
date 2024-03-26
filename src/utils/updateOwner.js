@@ -20,7 +20,7 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
                 },
                 {
                     owner: {
-                        $eq: null
+                        $eq: "0x0000000000000000000000000000000000000000"
                     }
                 }
             ]
@@ -34,6 +34,8 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
     // await addOwner({strapi,nfts })
 
         // await updateOwnerOfNFTs({strapi,nfts})
+
+        
         
     
 
@@ -90,7 +92,10 @@ const addOwner = async ({strapi, nfts}) => {
                 return null
             }
            
-        }).catch(e => null)
+        }).catch(e => {
+            console.log(`${nft.name} - error - ${e.message}`);
+            return null
+        })
     })
 
     await Promise.all(willUpdateOwnerPromises)

@@ -5,7 +5,7 @@ module.exports = {
   SERVER_TYPE: {
     API: "API",
     BOT: "BOT"
-  }
+  },
   CONTRACT_ADDRESSES : {
     WEN_EX: "0x5958dC6cdc5df14b92699eABf17c7a19A1B22712",
     EL_EX: "0x4196b39157659bf0de9ebf6e505648b7889a39ce"

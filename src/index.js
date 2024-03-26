@@ -1,5 +1,6 @@
 "use strict";
 require("dotenv").config();
+const {SERVER_TYPE} = require("./utils/constants")
 const { createTransferListener } = require("./listener/blockchainListener");
 const CollectionCacheManager = require("./cache-managers/CollectionCacheManager");
 const dayjs = require("dayjs");
@@ -30,7 +31,7 @@ module.exports = {
     try {
       // createTransferListener({ strapi });
       // const ccm = CollectionCacheManager.getInstance(strapi);
-      console.log(333, "process.env.SERVER_TYPE",process.env.SERVER_TYPE);
+      console.log(333, "process.env.SERVER_TYPE",process.env.SERVER_TYPE, process.env.SERVER_TYPE === SERVER_TYPE.API );
     } catch (error) {
       console.log(error.message);
     }

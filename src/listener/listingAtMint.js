@@ -43,21 +43,32 @@ const createNFTAtMint = async ({ log, strapi }) => {
         ERC721,
         jsonRpcProvider
       );
+
+      const owner = await collectionContract.ownerOf(tokenId).catch(err => null);
+      if (!owner) throw new Error(`Invalid Owner`)
       let metadata = await fetchMetadata({ collectionContract, tokenId });
       if (!metadata) {
         await wait(1);
         metadata = await fetchMetadata({ collectionContract, tokenId });
-        if (!metadata) throw new Error("Invalid metadata");
+        console.log(`${metadata.name} NFT at Mint (valid metadata)`);
+
       }
-      console.log(`${metadata.name} NFT at Mint`);
+      if (!metadata) {
+        metadata = {
+          token_id: tokenId,
+          name: `${existedCollection.name} #${tokenId}`,
+          image_url: "",
+          traits: null
+        }
+        console.log(`${metadata.name} NFT at Mint (invalid metadata)`);
+      }
+     
 
       // 1.1 check exist nft
       const existNFT = await strapi.db.query("api::nft.nft").findOne({
         where: {
           collection: existedCollection.id,
-          name: metadata.name,
           token_id: metadata.token_id,
-          owner: metadata.owner
         }
       })
       if (existNFT) {
@@ -155,7 +166,7 @@ const fetchMetadata = async ({ collectionContract, tokenId }) => {
     let tokenURI = await collectionContract.tokenURI(tokenId);
     if (tokenURI.startsWith("ipfs://"))
       tokenURI = tokenURI.replace("ipfs://", IPFS.GATEWAY_URL);
-    const owner = await collectionContract.ownerOf(tokenId);
+
     let metadata = await axios.get(tokenURI).then((res) => res.data);
     if (Buffer.isBuffer(metadata)) {
       // Read Buffer Data
@@ -177,7 +188,6 @@ const fetchMetadata = async ({ collectionContract, tokenId }) => {
       image_url,
       token_id: tokenId,
       traits: attributes,
-      owner
     };
   } catch (error) {
     console.log(error.message);

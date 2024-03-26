@@ -50,8 +50,6 @@ const createNFTAtMint = async ({ log, strapi }) => {
       if (!metadata) {
         await wait(1);
         metadata = await fetchMetadata({ collectionContract, tokenId });
-        console.log(`${metadata.name} NFT at Mint (valid metadata)`);
-
       }
       if (!metadata) {
         metadata = {
@@ -61,6 +59,8 @@ const createNFTAtMint = async ({ log, strapi }) => {
           traits: null
         }
         console.log(`${metadata.name} NFT at Mint (invalid metadata)`);
+      } else {
+        console.log(`${metadata.name} NFT at Mint (valid metadata)`);
       }
      
 

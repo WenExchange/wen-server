@@ -1,0 +1,1 @@
+ssh -i ~/.ssh/ec2-strapi-key-pair.pem ubuntu@3.34.135.149

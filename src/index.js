@@ -1,4 +1,6 @@
 "use strict";
+require("dotenv").config();
+const {SERVER_TYPE} = require("./utils/constants")
 const { createTransferListener } = require("./listener/blockchainListener");
 const CollectionCacheManager = require("./cache-managers/CollectionCacheManager");
 const dayjs = require("dayjs");
@@ -6,8 +8,6 @@ var utc = require("dayjs/plugin/utc");
 var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
-const {stats_1h_collection} = require("./cron/stat_collelction");
 module.exports = {
   /**
    * An asynchronous register function that runs before
@@ -17,19 +17,14 @@ module.exports = {
    */
   register(/*{ strapi }*/) {},
 
-  /**
-   * An asynchronous bootstrap function that runs before
-   * your application gets started.
-   *
-   * This gives you an opportunity to set up your data model,
-   * run jobs, or perform some special logic.
-   */
   async bootstrap({ strapi }) {
     
     try {
-      createTransferListener({ strapi });
-      const ccm = CollectionCacheManager.getInstance(strapi);
-
+      const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT
+      if (isBOTServer) {
+        createTransferListener({ strapi });
+        const ccm = CollectionCacheManager.getInstance(strapi);
+      }
     } catch (error) {
       console.log(error.message);
     }

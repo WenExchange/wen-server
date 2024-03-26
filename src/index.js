@@ -22,7 +22,9 @@ module.exports = {
     try {
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT
       if (isBOTServer) {
-        createTransferListener({ strapi });
+        createTransferListener({ strapi }).catch(e => { 
+          console.error(`createTransferListener - ${e.message}`)
+        });
         const ccm = CollectionCacheManager.getInstance(strapi);
       }
     } catch (error) {

@@ -2,7 +2,8 @@
 
 const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
 const {stats_1h_collection}  = require("./stat_collelction")
-const {listing_cancel_detector} = require("./listing_cancel_detector")
+const {listing_cancel_detector} = require("./listing_cancel_detector");
+const { update_ether_price } = require("./update_ether_price");
 module.exports = {
   cacheCollection: {
     task: async ({ strapi }) => {
@@ -51,6 +52,13 @@ module.exports = {
     options: {
       rule: `*/1 * * * *`
     },
+  },
+
+  update_ether_price: {
+    task: update_ether_price,
+    options: {
+      rule: `*/15 * * * * *`
+    }
   }
 
 

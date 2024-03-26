@@ -12,6 +12,7 @@ const {
 const { elementContractListener } = require("./elementContractListener");
 const { wenContractListener } = require("./wenContractListener");
 const { transferListener } = require("./transferListener");
+const { collectionDeployerERC721And1155Listener } = require("./collectionDeployerERC721And1155Listener");
 
 async function createTransferListener({ strapi }) {
   console.log("[TRANSFER EVENT LISTENING ON]");
@@ -21,7 +22,12 @@ async function createTransferListener({ strapi }) {
     topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId
   };
   jsonRpcProvider.on(filter, async (log, _) => {
-    transferListener({log, strapi}).catch(e => console.error(e.message))
+    try {
+      await transferListener({log, strapi})
+    } catch (error) {
+      console.error(`transferListener error - ${error}`)
+    }
+    
   });
 
   /** Element Listener */
@@ -31,7 +37,12 @@ async function createTransferListener({ strapi }) {
     jsonRpcProvider
   );
   elementContract.on("*", async event => {
-    elementContractListener({event, strapi}).catch(e => console.error(e.message))
+    try {
+      await elementContractListener({event, strapi})
+    } catch (error) {
+      console.error(`elementContractListener error - ${error}`)
+    }
+    
   });
 
 
@@ -42,7 +53,21 @@ async function createTransferListener({ strapi }) {
     jsonRpcProvider
   );
   wenContract.on("*", async event => {
-    wenContractListener({event,strapi}).catch(e => console.error(e.message))
+    try {
+      await wenContractListener({event,strapi})
+    } catch (error) {
+      console.error(`wenContractListener error - ${error}`)
+    }
+  });
+
+
+  jsonRpcProvider.on("block", async blockNumber => {
+    try {
+      await collectionDeployerERC721And1155Listener({strapi, blockNumber})
+    } catch (error) {
+      console.error(`collectionDeployerERC721And1155Listener errir - ${error}`)
+    }
+    
   });
 
 

@@ -44,8 +44,8 @@ const createNFTAtMint = async ({ log, strapi }) => {
         jsonRpcProvider
       );
 
-      const owner = await collectionContract.ownerOf(tokenId).catch(err => null);
-      if (!owner) throw new Error(`Invalid Owner`)
+      // const owner = await collectionContract.ownerOf(tokenId).catch(err => null);
+      // if (!owner) throw new Error(`Invalid Owner`)
       let metadata = await fetchMetadata({ collectionContract, tokenId });
       if (!metadata) {
         await wait(1);
@@ -82,7 +82,8 @@ const createNFTAtMint = async ({ log, strapi }) => {
       .create({
         data: {
           collection: existedCollection.id,
-          ...metadata
+          ...metadata,
+          owner: transferFrom
         }
       }).then(nftData => {
         strapi.db.query("api::nft-trade-log.nft-trade-log")

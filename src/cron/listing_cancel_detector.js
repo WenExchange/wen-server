@@ -69,7 +69,7 @@ const listing_cancel_detector =  async ({ strapi }) => {
       
     } 
     catch (error) {
-      console.error(error.message);
+      console.error(`listing_cancel_detector error- ${error.message}`);
     }
   }
   

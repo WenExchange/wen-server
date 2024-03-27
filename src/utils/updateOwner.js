@@ -12,7 +12,8 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
 
     const nfts = await strapi.db.query("api::nft.nft").findMany({
         populate: {
-            collection: true
+            collection: true,
+            sell_order: true
         },
         where: {
             $and: [
@@ -157,8 +158,39 @@ const addOwner = async ({strapi, nfts}) => {
     await Promise.all(willUpdateOwnerPromises)
 }
 
+const deleteOrders = async ({strapi}) => {
+    const unit = 10000
+    const seconds_1h = 60 * 60
+    const seconds_1d = seconds_1h * 24
+
+    const orders = await strapi.db.query("api::order.order").findMany({
+        populate: {
+            nft: true
+        },
+    })
+
+    const deletePromises = orders.map(order => {
+        if (order.maker.toLowerCase() !== order.nft.owner.toLowerCase()) {
+            return strapi.db.query("api::order.order").delete({
+                where: {
+                    id: {
+                        $eq: order.id
+                    }
+                }
+            })
+        } else {
+            return null
+        }
+    })
+
+    const result = await Promise.all(deletePromises)
+    console.log(333, "result",result.filter(_ => _ !== null));
+    
+}
+
 module.exports  = {
     getNFTsAndUpdateOwnerOfNFTs,
     getNFTsAndAddOwnerOfNFTs,
-    updateOwnerOfNFTs
+    updateOwnerOfNFTs,
+    deleteOrders
 }

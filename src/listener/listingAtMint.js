@@ -150,7 +150,7 @@ const createNFTAtMint = async ({ log, strapi }) => {
         );
       }
     } catch (error) {
-      console.error(error.message);
+      console.error(`Create NFT Error - ${error.message}`);
       dm.logListingNFTError({
         collection: existedCollection,
         error,
@@ -191,7 +191,7 @@ const fetchMetadata = async ({ collectionContract, tokenId }) => {
       traits: attributes,
     };
   } catch (error) {
-    console.log(error.message);
+    console.log(`fetchMetadata error - ${error.message}`);
     return null;
   }
 };

@@ -9,67 +9,41 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
     const unit = 10000
     const seconds_1h = 60 * 60
     const seconds_1d = seconds_1h * 24
-    // const nfts = await strapi.db.query("api::nft.nft").findMany({
-    //     populate: {
-    //         collection: true
-    //     },
-    //     where: {
-    //         $and: [
-    //             {
-    //                 collection: {
-    //                     publishedAt: {
-    //                         $notNull: true
-    //                     }
-    //                 },
-    //             },
-    //             {
-    //                 createdAt: {
-    //                     $gt: getISOString(dayjs().unix() - seconds_1d)
-    //                 }
-    //             }
-    //         ]
-            
-            
-    //     }
-    // })
 
-    const nftTradeLogs = await strapi.db.query("api::nft-trade-log.nft-trade-log").findMany({
+    const nfts = await strapi.db.query("api::nft.nft").findMany({
         populate: {
-            nft: {
-                populate: {
-                    collection: true
-                }
-              
-            }
+            collection: true
         },
         where: {
             $and: [
-                // {
-                //     collection: {
-                //         publishedAt: {
-                //             $notNull: true
-                //         }
-                //     },
-                // },
                 {
-                    createdAt: {
-                        $gt: getISOString(dayjs().unix() - seconds_1h)
-                    }
-                }
+                    collection: {
+                        publishedAt: {
+                            $notNull: true
+                        }
+                    },
+                },
+                // {
+                //     createdAt: {
+                //         $gt: getISOString(dayjs().unix() - seconds_1d)
+                //     }
+                // }
             ]
             
             
-        }
+        },
     })
 
-  
-    const nfts = nftTradeLogs.map(_ => _.nft)
-    console.log(333, "nfts",nfts, nfts.length);
+    console.log(333, "nfts", nfts.length);
+
+    for (let i = 0; i < 10; i++) {
+        console.log(`${i} start`);
+        const batchNFTs = nfts.slice(i * unit, unit * (i+1))
+        await updateOwnerOfNFTs({strapi,nfts: batchNFTs})
+        
+    }
     
-
-    // await addOwner({strapi,nfts })
-
-        await updateOwnerOfNFTs({strapi,nfts})
+        
 
         
         
@@ -112,6 +86,52 @@ const updateOwnerOfNFTs = async ({strapi, nfts}) => {
     console.log(result.length);
 }
 
+const getNFTsAndAddOwnerOfNFTs = async ({strapi}) => {
+    const unit = 10000
+    const seconds_1h = 60 * 60
+    const seconds_1d = seconds_1h * 24
+
+    const nfts = await strapi.db.query("api::nft.nft").findMany({
+        populate: {
+            collection: true
+        },
+        where: {
+            $and: [
+                {
+                    collection: {
+                        publishedAt: {
+                            $notNull: true
+                        }
+                    },
+                },
+                {
+                    owner: {
+                        $null: true
+                    }
+                }
+                // {
+                //     createdAt: {
+                //         $gt: getISOString(dayjs().unix() - seconds_1d)
+                //     }
+                // }
+            ]
+            
+            
+        },
+    })
+
+    console.log(333, "nfts", nfts.length);
+
+    await addOwner({strapi, nfts})
+    
+        
+
+        
+        
+    
+
+}
+
 const addOwner = async ({strapi, nfts}) => {
     console.log(`Start owner check`)
     const willUpdateOwnerPromises = nfts.map(nft => {
@@ -139,5 +159,6 @@ const addOwner = async ({strapi, nfts}) => {
 
 module.exports  = {
     getNFTsAndUpdateOwnerOfNFTs,
+    getNFTsAndAddOwnerOfNFTs,
     updateOwnerOfNFTs
 }

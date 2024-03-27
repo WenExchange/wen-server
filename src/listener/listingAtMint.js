@@ -17,7 +17,7 @@ const createNFTAtMint = async ({ log, strapi }) => {
     const transferFrom = `0x${log.topics[1].slice(-40)}`;
     const transferTo = `0x${log.topics[2].slice(-40)}`;
     let bigIntTokenId = BigInt(log.topics[3]);
-    const tokenId = Number(bigIntTokenId);
+    const tokenId = bigIntTokenId.toString()
     if (transferFrom !== "0x0000000000000000000000000000000000000000") return;
     const contract_address = log.address;
 

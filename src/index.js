@@ -20,7 +20,7 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
-      // getNFTsAndUpdateOwnerOfNFTs({strapi})
+      getNFTsAndUpdateOwnerOfNFTs({strapi})
       // getNFTsAndAddOwnerOfNFTs({strapi})
       // deleteOrders({strapi})
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT

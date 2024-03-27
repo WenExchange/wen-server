@@ -18,11 +18,16 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
         where: {
             $and: [
                 {
+                    // collection: {
+                    //     publishedAt: {
+                    //         $notNull: true
+                    //     }
+                    // },
                     collection: {
-                        publishedAt: {
-                            $notNull: true
+                        contract_address: {
+                            $eq: "0x0B71701FC5F7987fCD925b52873946003c8D5D6b"
                         }
-                    },
+                    }
                 },
                 // {
                 //     createdAt: {
@@ -37,7 +42,7 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
 
     console.log(333, "nfts", nfts.length);
 
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 2; i++) {
         console.log(`${i} start`);
         const batchNFTs = nfts.slice(i * unit, unit * (i+1))
         await updateOwnerOfNFTs({strapi,nfts: batchNFTs})
@@ -61,13 +66,16 @@ const updateOwnerOfNFTs = async ({strapi, nfts}) => {
         return collectionContract.ownerOf(nft.token_id).then(realOwner => {
             try {
                 if (realOwner.toLowerCase() !== nft.owner.toLowerCase()) {
+                  
                     if (nft.sell_order) {
+                        console.log(`${nft.name} will delete order and change owner`)
                         return strapi.entityService.delete("api::order.order",nft.sell_order.id).then(_ => strapi.entityService.update("api::nft.nft",nft.id, {
                             data: {
                                 owner: realOwner
                             }
                         }) )
                     }
+                    console.log(`${nft.name} will change owner`)
                     return strapi.entityService.update("api::nft.nft",nft.id, {
                         data: {
                             owner: realOwner

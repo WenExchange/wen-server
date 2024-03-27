@@ -1,10 +1,14 @@
 const {  jsonRpcProvider }  = require("./constants") 
 const { ethers }  = require("ethers") 
 const IERC721 = require("../api/sdk/controllers/IERC721");
+const { getISOString } = require("./helpers");
+const dayjs = require("dayjs")
 
 
 const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
     const unit = 10000
+    const seconds_1h = 60 * 60
+    const seconds_1d = seconds_1h * 24
     const nfts = await strapi.db.query("api::nft.nft").findMany({
         populate: {
             collection: true
@@ -19,8 +23,8 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
                     },
                 },
                 {
-                    owner: {
-                        $eq: "0x0000000000000000000000000000000000000000"
+                    createdAt: {
+                        $gt: getISOString(dayjs().unix() - seconds_1d)
                     }
                 }
             ]
@@ -29,11 +33,9 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
         }
     })
 
-    console.log(333, "nfts",nfts.length);
-
     // await addOwner({strapi,nfts })
 
-        // await updateOwnerOfNFTs({strapi,nfts})
+        await updateOwnerOfNFTs({strapi,nfts})
 
         
         

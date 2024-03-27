@@ -6,7 +6,6 @@ const CollectionCacheManager = require("./cache-managers/CollectionCacheManager"
 const dayjs = require("dayjs");
 var utc = require("dayjs/plugin/utc");
 var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
-const { getNFTsAndUpdateOwnerOfNFTs } = require("./utils/updateOwner");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 module.exports = {
@@ -20,7 +19,6 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
-      // getNFTsAndUpdateOwnerOfNFTs({strapi})
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT
       if (isBOTServer) {
         createTransferListener({ strapi }).catch(e => { 

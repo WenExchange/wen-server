@@ -1,5 +1,5 @@
 const { jsonRpcProvider } = require("../../../utils/constants");
-const ethers = require("ethers");
+const {ethers} = require("ethers");
 const IERC721 = require("./IERC721.js");
 
 async function getNFTOwner(nftContract, tokenId) {

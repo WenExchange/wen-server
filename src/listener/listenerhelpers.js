@@ -1,4 +1,4 @@
-const ethers = require("ethers");
+const {ethers} = require("ethers");
 
 function findEventByName(abi, eventName) {
     // ABI 배열을 순회하여 eventName과 일치하는 이벤트 객체를 찾습니다.

@@ -14,7 +14,12 @@ function getISOString (timestamp = dayjs().unix()) {
 
 }
 
+function validInteger(value) {
+  return value <= Number.MAX_SAFE_INTEGER && value >= Number.MIN_SAFE_INTEGER
+}
+
 module.exports = {
   wait,
-  getISOString
+  getISOString,
+  validInteger
 };

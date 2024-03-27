@@ -81,7 +81,11 @@ const transferListener = async ({log, strapi}) => {
 
 
     /** Common Tasks */
-    await updateOwner({strapi,nftData,transferTo })
+    await strapi.entityService.update("api::nft.nft", nftData.id, {
+      data: {
+        owner: transferTo,
+      },
+    });
     await updateOwnerCount({ strapi }, log.address);
 
     await strapi.entityService.create(
@@ -124,7 +128,7 @@ const transferListener = async ({log, strapi}) => {
     }
      
   } catch (error) {
-    console.error("error", error.message);
+    console.error("transferListener - error", error);
   }
 
 
@@ -142,14 +146,6 @@ const checkReceiptTopicsForEventTypes = ( receiptTopics) => {
   }
   return false; // Return false if no matches are found after checking all topics
 };
-
-const updateOwner = async ({strapi,nftData,transferTo  }) => {
-  await strapi.entityService.update("api::nft.nft", nftData.id, {
-    data: {
-      owner: transferTo,
-    },
-  });
-}
 
 
 module.exports = { transferListener };

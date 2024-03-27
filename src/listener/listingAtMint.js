@@ -12,13 +12,25 @@ const CollectionCacheManager = require("../cache-managers/CollectionCacheManager
 const { wait } = require("../utils/helpers");
 const { LOG_TYPE_MINT } = NFT_LOG_TYPE;
 
+
+function validInteger(value) {
+  return value <= Number.MAX_SAFE_INTEGER && value >= Number.MIN_SAFE_INTEGER
+}
+
+
 const createNFTAtMint = async ({ log, strapi }) => {
   try {
     const transferFrom = `0x${log.topics[1].slice(-40)}`;
     const transferTo = `0x${log.topics[2].slice(-40)}`;
     let bigIntTokenId = BigInt(log.topics[3]);
-    const tokenId = Number(bigIntTokenId);
+    
     if (transferFrom !== "0x0000000000000000000000000000000000000000") return;
+    const isValidTokenId = validInteger(bigIntTokenId)
+    if (!isValidTokenId) {
+      throw new Error(`Token id is overflow - ${bigIntTokenId.toString()}`)
+    }
+    const tokenId = Number(bigIntTokenId)
+
     const contract_address = log.address;
 
     const ccm = CollectionCacheManager.getInstance(strapi);
@@ -44,14 +56,13 @@ const createNFTAtMint = async ({ log, strapi }) => {
         jsonRpcProvider
       );
 
+   
       // const owner = await collectionContract.ownerOf(tokenId).catch(err => null);
       // if (!owner) throw new Error(`Invalid Owner`)
       let metadata = await fetchMetadata({ collectionContract, tokenId });
       if (!metadata) {
         await wait(1);
         metadata = await fetchMetadata({ collectionContract, tokenId });
-        console.log(`${metadata.name} NFT at Mint (valid metadata)`);
-
       }
       if (!metadata) {
         metadata = {
@@ -61,6 +72,8 @@ const createNFTAtMint = async ({ log, strapi }) => {
           traits: null
         }
         console.log(`${metadata.name} NFT at Mint (invalid metadata)`);
+      } else {
+        console.log(`${metadata.name} NFT at Mint (valid metadata)`);
       }
      
 
@@ -150,7 +163,7 @@ const createNFTAtMint = async ({ log, strapi }) => {
         );
       }
     } catch (error) {
-      console.error(error.message);
+      console.error(`Create NFT Error - ${error.message}`);
       dm.logListingNFTError({
         collection: existedCollection,
         error,
@@ -191,7 +204,7 @@ const fetchMetadata = async ({ collectionContract, tokenId }) => {
       traits: attributes,
     };
   } catch (error) {
-    console.log(error.message);
+    console.log(`fetchMetadata error - ${error.message}`);
     return null;
   }
 };

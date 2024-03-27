@@ -6,7 +6,6 @@ const dayjs = require("dayjs")
 
 
 const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
-    const unit = 10000
     const seconds_1h = 60 * 60
     const seconds_1d = seconds_1h * 24
     const nfts = await strapi.db.query("api::nft.nft").findMany({
@@ -33,11 +32,7 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
         }
     })
 
-    // await addOwner({strapi,nfts })
-
-        await updateOwnerOfNFTs({strapi,nfts})
-
-        
+    return nfts  
         
     
 
@@ -75,7 +70,7 @@ const updateOwnerOfNFTs = async ({strapi, nfts}) => {
     })
     let result  = await Promise.all(willUpdateOwnerPromises)
     result = result.filter(_ => _ !== null)
-    console.log(result.length);
+    console.log(`${result.length} NFTs are updated to real owner`);
 }
 
 const addOwner = async ({strapi, nfts}) => {

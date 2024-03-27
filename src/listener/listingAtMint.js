@@ -12,13 +12,25 @@ const CollectionCacheManager = require("../cache-managers/CollectionCacheManager
 const { wait } = require("../utils/helpers");
 const { LOG_TYPE_MINT } = NFT_LOG_TYPE;
 
+
+function validInteger(value) {
+  return value <= Number.MAX_SAFE_INTEGER && value >= Number.MIN_SAFE_INTEGER
+}
+
+
 const createNFTAtMint = async ({ log, strapi }) => {
   try {
     const transferFrom = `0x${log.topics[1].slice(-40)}`;
     const transferTo = `0x${log.topics[2].slice(-40)}`;
     let bigIntTokenId = BigInt(log.topics[3]);
-    const tokenId = Number(bigIntTokenId);
+    
     if (transferFrom !== "0x0000000000000000000000000000000000000000") return;
+    const isValidTokenId = validInteger(bigIntTokenId)
+    if (!isValidTokenId) {
+      throw new Error(`Token id is overflow - ${bigIntTokenId.toString()}`)
+    }
+    const tokenId = Number(bigIntTokenId)
+
     const contract_address = log.address;
 
     const ccm = CollectionCacheManager.getInstance(strapi);
@@ -44,6 +56,7 @@ const createNFTAtMint = async ({ log, strapi }) => {
         jsonRpcProvider
       );
 
+   
       // const owner = await collectionContract.ownerOf(tokenId).catch(err => null);
       // if (!owner) throw new Error(`Invalid Owner`)
       let metadata = await fetchMetadata({ collectionContract, tokenId });

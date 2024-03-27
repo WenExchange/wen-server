@@ -71,13 +71,28 @@ const transferListener = async ({log, strapi}) => {
 
     // 1. Get NFT
     const nftData = await strapi.db.query("api::nft.nft").findOne({
-      where: {
-        token_id: tokenId,
-        collection: { contract_address: log.address },
-      },
       populate: {
         sell_order: true,
+        collection: true
       },
+      where: {
+        $and: [
+          {
+            token_id: {
+              $eq: tokenId
+            }
+          },
+          {
+            collection: { 
+              contract_address: {
+                $eq: log.address
+              } },
+          }
+        ]
+        
+        
+      }
+      
     });
 
     // 1-1. If nft doesn't exist, return

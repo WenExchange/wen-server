@@ -1,3 +1,5 @@
+const dayjs = require("dayjs")
+
 function wait(seconds) {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -6,6 +8,13 @@ function wait(seconds) {
   });
 }
 
+function getISOString (timestamp = dayjs().unix()) {
+  const isoString = dayjs.unix(timestamp).toISOString();
+  return isoString
+
+}
+
 module.exports = {
-  wait
+  wait,
+  getISOString
 };

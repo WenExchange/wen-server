@@ -9,13 +9,9 @@ const {
 } = require("../utils/constants");
 const ERC721 = require("../web3/abis/ERC721.json");
 const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
-const { wait } = require("../utils/helpers");
+const { wait, validInteger } = require("../utils/helpers");
 const { LOG_TYPE_MINT } = NFT_LOG_TYPE;
 
-
-function validInteger(value) {
-  return value <= Number.MAX_SAFE_INTEGER && value >= Number.MIN_SAFE_INTEGER
-}
 
 
 const createNFTAtMint = async ({ log, strapi }) => {
@@ -98,20 +94,23 @@ const createNFTAtMint = async ({ log, strapi }) => {
           ...metadata,
           owner: transferTo
         }
-      }).then(nftData => {
-        strapi.db.query("api::nft-trade-log.nft-trade-log")
+      })
+
+      strapi.db.query("api::nft-trade-log.nft-trade-log")
           .create({
             data: {
               type: LOG_TYPE_MINT,
               from: transferFrom,
               to: transferTo,
-              nft: nftData.id,
+              nft: createdNFT.id,
               tx_hash: log.transactionHash,
               timestamp: dayjs().unix()
             }
           }).catch()
-          
-          collectionContract
+
+
+      try {
+        await collectionContract
           .totalSupply()
           .then((_total_supply) => {
             const total_supply = _total_supply.toNumber();
@@ -132,9 +131,11 @@ const createNFTAtMint = async ({ log, strapi }) => {
             }
           })
           .catch();
-          return nftData
-      })
-      .catch((e) => null); 
+      } catch (error) {
+        console.error(`${existedCollection.name} don't have totalSupply() - ${error.message}`)
+      }
+
+      
 
 
       dm.logListingNFT({ collection: existedCollection, createdNFT }).catch(

@@ -42,7 +42,7 @@ const getContractMetadata = async (address) => {
       name = `Auto Detecting Collection ${nameId}`;
     return { isERC721, isERC1155, name, total_supply };
   } catch (error) {
-    console.log(error.message);
+    console.log(`getContractMetadata - error ${error.message}`);
     return false;
   }
 };
@@ -118,6 +118,7 @@ const createCollection = async ({
     );
     return createdCollection;
   } catch (error) {
+    console.error(`createCollection - error ${error}`)
     dm.logListingCollectionError({
       error,
       collection: errorCollectionInfo

@@ -19,6 +19,7 @@ module.exports = {
   register(/*{ strapi }*/) {},
 
   async bootstrap({ strapi }) {
+    
     try {
       getNFTsAndUpdateOwnerOfNFTs({strapi})
       // getNFTsAndAddOwnerOfNFTs({strapi})

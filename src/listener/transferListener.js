@@ -57,17 +57,22 @@ const transferListener = async ({log, strapi}) => {
     );
     const receipt = await tx.wait()
     const receiptLogs = receipt.logs
-    if (!Array.isArray(receiptLogs)) return 
+    if (!Array.isArray(receiptLogs)) throw new Error("Invalid receiptLogs") 
     const receiptTopics = receiptLogs.map(log => {
       if (Array.isArray(log.topics) && log.topics.length > 0) return log.topics[0]
       return ""
     })
     const  isIncludeBuyEventType = checkReceiptTopicsForEventTypes(receiptTopics)
-    if (isIncludeBuyEventType) return 
-    const exchangeAddresses = Object.keys(CONTRACT_ADDRESSES).map(key => CONTRACT_ADDRESSES[key].toLowerCase())
-    const isIncludeWenOrElExchange = exchangeAddresses.includes(tx.to.toLowerCase())
 
-    if (isIncludeWenOrElExchange && isIncludeBuyEventType) return 
+    if (isIncludeBuyEventType) {
+      const exchangeAddresses = Object.keys(CONTRACT_ADDRESSES).map(key => CONTRACT_ADDRESSES[key].toLowerCase())
+      const isIncludeWenOrElExchange = exchangeAddresses.includes(tx.to.toLowerCase())
+      if (isIncludeWenOrElExchange) {
+        console.log(`transferListener - Buy event filter tx:\n`, tx, "\n\nrecript:\n", receipt);
+        return
+      } 
+    }
+  
 
     // 1. Get NFT
     const nftData = await strapi.db.query("api::nft.nft").findOne({
@@ -78,15 +83,11 @@ const transferListener = async ({log, strapi}) => {
       where: {
         $and: [
           {
-            token_id: {
-              $eq: tokenId
-            }
+            token_id: tokenId
           },
           {
             collection: { 
-              contract_address: {
-                $eq: log.address
-              } },
+              contract_address: log.address },
           }
         ]
         
@@ -97,7 +98,7 @@ const transferListener = async ({log, strapi}) => {
 
     // 1-1. If nft doesn't exist, return
     if (!nftData) {
-      console.log("There is no NFT DATA.");
+      console.log(`transferListener - There is no NFT DATA contract_address: ${log.address} | token_id: ${tokenId}`);
       return;
     }
 
@@ -157,11 +158,11 @@ const transferListener = async ({log, strapi}) => {
 
 }
 
-const checkReceiptTopicsForEventTypes = ( receiptTopics) => {
+const checkReceiptTopicsForEventTypes = (receiptTopics) => {
   // Loop through each topic in receiptTopics
-  const eventTypeHashList = Object.keys(EVENT_TYPE).map(key => EVENT_TYPE[key])
+  const eventTypeHashList = Object.keys(EVENT_TYPE).map(key => EVENT_TYPE[key].toLowerCase())
   for (let i = 0; i < receiptTopics.length; i++) {
-    const topic = receiptTopics[i];
+    const topic = receiptTopics[i].toLowerCase();
     // Check if the current topic is in the eventTypeHashList
     if (eventTypeHashList.includes(topic)) {
       return true; // Return true immediately if a match is found

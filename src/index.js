@@ -1,6 +1,6 @@
 "use strict";
 require("dotenv").config();
-const {SERVER_TYPE} = require("./utils/constants")
+const {SERVER_TYPE, jsonRpcProvider} = require("./utils/constants")
 const { createTransferListener } = require("./listener/blockchainListener");
 const CollectionCacheManager = require("./cache-managers/CollectionCacheManager");
 const dayjs = require("dayjs");
@@ -19,7 +19,6 @@ module.exports = {
   register(/*{ strapi }*/) {},
 
   async bootstrap({ strapi }) {
-    
     try {
       getNFTsAndUpdateOwnerOfNFTs({strapi})
       // getNFTsAndAddOwnerOfNFTs({strapi})

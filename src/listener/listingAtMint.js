@@ -57,7 +57,7 @@ const createNFTAtMint = async ({ log, strapi }) => {
       // if (!owner) throw new Error(`Invalid Owner`)
       let metadata = await fetchMetadata({ collectionContract, tokenId });
       if (!metadata) {
-        await wait(1);
+        await wait(0.5);
         metadata = await fetchMetadata({ collectionContract, tokenId });
       }
       if (!metadata) {
@@ -75,9 +75,20 @@ const createNFTAtMint = async ({ log, strapi }) => {
 
       // 1.1 check exist nft
       const existNFT = await strapi.db.query("api::nft.nft").findOne({
+        populate: {
+          collection: true
+        },
         where: {
-          collection: existedCollection.id,
-          token_id: metadata.token_id,
+          $and: [
+            {
+              collection: existedCollection.id,
+            },
+            {
+              token_id: metadata.token_id,
+            }
+          ]
+          
+       
         }
       })
       if (existNFT) {

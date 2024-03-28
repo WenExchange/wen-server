@@ -43,12 +43,10 @@ const transferListener = async ({log, strapi, tqm}) => {
       throw new Error(`Token id is overflow - from: ${transferFrom} to: ${transferTo} token_idx: ${bigIntTokenId.toString()}`)
     }
           
+    tqm.addQueue(log)
+
     // Mint 제외
-    if (transferFrom === "0x0000000000000000000000000000000000000000") {
-      await createNFTAtMint({ log,strapi })
-    } else {
-      tqm.addQueue(log)
-    }
+    
 
      
      
@@ -60,12 +58,18 @@ const transferListener = async ({log, strapi, tqm}) => {
 }
 
 const checkValidationAndConnectWithDB = async ({strapi, log}) => {
-  // Buy Event 제외
   const transferFrom = `0x${log.topics[1].slice(-40)}`;
   const transferTo = `0x${log.topics[2].slice(-40)}`;
   const bigIntTokenId = BigInt(log.topics[3])
   const tokenId = Number(bigIntTokenId)
 
+  /** Mint */
+  if (transferFrom === "0x0000000000000000000000000000000000000000") {
+    await createNFTAtMint({ log,strapi })
+    return 
+  } 
+
+    // Buy Event 제외
   const tx = await jsonRpcProvider.getTransaction(
     log.transactionHash
   );

@@ -8,7 +8,7 @@ const dayjs = require("dayjs")
 const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
     const seconds_1h = 60 * 60
     const seconds_1d = seconds_1h * 24
-    const unit = 30
+    const unit = 20
 
     const nfts = await strapi.db.query("api::nft.nft").findMany({
         populate: {
@@ -42,15 +42,23 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
 
     console.log(333, "nfts", nfts.length);
     let resultList = []
-    for (let i = 0; i < 33000; i++) {
+    for (let i = 752; i < nfts.length; i++) {
         console.log(`${i} start`);
-        const batchNFTs = nfts.slice(i * unit, unit * (i+1))
+        const start = i * unit
+        const end = unit * (i+1)
+        const batchNFTs = nfts.slice(start, end)
         try {
             const _resultList = await updateOwnerOfNFTs({strapi,nfts: batchNFTs})
             resultList.push(_resultList)
         } catch (error) {
             console.error(`333 error - ${error.message}`)
         }
+
+
+        if (end >= nfts.length ) {
+            break
+        }
+        
   
         
     }

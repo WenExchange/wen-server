@@ -41,7 +41,8 @@
       "type": "integer"
     },
     "owner": {
-      "type": "string"
+      "type": "string",
+      "required": true
     },
     "top_offer_price": {
       "type": "float"

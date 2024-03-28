@@ -26,7 +26,7 @@ const {
 } = NFT_LOG_TYPE;
 
 
-const transferListener = async ({log, strapi}) => {
+const transferListener = async ({log, strapi, tqm}) => {
   try {
   
     const ccm = CollectionCacheManager.getInstance(strapi);
@@ -42,114 +42,15 @@ const transferListener = async ({log, strapi}) => {
     if (!isValidTokenId) {
       throw new Error(`Token id is overflow - from: ${transferFrom} to: ${transferTo} token_idx: ${bigIntTokenId.toString()}`)
     }
-    const tokenId = Number(bigIntTokenId)
-
           
     // Mint 제외
     if (transferFrom === "0x0000000000000000000000000000000000000000") {
-      await createNFTAtMint({ log,strapi });
-      return 
+      await createNFTAtMint({ log,strapi })
+    } else {
+      tqm.addQueue(log)
     }
 
-     // Buy Event 제외
-    const tx = await jsonRpcProvider.getTransaction(
-      log.transactionHash
-    );
-    const receipt = await tx.wait()
-    const receiptLogs = receipt.logs
-    if (!Array.isArray(receiptLogs)) throw new Error("Invalid receiptLogs") 
-    const receiptTopics = receiptLogs.map(log => {
-      if (Array.isArray(log.topics) && log.topics.length > 0) return log.topics[0]
-      return ""
-    })
-    const  isIncludeBuyEventType = checkReceiptTopicsForEventTypes(receiptTopics)
-
-    if (isIncludeBuyEventType) {
-      const exchangeAddresses = Object.keys(CONTRACT_ADDRESSES).map(key => CONTRACT_ADDRESSES[key].toLowerCase())
-      const isIncludeWenOrElExchange = exchangeAddresses.includes(tx.to.toLowerCase())
-      if (isIncludeWenOrElExchange) {
-        console.log(`transferListener - Buy event filter tx:\n`, tx, "\n\nrecript:\n", receipt);
-        return
-      } 
-    }
-  
-
-    // 1. Get NFT
-    const nftData = await strapi.db.query("api::nft.nft").findOne({
-      populate: {
-        sell_order: true,
-        collection: true
-      },
-      where: {
-        $and: [
-          {
-            token_id: tokenId
-          },
-          {
-            collection: { 
-              contract_address: log.address },
-          }
-        ]
-        
-        
-      }
-      
-    });
-
-    // 1-1. If nft doesn't exist, return
-    if (!nftData) {
-      console.log(`transferListener - There is no NFT DATA contract_address: ${log.address} | token_id: ${tokenId}`);
-      return;
-    }
-
-
-
-    /** Common Tasks */
-    await strapi.entityService.update("api::nft.nft", nftData.id, {
-      data: {
-        owner: transferTo,
-      },
-    }).then(_ => console.log(`transferListener - update owner ${nftData.owner} -> ${transferTo}`));
-    await updateOwnerCount({ strapi }, log.address);
-
-    await strapi.entityService.create(
-      "api::nft-trade-log.nft-trade-log",
-      {
-        data: {
-          type: LOG_TYPE_TRANSFER,
-          from: transferFrom,
-          to: transferTo,
-          nft: nftData.id,
-          tx_hash: log.transactionHash,
-          timestamp: dayjs().unix(),
-        },
-      }
-    ).catch(e => console.error(e.message))
-
-    // 리스팅 되있는 상황에서 transfer
-    if (nftData.sell_order) {
-      await strapi.entityService.delete(
-        "api::order.order",
-        nftData.sell_order.id,
-        {
-          populate: { nft: true },
-        }
-      ).then(deletedOrder => {
-        return strapi.entityService.create(
-          "api::nft-trade-log.nft-trade-log",
-          {
-            data: {
-              ex_type: EX_TYPE.WEN,
-              type: LOG_TYPE_AUTO_CANCEL_LISTING,
-              from: transferFrom,
-              nft: nftData.id,
-              tx_hash: log.transactionHash,
-              timestamp: dayjs().unix(),
-            },
-          }
-        );
-      }).catch(e => console.error(e.message))
-    }
+     
      
   } catch (error) {
     console.error("transferListener - error", error);
@@ -157,6 +58,115 @@ const transferListener = async ({log, strapi}) => {
 
 
 }
+
+const checkValidationAndConnectWithDB = async ({strapi, log}) => {
+  // Buy Event 제외
+  const transferFrom = `0x${log.topics[1].slice(-40)}`;
+  const transferTo = `0x${log.topics[2].slice(-40)}`;
+  const bigIntTokenId = BigInt(log.topics[3])
+  const tokenId = Number(bigIntTokenId)
+
+  const tx = await jsonRpcProvider.getTransaction(
+    log.transactionHash
+  );
+  const receipt = await tx.wait()
+  const receiptLogs = receipt.logs
+  if (!Array.isArray(receiptLogs)) throw new Error("Invalid receiptLogs") 
+  const receiptTopics = receiptLogs.map(log => {
+    if (Array.isArray(log.topics) && log.topics.length > 0) return log.topics[0]
+    return ""
+  })
+  const  isIncludeBuyEventType = checkReceiptTopicsForEventTypes(receiptTopics)
+
+  if (isIncludeBuyEventType) {
+    const exchangeAddresses = Object.keys(CONTRACT_ADDRESSES).map(key => CONTRACT_ADDRESSES[key].toLowerCase())
+    const isIncludeWenOrElExchange = exchangeAddresses.includes(tx.to.toLowerCase())
+    if (isIncludeWenOrElExchange) {
+      return
+    } 
+  }
+
+
+  // 1. Get NFT
+  const nftData = await strapi.db.query("api::nft.nft").findOne({
+    populate: {
+      sell_order: true,
+      collection: true
+    },
+    where: {
+      $and: [
+        {
+          token_id: tokenId
+        },
+        {
+          collection: { 
+            contract_address: log.address },
+        }
+      ]
+      
+      
+    }
+    
+  });
+
+  // 1-1. If nft doesn't exist, return
+  if (!nftData) {
+    console.log(`transferListener - There is no NFT DATA contract_address: ${log.address} | token_id: ${tokenId}`);
+    return;
+  }
+
+
+
+  /** Common Tasks */
+  await strapi.entityService.update("api::nft.nft", nftData.id, {
+    data: {
+      owner: transferTo,
+    },
+  }).then(_ => console.log(`transferListener - update owner ${nftData.owner} -> ${transferTo}`));
+  await updateOwnerCount({ strapi }, log.address);
+
+  await strapi.entityService.create(
+    "api::nft-trade-log.nft-trade-log",
+    {
+      data: {
+        type: LOG_TYPE_TRANSFER,
+        from: transferFrom,
+        to: transferTo,
+        nft: nftData.id,
+        tx_hash: log.transactionHash,
+        timestamp: dayjs().unix(),
+      },
+    }
+  ).catch(e => console.error(e.message))
+
+  // 리스팅 되있는 상황에서 transfer
+  if (nftData.sell_order) {
+    await strapi.entityService.delete(
+      "api::order.order",
+      nftData.sell_order.id,
+      {
+        populate: { nft: true },
+      }
+    ).then(deletedOrder => {
+      return strapi.entityService.create(
+        "api::nft-trade-log.nft-trade-log",
+        {
+          data: {
+            ex_type: EX_TYPE.WEN,
+            type: LOG_TYPE_AUTO_CANCEL_LISTING,
+            from: transferFrom,
+            nft: nftData.id,
+            tx_hash: log.transactionHash,
+            timestamp: dayjs().unix(),
+          },
+        }
+      );
+    }).catch(e => console.error(e.message))
+  }
+
+}
+
+
 
 const checkReceiptTopicsForEventTypes = (receiptTopics) => {
   // Loop through each topic in receiptTopics
@@ -172,4 +182,4 @@ const checkReceiptTopicsForEventTypes = (receiptTopics) => {
 };
 
 
-module.exports = { transferListener };
+module.exports = { transferListener, checkValidationAndConnectWithDB };

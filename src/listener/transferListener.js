@@ -67,7 +67,10 @@ const transferListener = async ({log, strapi}) => {
     if (isIncludeBuyEventType) {
       const exchangeAddresses = Object.keys(CONTRACT_ADDRESSES).map(key => CONTRACT_ADDRESSES[key].toLowerCase())
       const isIncludeWenOrElExchange = exchangeAddresses.includes(tx.to.toLowerCase())
-      if (isIncludeWenOrElExchange) return 
+      if (isIncludeWenOrElExchange) {
+        console.log(`transferListener - Buy event filter tx:${tx} \n\n receipt: ${receipt}`);
+        return
+      } 
     }
   
 
@@ -95,7 +98,7 @@ const transferListener = async ({log, strapi}) => {
 
     // 1-1. If nft doesn't exist, return
     if (!nftData) {
-      console.log("There is no NFT DATA.");
+      console.log(`transferListener - There is no NFT DATA contract_address: ${log.address} | token_id: ${tokenId}`);
       return;
     }
 

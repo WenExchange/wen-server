@@ -29,6 +29,8 @@ module.exports = {
           console.error(`createTransferListener error - ${e.message}`)
         });
         const ccm = CollectionCacheManager.getInstance(strapi);
+
+       
       }
     } catch (error) {
       console.log(`bootstrap error - ${error.message}`);

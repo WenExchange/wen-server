@@ -4,7 +4,7 @@ const dayjs = require("dayjs");
 const slugify = require("slugify");
 const DiscordManager = require("../discord/DiscordManager");
 const {
-  jsonRpcProvider,
+  jsonRpcProvider_cron,
   PROTOCOL_FEE
 } = require("../utils/constants");
 const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
@@ -17,7 +17,7 @@ const getContractMetadata = async (address) => {
     "function supportsInterface(bytes4 interfaceId) view returns (bool)",
     "function totalSupply() view returns (uint256)"
   ];
-  const contract = new ethers.Contract(address, abi, jsonRpcProvider);
+  const contract = new ethers.Contract(address, abi, jsonRpcProvider_cron);
   try {
     const isERC721 = await contract
       .supportsInterface("0x80ac58cd")
@@ -25,21 +25,29 @@ const getContractMetadata = async (address) => {
     const isERC1155 = await contract
       .supportsInterface("0xd9b67a26")
       .catch((err) => false);
-    const total_supply = await contract
+      let total_supply = 0
+      try {
+        total_supply = await contract
       .totalSupply()
       .then((res) => res.toNumber())
-      .catch((err) => 0);
+      } catch (error) {
+        console.error(`getContractMetadata - ${error.message}`)
+      }
+    
 
     const nameId = voucher_codes.generate({
       length: 4,
       count: 1,
       charset: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     })[0];
-    let name = await contract
-      .name()
-      .catch((err) => `Auto Detecting Collection ${nameId}`);
-    if (!name || name === "null" || name === "undefined")
-      name = `Auto Detecting Collection ${nameId}`;
+
+    let name = `Auto Detecting Collection ${nameId}`
+    try {
+      name = await contract.name()
+    } catch (error) {
+      console.error(`getContractMetadata - ${error.message}`)
+    }
+    
     return { isERC721, isERC1155, name, total_supply };
   } catch (error) {
     console.log(`getContractMetadata - error ${error.message}`);
@@ -129,16 +137,12 @@ const createCollection = async ({
 const collectionDeployerERC721And1155Listener = async ({blockNumber, strapi}) => {
   // // exit early if it's not our NFTs
   try {
-    const block = await jsonRpcProvider.getBlockWithTransactions(blockNumber);
+    const block = await jsonRpcProvider_cron.getBlockWithTransactions(blockNumber);
     for (const tx of block.transactions) {
       if (tx.to === null) {
-        const receipt = await jsonRpcProvider.getTransactionReceipt(tx.hash);
+        const receipt = await jsonRpcProvider_cron.getTransactionReceipt(tx.hash);
         const contract_address = receipt.contractAddress;
         let metadataInfo = await getContractMetadata(contract_address);
-        if (typeof metadataInfo === "boolean") {
-          await wait(1);
-          metadataInfo = await getContractMetadata(contract_address);
-        }
         if (typeof metadataInfo === "boolean") return;
         if (!metadataInfo.isERC721) return;
 

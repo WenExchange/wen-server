@@ -37,6 +37,11 @@ module.exports = {
       ? "https://rpc.ankr.com/blast/d347c8e224d87a27991df14f8963b6b858f52617aec0cc0d1278bca0fcb0178c"
       : "https://rpc.ankr.com/blast_testnet_sepolia/d347c8e224d87a27991df14f8963b6b858f52617aec0cc0d1278bca0fcb0178c"
   ),
+  jsonRpcProvider_cron: new ethers.providers.JsonRpcProvider(
+    isProduction
+      ? "https://rpc.ankr.com/blast/73a9b5e44df22487ad7bab31df917958efd0f16bc7d83fcec50a565e1a0c1aee"
+      : "https://rpc.ankr.com/blast_testnet_sepolia/73a9b5e44df22487ad7bab31df917958efd0f16bc7d83fcec50a565e1a0c1aee"
+  ),
   NFT_LOG_TYPE: {
     LOG_TYPE_SALE: "SALE",
     LOG_TYPE_TRANSFER: "TRANSFER",

@@ -26,7 +26,7 @@ const {
 } = NFT_LOG_TYPE;
 
 
-const transferListener = ({log, strapi, tqm}) => {
+const transferListener = async ({log, strapi, tqm}) => {
   try {
   
     const ccm = CollectionCacheManager.getInstance(strapi);
@@ -45,7 +45,7 @@ const transferListener = ({log, strapi, tqm}) => {
           
     // Mint 제외
     if (transferFrom === "0x0000000000000000000000000000000000000000") {
-      createNFTAtMint({ log,strapi }).catch(e => console.error(`createNFTAtMint - error ${e.message}`));
+      await createNFTAtMint({ log,strapi })
     } else {
       tqm.addQueue(log)
     }

@@ -199,9 +199,7 @@ const checkIsValidSellOrderSaleAndGetData = async ({strapi, data}) => {
     const nftData = await strapi.db.query("api::nft.nft").findOne({
       where: {
         token_id: data.token_id,
-        collection: { contract_address: {
-          $eq: data.contract_address
-        } },
+        collection: { contract_address: data.contract_address },
       },
       populate: {
         sell_order: true,
@@ -215,23 +213,42 @@ const checkIsValidSellOrderSaleAndGetData = async ({strapi, data}) => {
     /**
      * 하나의 NFT token id 당 하나의 hash
      */
-    const existedTradeLog = await strapi.db
-    .query("api::nft-trade-log.nft-trade-log")
-    .findOne({
-      where: {
-        tx_hash: data.tx_hash,
-        from: data.from,
-        to: data.to,
-        nft: nftData.id,
-      },
-    });
+     const existedTradeLog = await strapi.db
+     .query("api::nft-trade-log.nft-trade-log")
+     .findOne({
+       populate: {
+         nft: true
+       },
+       where: {
+         $and: [
+           {
+             tx_hash: data.tx_hash
+           },
+           {
+             from: data.from,
+           },
+           {
+             to: data.to,
+           },
+           {
+             nft: {
+               id: nftData.id
+             }
+           },
+         ]
+       },
+     });
 
-    if (existedTradeLog) return  false
+     if (existedTradeLog) {
+      console.log(`[WEN] checkIsValidSellOrderSaleAndGetData - existedTradeLog - ${existedTradeLog}`)
+      return false
+    }
 
 
 
     return {nftData, existedTradeLog}
   } catch (error) {
+    console.error(`[WEN] checkIsValidSellOrderSaleAndGetData - error - ${error.message}`)
     return false
   }
 }
@@ -249,9 +266,7 @@ try {
  const nftData = await strapi.db.query("api::nft.nft").findOne({
    where: {
      token_id: data.token_id,
-     collection: { contract_address: {
-       $eq: data.contract_address
-     } },
+     collection: { contract_address: data.contract_address },
    },
    populate: {
      sell_order: true,
@@ -264,24 +279,43 @@ try {
  /**
   * 하나의 NFT token id 당 하나의 hash
   */
- const existedTradeLog = await strapi.db
- .query("api::nft-trade-log.nft-trade-log")
- .findOne({
-   where: {
-     tx_hash: data.tx_hash,
-     from: data.from,
-     to: data.to,
-     nft: nftData.id,
-   },
- });
+  const existedTradeLog = await strapi.db
+  .query("api::nft-trade-log.nft-trade-log")
+  .findOne({
+    populate: {
+      nft: true
+    },
+    where: {
+      $and: [
+        {
+          tx_hash: data.tx_hash
+        },
+        {
+          from: data.from,
+        },
+        {
+          to: data.to,
+        },
+        {
+          nft: {
+            id: nftData.id
+          }
+        },
+      ]
+    },
+  });
 
- if (existedTradeLog) return  false
+  if (existedTradeLog) {
+    console.log(`[WEN] checkIsValidBuyOrderSaleAndGetData - existedTradeLog - ${existedTradeLog}`)
+    return false
+  }
 
 
 
  return {nftData, existedTradeLog}
 } catch (error) {
- return false
+  console.error(`[WEN] checkIsValidBuyOrderSaleAndGetData - error - ${error.message}`)
+  return false
 }
 }
 

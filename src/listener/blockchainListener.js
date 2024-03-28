@@ -4,6 +4,7 @@ const ExchangeContractABI = require("../web3/abis/ExchangeContractABI.json")
 //TODO: change it to mainnet
 const {
   jsonRpcProvider,
+  jsonRpcProvider_cron,
   NFT_LOG_TYPE,
   CONTRACT_ADDRESSES,
   EVENT_TYPE,
@@ -61,7 +62,7 @@ async function createTransferListener({ strapi }) {
   });
 
 
-  jsonRpcProvider.on("block", async blockNumber => {
+  jsonRpcProvider_cron.on("block", async blockNumber => {
     try {
       await collectionDeployerERC721And1155Listener({strapi, blockNumber})
     } catch (error) {

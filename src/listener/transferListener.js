@@ -40,7 +40,7 @@ const transferListener = async ({log, strapi}) => {
 
     const isValidTokenId = validInteger(bigIntTokenId)
     if (!isValidTokenId) {
-      throw new Error(`Token id is overflow - ${bigIntTokenId.toString()}`)
+      throw new Error(`Token id is overflow - from: ${transferFrom} to: ${transferTo} token_idx: ${bigIntTokenId.toString()}`)
     }
     const tokenId = Number(bigIntTokenId)
 

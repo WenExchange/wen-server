@@ -186,7 +186,7 @@ const elementContractListener = async ({event, strapi}) => {
 }
 
 const checkIsValidSellOrderSaleAndGetData = async ({strapi, data}) => {
-  console.log(`[ELE] ERC721SellOrderFilled - 1. checkIsValidSellOrderSaleAndGetData Start data:${data}`);
+  console.log(`[ELE] ERC721SellOrderFilled - 1. checkIsValidSellOrderSaleAndGetData Start data:\n`,data);
      /** 
          * Validations
          * 1. DB 에 있는 NFT 인지 체크합니다.
@@ -256,7 +256,7 @@ const checkIsValidSellOrderSaleAndGetData = async ({strapi, data}) => {
 }
 
 const checkIsValidBuyOrderSaleAndGetData = async ({strapi, data}) => {
-  console.log(`[ELE] ERC721BuyOrderFilled - 1. checkIsValidBuyOrderSaleAndGetData Start data:${data}`);
+  console.log(`[ELE] ERC721BuyOrderFilled - 1. checkIsValidBuyOrderSaleAndGetData Start data:\n`, data);
   
   /** 
       * Validations
@@ -327,7 +327,7 @@ try {
 }
 
 const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
-  console.log(`[ELE] ERC721SellOrderFilled - 2. sellOrderSaleProcessInElement Start | data:${data}`);
+  console.log(`[ELE] ERC721SellOrderFilled - 2. sellOrderSaleProcessInElement Start`);
   /** 
    * Wen DB 에 존재하는 NFT 임이 가정입니다. (Validation 완료)
    * Sell Order 가 존재하는 상태에서만 이 이벤트가 일어날 수 있습니다. 
@@ -405,7 +405,7 @@ const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
 }
 
 const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
-  console.log(`[ELE] ERC721BuyOrderFilled - 2. buyOrderSaleProcessInElement Start | data:${data}`);
+  console.log(`[ELE] ERC721BuyOrderFilled - 2. buyOrderSaleProcessInElement Start`);
   /** 
    * Wen DB 에 존재하는 NFT 임이 가정입니다. (Validation 완료)
    * 1. [TODO] offer, bid table 의 데이터 지우기

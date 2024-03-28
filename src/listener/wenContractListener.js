@@ -188,7 +188,7 @@ const wenContractListener = async ({event, strapi}) => {
 }
 
 const checkIsValidSellOrderSaleAndGetData = async ({strapi, data}) => {
-  console.log(`[WEN] ERC721SellOrderFilled - 1. checkIsValidSellOrderSaleAndGetData Start data:${data}`);
+  console.log(`[WEN] ERC721SellOrderFilled - 1. checkIsValidSellOrderSaleAndGetData Start data:\n`, data);
      /** 
          * Validations
          * 1. DB 에 있는 NFT 인지 체크합니다.
@@ -326,7 +326,7 @@ try {
 }
 
 const sellOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
-  console.log(`[WEN] ERC721SellOrderFilled - 2. sellOrderSaleProcessInWen Start | data:${data}`);
+  console.log(`[WEN] ERC721SellOrderFilled - 2. sellOrderSaleProcessInWen Start | data:\n`,data);
   /** 
    * Wen DB 에 존재하는 NFT 임이 가정입니다. (Validation 완료)
    * Sell Order 가 존재하는 상태에서만 이 이벤트가 일어날 수 있습니다. 

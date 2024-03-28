@@ -1,6 +1,5 @@
 "use strict";
 require("dotenv").config();
-const {ethers} = require("ethers");
 const {SERVER_TYPE, jsonRpcProvider} = require("./utils/constants")
 const { createTransferListener } = require("./listener/blockchainListener");
 const CollectionCacheManager = require("./cache-managers/CollectionCacheManager");

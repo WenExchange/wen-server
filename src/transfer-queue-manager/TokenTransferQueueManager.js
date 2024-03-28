@@ -1,6 +1,5 @@
-const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
-const {transferListener, checkValidationAndConnectWithDB} = require("../listener/transferListener");
-const { validInteger, wait } = require("../utils/helpers");
+
+const { checkValidationAndConnectWithDB} = require("../listener/transferListener");
 
 let instance = null;
 module.exports = class TokenTransferQueueManager {
@@ -33,10 +32,6 @@ module.exports = class TokenTransferQueueManager {
   }
 
   processQueue = async () => {
-    // for test
-    const ccm = CollectionCacheManager.getInstance(this.strapi);
-    
-    // --- 
     this.isProcessing = true
 
     while (this.LOG_QUEUE.length > 0) {
@@ -45,7 +40,7 @@ module.exports = class TokenTransferQueueManager {
       try {
         await checkValidationAndConnectWithDB({strapi: this.strapi,log })
       } catch (error) {
-        console.error(`transferListener error - ${error}`);
+        console.error(`checkValidationAndConnectWithDB error - ${error}`);
       }
     }
     this.isProcessing = false;

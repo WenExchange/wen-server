@@ -69,14 +69,6 @@ module.exports = {
     }
   },
 
-  update_nft_owner: {
-    task: update_nft_owner,
-    options: {
-      rule: `00 11 * * *`,
-      tz: "Asia/Seoul"
-    }
-  }
-
 
 
 };

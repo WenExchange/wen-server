@@ -4,7 +4,6 @@ const CollectionCacheManager = require("../cache-managers/CollectionCacheManager
 const {stats_1h_collection}  = require("./stat_collelction")
 const {listing_cancel_detector_expiration, listing_cancel_detector_approve} = require("./listing_cancel_detector");
 const { update_ether_price } = require("./update_ether_price");
-const { update_nft_owner } = require("./update_nft_owner");
 module.exports = {
   cacheCollection: {
     task: async ({ strapi }) => {

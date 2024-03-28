@@ -1076,7 +1076,7 @@ export interface ApiNftNft extends Schema.CollectionType {
     token_id: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
     rarity_score: Attribute.Float & Attribute.DefaultTo<0>;
     rarity_rank: Attribute.Integer;
-    owner: Attribute.String;
+    owner: Attribute.String & Attribute.Required;
     top_offer_price: Attribute.Float;
     traits: Attribute.JSON;
     orders: Attribute.Relation<'api::nft.nft', 'oneToMany', 'api::order.order'>;

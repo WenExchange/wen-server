@@ -12,6 +12,7 @@ const {
 const { updateFloorPrice, updateOrdersCount, updateOwnerCount } = require("./collectionStats");
 const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
 const { createNFTAtMint } = require("./listingAtMint");
+const { validInteger } = require("../utils/helpers");
 const {
   LOG_TYPE_SALE,
   LOG_TYPE_TRANSFER,
@@ -35,7 +36,14 @@ const transferListener = async ({log, strapi}) => {
 
     const transferFrom = `0x${log.topics[1].slice(-40)}`;
     const transferTo = `0x${log.topics[2].slice(-40)}`;
-    const tokenId = BigInt(log.topics[3])
+    const bigIntTokenId = BigInt(log.topics[3])
+
+    const isValidTokenId = validInteger(bigIntTokenId)
+    if (!isValidTokenId) {
+      throw new Error(`Token id is overflow - ${bigIntTokenId.toString()}`)
+    }
+    const tokenId = Number(bigIntTokenId)
+
           
     // Mint 제외
     if (transferFrom === "0x0000000000000000000000000000000000000000") {
@@ -63,13 +71,28 @@ const transferListener = async ({log, strapi}) => {
 
     // 1. Get NFT
     const nftData = await strapi.db.query("api::nft.nft").findOne({
-      where: {
-        token_id: tokenId.toString(),
-        collection: { contract_address: log.address },
-      },
       populate: {
         sell_order: true,
+        collection: true
       },
+      where: {
+        $and: [
+          {
+            token_id: {
+              $eq: tokenId
+            }
+          },
+          {
+            collection: { 
+              contract_address: {
+                $eq: log.address
+              } },
+          }
+        ]
+        
+        
+      }
+      
     });
 
     // 1-1. If nft doesn't exist, return
@@ -85,7 +108,7 @@ const transferListener = async ({log, strapi}) => {
       data: {
         owner: transferTo,
       },
-    });
+    }).then(_ => console.log(`transferListener - update owner ${nftData.owner} -> ${transferTo}`));
     await updateOwnerCount({ strapi }, log.address);
 
     await strapi.entityService.create(

@@ -184,12 +184,12 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id }) =
         );
       }
     } catch (error) {
-      console.error(`Create NFT Error - ${error.message}`);
-      dm.logListingNFTError({
-        collection,
-        error,
-        tokenId: token_id
-      }).catch((err) => console.error(err.message));
+      console.error(`Create NFT Error - ${collection.name} - ${token_id} - ${error.message}`);
+      // dm.logListingNFTError({
+      //   collection,
+      //   error,
+      //   tokenId: token_id
+      // }).catch((err) => console.error(err.message));
     }
   } catch (error) {
     console.log(error.message);

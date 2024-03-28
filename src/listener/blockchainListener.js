@@ -26,7 +26,7 @@ async function createTransferListener({ strapi }) {
   const tqm = TokenTransferQueueManager.getInstance(strapi)
   jsonRpcProvider.on(filter, async (log, _) => {
     try {
-      await transferListener({log, strapi, tqm})
+      transferListener({log, strapi, tqm})
     } catch (error) {
       console.error(`transferListener error - ${error}`)
     }

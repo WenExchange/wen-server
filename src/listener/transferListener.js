@@ -26,7 +26,7 @@ const {
 } = NFT_LOG_TYPE;
 
 
-const transferListener = async ({log, strapi, tqm}) => {
+const transferListener = ({log, strapi, tqm}) => {
   try {
   
     const ccm = CollectionCacheManager.getInstance(strapi);
@@ -42,7 +42,6 @@ const transferListener = async ({log, strapi, tqm}) => {
     if (!isValidTokenId) {
       throw new Error(`Token id is overflow - from: ${transferFrom} to: ${transferTo} token_idx: ${bigIntTokenId.toString()}`)
     }
-    const tokenId = Number(bigIntTokenId)
           
     // Mint 제외
     if (transferFrom === "0x0000000000000000000000000000000000000000") {

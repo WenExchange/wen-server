@@ -57,7 +57,7 @@ module.exports = {
   listing_cancel_detector_approve: {
     task: listing_cancel_detector_approve,
     options: {
-      rule: `*/1 * * * *`
+      rule: `*/15 * * * *`
     },
   },
 

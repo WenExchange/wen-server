@@ -6,6 +6,7 @@ const CollectionCacheManager = require("./cache-managers/CollectionCacheManager"
 const dayjs = require("dayjs");
 var utc = require("dayjs/plugin/utc");
 var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
+const { listing_cancel_detector_approve } = require("./cron/listing_cancel_detector");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 module.exports = {
@@ -25,6 +26,8 @@ module.exports = {
           console.error(`createTransferListener error - ${e.message}`)
         });
         const ccm = CollectionCacheManager.getInstance(strapi);
+
+       
       }
     } catch (error) {
       console.log(`bootstrap error - ${error.message}`);

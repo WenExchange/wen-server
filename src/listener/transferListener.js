@@ -68,7 +68,7 @@ const transferListener = async ({log, strapi}) => {
       const exchangeAddresses = Object.keys(CONTRACT_ADDRESSES).map(key => CONTRACT_ADDRESSES[key].toLowerCase())
       const isIncludeWenOrElExchange = exchangeAddresses.includes(tx.to.toLowerCase())
       if (isIncludeWenOrElExchange) {
-        console.log(`transferListener - Buy event filter tx:${tx} \n\n receipt: ${receipt}`);
+        console.log(`transferListener - Buy event filter tx:\n`, tx, "\n\nrecript:\n", receipt);
         return
       } 
     }

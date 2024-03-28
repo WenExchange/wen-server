@@ -320,6 +320,7 @@ try {
 }
 
 const sellOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
+  console.log(`[WEN] sellOrderSaleProcessInWen Start `);
   /** 
    * Wen DB 에 존재하는 NFT 임이 가정입니다. (Validation 완료)
    * Sell Order 가 존재하는 상태에서만 이 이벤트가 일어날 수 있습니다. 
@@ -333,7 +334,9 @@ const sellOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
   // order 지우고 로그 찍어주긔
 
   // TODO : test 끝나고 지우기
+  
   if (nftData.sell_order) {
+    console.log(`[WEN] sellOrderSaleProcessInWen (optional) delete sell order id - ${nftData.sell_order.id} `);
     await strapi.entityService.delete(
       "api::order.order",
       nftData.sell_order.id,
@@ -341,6 +344,7 @@ const sellOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
         populate: { nft: true },
       }
     ).then(deletedOrder => {
+      
       return strapi.entityService.create(
         "api::nft-trade-log.nft-trade-log",
         {
@@ -362,18 +366,20 @@ const sellOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
   }
   
   // update NFT
+  
   await strapi.entityService.update("api::nft.nft", nftData.id, {
   data: {
     last_sale_price: data.price,
     owner: data.to
   },
   }).then(_ => {
-    console.log(`sellOrderSaleProcessInWen - update owner ${nftData.owner} -> ${data.to}`);
+    console.log(`[WEN] sellOrderSaleProcessInWen - 1. nft id: ${nftData.id} updated owner ${nftData.owner} -> ${data.to}`);
   // update owner count after nft owner update
   return updateOwnerCount({ strapi }, data.contract_address)
   }).catch(e => console.error(`sellOrderSaleProcessInWen - update nft - ${e.message}`))
   // SALE log
-  await strapi.entityService.create(
+  
+  const createdLog = await strapi.entityService.create(
   "api::nft-trade-log.nft-trade-log",
   {
     data: {
@@ -388,6 +394,8 @@ const sellOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
     },
   }
   ).catch(e => console.error(e.message))
+  console.log(`[WEN] sellOrderSaleProcessInWen - 2. nft id: ${nftData.id} created SALE log id ${createdLog.id}`);
+
 }
 
 const buyOrderSaleProcessInWen = async ({data, strapi, nftData}) => {

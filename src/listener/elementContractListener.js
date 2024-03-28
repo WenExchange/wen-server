@@ -318,6 +318,7 @@ try {
 }
 
 const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
+  console.log(`[ELE] sellOrderSaleProcessInElement Start data:${data}`);
   /** 
    * Wen DB 에 존재하는 NFT 임이 가정입니다. (Validation 완료)
    * Sell Order 가 존재하는 상태에서만 이 이벤트가 일어날 수 있습니다. 
@@ -330,6 +331,7 @@ const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
    */
   // order 지우고 로그 찍어주긔
   if (nftData.sell_order) {
+    console.log(`[ELE] sellOrderSaleProcessInElement (optional) delete sell order id - ${nftData.sell_order.id} `);
     await strapi.entityService.delete(
       "api::order.order",
       nftData.sell_order.id,
@@ -367,11 +369,13 @@ const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   },
   }).then(_ => {
   // update owner count after nft owner update
+  console.log(`[ELE] sellOrderSaleProcessInElement - 1. nft id: ${nftData.id} updated owner ${nftData.owner} -> ${data.to}`);
+
   return updateOwnerCount({ strapi }, data.contract_address)
   }).catch(e => console.error(e.message))
 
   // SALE log
-  await strapi.entityService.create(
+  const createdLog = await strapi.entityService.create(
   "api::nft-trade-log.nft-trade-log",
   {
     data: {
@@ -386,9 +390,13 @@ const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
     },
   }
   ).catch(e => console.error(e.message));
+
+  console.log(`[ELE] sellOrderSaleProcessInElement - 2. nft id: ${nftData.id} created SALE log id ${createdLog.id}`);
+
 }
 
 const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
+  console.log(`[ELE] buyOrderSaleProcessInElement Start data:${data}`);
   /** 
    * Wen DB 에 존재하는 NFT 임이 가정입니다. (Validation 완료)
    * 1. [TODO] offer, bid table 의 데이터 지우기
@@ -402,6 +410,7 @@ const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   // TODO offer 테이블 지워주기
 
   if (nftData.sell_order) {
+    console.log(`[ELE] buyOrderSaleProcessInElement (optional) delete sell order id - ${nftData.sell_order.id} `);
     await strapi.entityService.delete(
       "api::order.order",
       nftData.sell_order.id,
@@ -439,11 +448,13 @@ const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   },
   }).then(_ => {
   // update owner count after nft owner update
+  console.log(`[ELE] buyOrderSaleProcessInElement - 1. nft id: ${nftData.id} updated owner ${nftData.owner} -> ${data.to}`);
+
   return updateOwnerCount({ strapi }, data.contract_address)
   }).catch(e => console.error(e.message))
 
   // SALE log
-  await strapi.entityService.create(
+  const createdLog = await strapi.entityService.create(
   "api::nft-trade-log.nft-trade-log",
   {
     data: {
@@ -458,6 +469,8 @@ const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
     },
   }
   ).catch(e => console.error(e.message));
+
+  console.log(`[ELE] buyOrderSaleProcessInElement - 2. nft id: ${nftData.id} created SALE log id ${createdLog.id}`);
 }
 
 

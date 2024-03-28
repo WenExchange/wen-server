@@ -18,7 +18,16 @@ const listing_cancel_detector_expiration =  async ({ strapi }) => {
         }
       })
       const willDeletePromise = willDeleteOrders.map(order => {
-        return strapi.entityService.delete("api::order.order", order.id).then(deletedOrder => {
+        return strapi.db.query("api::order.order").delete({
+          where: {
+            id: {
+              $eq: order.id
+            }
+          },
+          populate: {
+            nft: true
+          }
+        }).then(deletedOrder => {
           return strapi.entityService.create("api::nft-trade-log.nft-trade-log",{
             data: {
               ex_type: EX_TYPE.WEN,
@@ -50,6 +59,8 @@ const listing_cancel_detector_expiration =  async ({ strapi }) => {
         }
       })
       const unit = 20
+      console.log(`listing_cancel_detector_approve - start check ${orders.length} orders`);
+      console.log(orders.length);
       for (let i = 0; i < orders.length; i++) {
         const batchOrders = orders.slice(i * unit , (i + 1)*unit)
         await checkIsApprovedForAllAndDelete({strapi, orders: batchOrders})
@@ -70,6 +81,7 @@ const listing_cancel_detector_expiration =  async ({ strapi }) => {
       const collectionContract = new ethers.Contract(order.collection.contract_address, IERC721.abi, jsonRpcProvider_cron)
       return collectionContract.isApprovedForAll(order.maker, CONTRACT_ADDRESSES.WEN_EX).then(isApprovedForAll => {
         if (isApprovedForAll)  return null
+        console.log(`listing_cancel_detector_approve - will delete order id: ${order.id} | ${order.nft.name} `);
         return strapi.entityService.delete("api::order.order", order.id, {
           populate: {
             nft: true

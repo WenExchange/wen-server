@@ -186,6 +186,7 @@ const elementContractListener = async ({event, strapi}) => {
 }
 
 const checkIsValidSellOrderSaleAndGetData = async ({strapi, data}) => {
+  console.log(`[ELE] ERC721SellOrderFilled - 1. checkIsValidSellOrderSaleAndGetData Start data:${data}`);
      /** 
          * Validations
          * 1. DB 에 있는 NFT 인지 체크합니다.
@@ -205,7 +206,10 @@ const checkIsValidSellOrderSaleAndGetData = async ({strapi, data}) => {
       },
     });
 
-    if (!nftData)  return false
+    if (!nftData)  {
+      console.log(`[ELE] ERC721SellOrderFilled - There is no nft data - contract_address: ${data.contract_address} | token_id: ${data.token_id}`);
+      return false
+    }
     // if (!nftData.sell_order) return false
 
     /**
@@ -238,7 +242,7 @@ const checkIsValidSellOrderSaleAndGetData = async ({strapi, data}) => {
      });
 
     if (existedTradeLog) {
-      console.log(`[ELE] checkIsValidSellOrderSaleAndGetData - existedTradeLog - ${existedTradeLog}`)
+      console.log(`[ELE] ERC721SellOrderFilled - existedTradeLog - ${existedTradeLog}`)
       return false
     }
 
@@ -252,6 +256,8 @@ const checkIsValidSellOrderSaleAndGetData = async ({strapi, data}) => {
 }
 
 const checkIsValidBuyOrderSaleAndGetData = async ({strapi, data}) => {
+  console.log(`[ELE] ERC721BuyOrderFilled - 1. checkIsValidBuyOrderSaleAndGetData Start data:${data}`);
+  
   /** 
       * Validations
       * 1. DB 에 있는 NFT 인지 체크합니다.
@@ -272,7 +278,10 @@ try {
    },
  });
 
- if (!nftData)  return false
+ if (!nftData)  {
+  console.log(`[ELE] ERC721BuyOrderFilled - There is no nft data - contract_address: ${data.contract_address} | token_id: ${data.token_id}`);
+  return false
+}
 
  /**
   * 하나의 NFT token id 당 하나의 hash
@@ -304,7 +313,7 @@ try {
   });
 
   if (existedTradeLog) {
-    console.log(`[ELE] checkIsValidBuyOrderSaleAndGetData - existedTradeLog - ${existedTradeLog}`)
+    console.log(`[ELE] ERC721BuyOrderFilled - existedTradeLog - ${existedTradeLog}`)
     return false
   }
 
@@ -318,7 +327,7 @@ try {
 }
 
 const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
-  console.log(`[ELE] sellOrderSaleProcessInElement Start data:${data}`);
+  console.log(`[ELE] ERC721SellOrderFilled - 2. sellOrderSaleProcessInElement Start | data:${data}`);
   /** 
    * Wen DB 에 존재하는 NFT 임이 가정입니다. (Validation 완료)
    * Sell Order 가 존재하는 상태에서만 이 이벤트가 일어날 수 있습니다. 
@@ -331,7 +340,7 @@ const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
    */
   // order 지우고 로그 찍어주긔
   if (nftData.sell_order) {
-    console.log(`[ELE] sellOrderSaleProcessInElement (optional) delete sell order id - ${nftData.sell_order.id} `);
+    console.log(`[ELE] ERC721SellOrderFilled (optional) delete sell order id - ${nftData.sell_order.id} `);
     await strapi.entityService.delete(
       "api::order.order",
       nftData.sell_order.id,
@@ -369,7 +378,7 @@ const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   },
   }).then(_ => {
   // update owner count after nft owner update
-  console.log(`[ELE] sellOrderSaleProcessInElement - 1. nft id: ${nftData.id} updated owner ${nftData.owner} -> ${data.to}`);
+  console.log(`[ELE] ERC721SellOrderFilled - 3. nft id: ${nftData.id} updated owner ${nftData.owner} -> ${data.to}`);
 
   return updateOwnerCount({ strapi }, data.contract_address)
   }).catch(e => console.error(e.message))
@@ -391,12 +400,12 @@ const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   }
   ).catch(e => console.error(e.message));
 
-  console.log(`[ELE] sellOrderSaleProcessInElement - 2. nft id: ${nftData.id} created SALE log id ${createdLog.id}`);
+  console.log(`[ELE] ERC721SellOrderFilled - 4. nft id: ${nftData.id} created SALE log id ${createdLog.id}`);
 
 }
 
 const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
-  console.log(`[ELE] buyOrderSaleProcessInElement Start data:${data}`);
+  console.log(`[ELE] ERC721BuyOrderFilled - 2. buyOrderSaleProcessInElement Start | data:${data}`);
   /** 
    * Wen DB 에 존재하는 NFT 임이 가정입니다. (Validation 완료)
    * 1. [TODO] offer, bid table 의 데이터 지우기
@@ -410,7 +419,7 @@ const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   // TODO offer 테이블 지워주기
 
   if (nftData.sell_order) {
-    console.log(`[ELE] buyOrderSaleProcessInElement (optional) delete sell order id - ${nftData.sell_order.id} `);
+    console.log(`[ELE] ERC721BuyOrderFilled (optional) delete sell order id - ${nftData.sell_order.id} `);
     await strapi.entityService.delete(
       "api::order.order",
       nftData.sell_order.id,
@@ -448,7 +457,7 @@ const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   },
   }).then(_ => {
   // update owner count after nft owner update
-  console.log(`[ELE] buyOrderSaleProcessInElement - 1. nft id: ${nftData.id} updated owner ${nftData.owner} -> ${data.to}`);
+  console.log(`[ELE] ERC721BuyOrderFilled - 3. nft id: ${nftData.id} updated owner ${nftData.owner} -> ${data.to}`);
 
   return updateOwnerCount({ strapi }, data.contract_address)
   }).catch(e => console.error(e.message))
@@ -470,7 +479,7 @@ const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   }
   ).catch(e => console.error(e.message));
 
-  console.log(`[ELE] buyOrderSaleProcessInElement - 2. nft id: ${nftData.id} created SALE log id ${createdLog.id}`);
+  console.log(`[ELE] ERC721BuyOrderFilled - 4. nft id: ${nftData.id} created SALE log id ${createdLog.id}`);
 }
 
 

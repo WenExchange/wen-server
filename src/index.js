@@ -1,6 +1,6 @@
 "use strict";
 require("dotenv").config();
-const { SERVER_TYPE, jsonRpcProvider } = require("./utils/constants");
+const { SERVER_TYPE, jsonRpcProvider, CONTRACT_ADDRESSES } = require("./utils/constants");
 const { createTransferListener } = require("./listener/blockchainListener");
 const CollectionCacheManager = require("./cache-managers/CollectionCacheManager");
 
@@ -11,10 +11,7 @@ const { listingCollectionScript } = require("./utils/listing-script");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-
-
 const { ethers } = require("ethers");
-
 
 
 module.exports = {

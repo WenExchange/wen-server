@@ -6,7 +6,9 @@ const {
   NFT_LOG_TYPE,
   PROTOCOL_FEE,
   EVENT_TYPE,
-  EX_TYPE
+  EX_TYPE,
+  SALE_TYPE,
+  PAYMENT_TOKEN
 } = require("../utils/constants");
 const { decodeData } = require("./listenerhelpers");
 const ERC721Event = require("../web3/abis/ERC721Event.json")
@@ -50,6 +52,8 @@ const elementContractListener = async ({event, strapi}) => {
 
         const data = {
           ex_type:EX_TYPE.ELEMENT,
+          sale_type:SALE_TYPE.SELL,
+          payment_token: PAYMENT_TOKEN.ETH,
           price: ethers.utils.formatEther(price),
           from: maker,
           to: taker,
@@ -92,6 +96,8 @@ const elementContractListener = async ({event, strapi}) => {
          */
         const data = {
           ex_type:EX_TYPE.ELEMENT,
+          sale_type:SALE_TYPE.BUY,
+          payment_token: PAYMENT_TOKEN.WETH,
           price: ethers.utils.formatEther(price),
           from: taker,
           to: maker,
@@ -352,7 +358,7 @@ const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
         "api::nft-trade-log.nft-trade-log",
         {
           data: {
-            ex_type: EX_TYPE.ELEMENT,
+            ex_type: data.ex_type,
             type: LOG_TYPE_AUTO_CANCEL_LISTING,
             from: data.from,
             nft: nftData.id,
@@ -388,7 +394,9 @@ const sellOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   "api::nft-trade-log.nft-trade-log",
   {
     data: {
-      ex_type: EX_TYPE.ELEMENT,
+      ex_type: data.ex_type,
+      sale_type: data.sale_type,
+      payment_token: data.payment_token,
       type: LOG_TYPE_SALE,
       price: data.price,
       from: data.from,
@@ -431,7 +439,7 @@ const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
         "api::nft-trade-log.nft-trade-log",
         {
           data: {
-            ex_type: EX_TYPE.ELEMENT,
+            ex_type: data.ex_type,
             type: LOG_TYPE_AUTO_CANCEL_LISTING,
             from: data.from,
             nft: nftData.id,
@@ -467,7 +475,9 @@ const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   "api::nft-trade-log.nft-trade-log",
   {
     data: {
-      ex_type: EX_TYPE.ELEMENT,
+      ex_type: data.ex_type,
+      sale_type: data.sale_type,
+      payment_token: data.payment_token,
       type: LOG_TYPE_SALE,
       price: data.price,
       from: data.from,

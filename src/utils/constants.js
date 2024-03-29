@@ -31,6 +31,12 @@ module.exports = {
     BUY: "BUY"
   },
 
+  PAYMENT_TOKEN: {
+    ETH: 1,
+    WETH: 2,
+    WENETH: 5
+  },
+
     API_TOKEN: {
         UPLOAD: "a000278940a18a8b20b47439c24e3c7cc9b9d5246dedffa636a398d45b9cd747978ce46bc48099c0224e1739f55f433e3c60ca1425b7c0b4c7bad9f8fdae5c02fdc8782e9ef8e75714563aab7908314763aab85d41b2b789e4769c2231eb2cfa6deca94d0bd5c5068799a3efff5c8bab7af71fb4b1e1f856d7a0c8cb1001e011"
     },

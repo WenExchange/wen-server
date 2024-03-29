@@ -297,6 +297,8 @@ const sellOrderSaleProcessInMintify = async ({data, strapi, nftData}) => {
   {
     data: {
       ex_type: data.ex_type,
+      sale_type: data.sale_type,
+      payment_token: data.payment_token,
       type: LOG_TYPE_SALE,
       price: data.price,
       from: data.from,
@@ -376,6 +378,8 @@ const buyOrderSaleProcessInElement = async ({data, strapi, nftData}) => {
   {
     data: {
       ex_type: data.ex_type,
+      sale_type: data.sale_type,
+      payment_token: data.payment_token,
       type: LOG_TYPE_SALE,
       price: data.price,
       from: data.from,

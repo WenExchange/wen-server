@@ -25,7 +25,7 @@ const updateEarlyUsers = async ({strapi}) => {
         createdAt: "desc"
       },
       offset: 0,
-      limit: 5
+      limit: 25
     })
 
     if (willCheckEarlyUsers.length <= 0) break

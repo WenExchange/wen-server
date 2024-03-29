@@ -1,4 +1,5 @@
-const { NFT_LOG_TYPE, jsonRpcProvider, CONTRACT_ADDRESSES, EX_TYPE, jsonRpcProvider_cron }  = require("../utils/constants") 
+const { NFT_LOG_TYPE, jsonRpcProvider, CONTRACT_ADDRESSES, EX_TYPE, jsonRpcProvider_cron }  = require("../utils/constants")
+const { updateFloorPrice, updateOrdersCount, updateOwnerCount } = require("../listener/collectionStats"); 
 const { ethers }  = require("ethers") 
 
 const dayjs = require("dayjs");
@@ -31,12 +32,16 @@ const listing_cancel_detector_expiration =  async ({ strapi }) => {
           return strapi.entityService.create("api::nft-trade-log.nft-trade-log",{
             data: {
               ex_type: EX_TYPE.WEN,
-              tyle: NFT_LOG_TYPE.LOG_TYPE_AUTO_CANCEL_LISTING,
+              type: NFT_LOG_TYPE.LOG_TYPE_AUTO_CANCEL_LISTING,
               from: deletedOrder.maker,
               nft: deletedOrder.nft.id,
               timestamp: dayjs().unix()
             }
-          } )
+          } ).then(_ => {
+            return  updateFloorPrice({ strapi }, order.collection.contract_address).then(_ => {
+              return updateOrdersCount({ strapi }, order.collection.contract_address)
+            })
+          })
         })
       })
 
@@ -90,14 +95,16 @@ const listing_cancel_detector_expiration =  async ({ strapi }) => {
           return strapi.entityService.create("api::nft-trade-log.nft-trade-log",{
             data: {
               ex_type: EX_TYPE.WEN,
-              tyle: NFT_LOG_TYPE.LOG_TYPE_AUTO_CANCEL_LISTING,
+              type: NFT_LOG_TYPE.LOG_TYPE_AUTO_CANCEL_LISTING,
               from: deletedOrder.maker,
               nft: deletedOrder.nft.id,
               timestamp: dayjs().unix()
-
-
             }
-          } )
+          } ).then(_ => {
+            return  updateFloorPrice({ strapi }, order.collection.contract_address).then(_ => {
+              return updateOrdersCount({ strapi }, order.collection.contract_address)
+            })
+          })
         })
       })
      

@@ -10,67 +10,46 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
     const seconds_1d = seconds_1h * 24
     const unit = 20
 
-    const nfts = await strapi.db.query("api::nft.nft").findMany({
-        populate: {
-            collection: true,
-            sell_order: true
-        },
-        where: {
-            $and: [
-                {
-                    collection: {
-                        publishedAt: {
-                            $notNull: true
-                        }
-                    },
-                    // collection: {
-                    //     contract_address: {
-                    //         $eq: "0x0B71701FC5F7987fCD925b52873946003c8D5D6b"
-                    //     }
-                    // }
-                },
-                // {
-                //     createdAt: {
-                //         $gt: getISOString(dayjs().unix() - seconds_1d)
-                //     }
-                // }
-            ]
-            
-            
-        },
-    })
-
-    console.log(333, "nfts", nfts.length);
-    let resultList = []
-    for (let i = 752; i < nfts.length; i++) {
+    let totalUpdatedCount = 0
+    for (let i = 0; i < 106763; i++) {
         console.log(`${i} start`);
         const start = i * unit
         const end = unit * (i+1)
-        const batchNFTs = nfts.slice(start, end)
+        const batchNFTs =  await strapi.db.query("api::nft.nft").findMany({
+            populate: {
+                collection: true,
+                sell_order: true
+            },
+            where: {
+                $and: [
+                    {
+                        collection: {
+                            publishedAt: {
+                                $notNull: true
+                            }
+                        },
+                    },
+                ]
+            },
+            offset: start,
+            limit: unit
+        })
         try {
-            const _resultList = await updateOwnerOfNFTs({strapi,nfts: batchNFTs})
-            resultList.push(_resultList)
+            const updatedCount = await updateOwnerOfNFTs({strapi,nfts: batchNFTs})
+            totalUpdatedCount += updatedCount
         } catch (error) {
             console.error(`333 error - ${error.message}`)
-        }
-
-
-        if (end >= nfts.length ) {
-            break
         }
         
   
         
     }
 
-    console.log(333, "resultList",resultList);
+    console.log(333, "totalUpdatedCount",totalUpdatedCount);
 }
 
 const updateOwnerOfNFTs = async ({strapi, nfts}) => {
-    
 
-    
-    console.log(`Start owner check`)
     const willUpdateOwnerPromises = nfts.map(nft => {
         const collectionContract = new ethers.Contract(nft.collection.contract_address, IERC721.abi, jsonRpcProvider)
         return collectionContract.ownerOf(nft.token_id).then(realOwner => {
@@ -105,7 +84,7 @@ const updateOwnerOfNFTs = async ({strapi, nfts}) => {
     let result  = await Promise.all(willUpdateOwnerPromises)
     result = result.filter(_ => _ !== null)
     console.log(`${result.length} NFTs are updated to real owner`);
-    return result
+    return result.length
 }
 
 const getNFTsAndAddOwnerOfNFTs = async ({strapi}) => {

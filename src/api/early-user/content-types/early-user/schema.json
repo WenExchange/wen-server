@@ -96,6 +96,10 @@
     "isFinalized": {
       "type": "boolean",
       "default": false
+    },
+    "isValidWallet": {
+      "type": "boolean",
+      "required": false
     }
   }
 }

@@ -956,6 +956,7 @@ export interface ApiEarlyUserEarlyUser extends Schema.CollectionType {
     total_invite_point: Attribute.Integer & Attribute.DefaultTo<0>;
     bridging_point: Attribute.BigInteger & Attribute.DefaultTo<'0'>;
     isFinalized: Attribute.Boolean & Attribute.DefaultTo<false>;
+    isValidWallet: Attribute.Boolean;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

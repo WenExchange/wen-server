@@ -12,6 +12,7 @@ const mm = MoralisManager.getInstance()
 const updateEarlyUsers = async ({strapi}) => {
 
   let count = 0
+
   while (true) {
     
     const willCheckEarlyUsers = await strapi.db.query("api::early-user.early-user").findMany({
@@ -21,13 +22,14 @@ const updateEarlyUsers = async ({strapi}) => {
         }
       },
       orderBy: {
-        createdAt: "asc"
+        createdAt: "desc"
       },
       offset: 0,
-      limit: 20
+      limit: 5
     })
 
     if (willCheckEarlyUsers.length <= 0) break
+
 
     const willUpdatePromises = willCheckEarlyUsers.map(earlyUser => {
       return mm.checkWalletActivity(earlyUser.wallet).then(isValidWallet => {
@@ -49,6 +51,7 @@ const updateEarlyUsers = async ({strapi}) => {
       console.log(`loop count: ${count} - updatedCount: ${updatedCount}`);
     } catch (error) {
       console.log(`loop count ${count} - error`);
+      continue
     }
     
     count += 1

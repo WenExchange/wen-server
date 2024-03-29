@@ -11,13 +11,6 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const {
-  jsonRpcProvider,
-  NFT_LOG_TYPE,
-  CONTRACT_ADDRESSES,
-  EVENT_TYPE,
-  EX_TYPE,
-} = require("./utils/constants");
-const {
   mintifyContractListener,
 } = require("./listener/mintifyContractListener");
 

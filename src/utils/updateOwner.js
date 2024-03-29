@@ -1,4 +1,4 @@
-const {  jsonRpcProvider }  = require("./constants") 
+const {  jsonRpcProvider, jsonRpcProvider_cron }  = require("./constants") 
 const { ethers }  = require("ethers") 
 const IERC721 = require("../api/sdk/controllers/IERC721");
 const { getISOString } = require("./helpers");
@@ -11,7 +11,7 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
     const unit = 20
 
     let totalUpdatedCount = 0
-    for (let i = 0; i < 106763; i++) {
+    for (let i = 0; i < 110000 / 20; i++) {
         console.log(`${i} start`);
         const start = i * unit
         const end = unit * (i+1)
@@ -51,7 +51,7 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
 const updateOwnerOfNFTs = async ({strapi, nfts}) => {
 
     const willUpdateOwnerPromises = nfts.map(nft => {
-        const collectionContract = new ethers.Contract(nft.collection.contract_address, IERC721.abi, jsonRpcProvider)
+        const collectionContract = new ethers.Contract(nft.collection.contract_address, IERC721.abi, jsonRpcProvider_cron)
         return collectionContract.ownerOf(nft.token_id).then(realOwner => {
             try {
                 if (realOwner.toLowerCase() !== nft.owner.toLowerCase()) {

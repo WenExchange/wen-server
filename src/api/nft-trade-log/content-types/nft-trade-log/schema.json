@@ -43,6 +43,14 @@
     },
     "ex_type": {
       "type": "string"
+    },
+    "sale_type": {
+      "type": "string"
+    },
+    "payment_token": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::token.token"
     }
   }
 }

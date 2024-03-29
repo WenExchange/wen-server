@@ -6,7 +6,9 @@ const {
   NFT_LOG_TYPE,
   PROTOCOL_FEE,
   EVENT_TYPE,
-  EX_TYPE
+  EX_TYPE,
+  SALE_TYPE,
+  PAYMENT_TOKEN
 } = require("../utils/constants");
 const { decodeData } = require("./listenerhelpers");
 const ERC721Event = require("../web3/abis/ERC721Event.json")
@@ -51,6 +53,8 @@ const wenContractListener = async ({event, strapi}) => {
 
         const data = {
           ex_type:EX_TYPE.WEN,
+          sale_type:SALE_TYPE.SELL,
+          payment_token: PAYMENT_TOKEN.ETH,
           price: ethers.utils.formatEther(price),
           from: maker,
           to: taker,
@@ -94,6 +98,8 @@ const wenContractListener = async ({event, strapi}) => {
          */
         const data = {
           ex_type:EX_TYPE.WEN,
+          sale_type:SALE_TYPE.BUY,
+          payment_token: PAYMENT_TOKEN.WENETH,
           price: ethers.utils.formatEther(price),
           from: taker,
           to: maker,
@@ -123,6 +129,7 @@ const wenContractListener = async ({event, strapi}) => {
         const nonce = eventData["1"]
 
         const data = {
+          ex_type: EX_TYPE.WEN,
           maker,
           nonce,
           tx_hash: event.transactionHash,
@@ -355,7 +362,7 @@ const sellOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
         "api::nft-trade-log.nft-trade-log",
         {
           data: {
-            ex_type: EX_TYPE.WEN,
+            ex_type: data.ex_type,
             type: LOG_TYPE_AUTO_CANCEL_LISTING,
             from: data.from,
             nft: nftData.id,
@@ -389,7 +396,9 @@ const sellOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
   "api::nft-trade-log.nft-trade-log",
   {
     data: {
-      ex_type: EX_TYPE.WEN,
+      ex_type: data.ex_type,
+      sale_type: data.sale_type,
+      payment_token: data.payment_token,
       type: LOG_TYPE_SALE,
       price: data.price,
       from: data.from,
@@ -430,7 +439,7 @@ const buyOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
         "api::nft-trade-log.nft-trade-log",
         {
           data: {
-            ex_type: EX_TYPE.WEN,
+            ex_type: data.ex_type,
             type: LOG_TYPE_AUTO_CANCEL_LISTING,
             from: data.from,
             nft: nftData.id,
@@ -462,7 +471,9 @@ const buyOrderSaleProcessInWen = async ({data, strapi, nftData}) => {
   "api::nft-trade-log.nft-trade-log",
   {
     data: {
-      ex_type: EX_TYPE.WEN,
+      ex_type: data.ex_type,
+      sale_type: data.sale_type,
+      payment_token: data.payment_token,
       type: LOG_TYPE_SALE,
       price: data.price,
       from: data.from,
@@ -501,12 +512,12 @@ const result = await strapi.db.query("api::order.order").delete({
 if (result && result.id && result.nft) {
   await strapi.entityService.create("api::nft-trade-log.nft-trade-log", {
     data: {
-      ex_type: EX_TYPE.WEN,
+      ex_type: data.ex_type,
       type: LOG_TYPE_CANCEL_LISTING,
       from: data.maker,
       nft: result.nft.id,
       tx_hash: data.tx_hash,
-      timestamp: data.timestamp
+      timestamp: dayjs().unix()
     },
   }).catch(e => console.error(`cancelProcessInWen - create nft-trade-log - ${e.message}`))
   await updateFloorPrice({ strapi }, result.contract_address).then(_ => {

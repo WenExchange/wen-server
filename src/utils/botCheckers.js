@@ -1,9 +1,85 @@
 const { TwitterApi } = require("twitter-api-v2");
 const DiscordManager = require("../discord/DiscordManager");
-
+const MoralisManager = require("../Moralis/MoralisManager")
 const twitterClient = () => {
     return new TwitterApi(process.env.TWITTER_BEARER_TOKEN);
 }
+const dayjs = require("dayjs")
+const { getISOString } = require("./helpers");
+
+
+const mm = MoralisManager.getInstance()
+const updateEarlyUsers = async ({strapi}) => {
+
+  let count = 0
+  while (true) {
+    
+    const willCheckEarlyUsers = await strapi.db.query("api::early-user.early-user").findMany({
+      where: {
+        isValidWallet: {
+          $null: true
+        }
+      },
+      orderBy: {
+        createdAt: "asc"
+      },
+      offset: 0,
+      limit: 20
+    })
+
+    if (willCheckEarlyUsers.length <= 0) break
+
+    const willUpdatePromises = willCheckEarlyUsers.map(earlyUser => {
+      return mm.checkWalletActivity(earlyUser.wallet).then(isValidWallet => {
+        if (isValidWallet === null) return null
+        return strapi.db.query("api::early-user.early-user").update({
+          where: {
+            id: earlyUser.id
+          },
+          data: {
+            isValidWallet
+          }
+        })
+      })
+    })
+
+    try {
+      const results = await Promise.all(willUpdatePromises)
+      const updatedCount = results.filter(_ => _ !== null).length
+      console.log(`loop count: ${count} - updatedCount: ${updatedCount}`);
+    } catch (error) {
+      console.log(`loop count ${count} - error`);
+    }
+    
+    count += 1
+
+    
+
+  }
+  
+
+
+ 
+
+
+}
+
+const updatePastEarlyUsers = async ({strapi}) => {
+
+  const pastEarlyUsers = await strapi.db.query("api::early-user.early-user").updateMany({
+    where: {
+      createdAt: {
+        $lt: getISOString(dayjs("2024-02-23").unix())
+      }
+    },
+    data: {
+      isValidWallet: true
+    }
+  })
+
+
+}
+
 
 
 const getEarlyUsers = async ({strapi,start, limit}) => {
@@ -614,7 +690,10 @@ const findBots = async (strapi, isTwitter = true) => {
     findBots,
     checkOGPass,
     checkOGPassWithWalletList,
-    checkOGPassWithTwitterId
+    checkOGPassWithTwitterId,
+    // checkEarlyUsers
+    updatePastEarlyUsers,
+    updateEarlyUsers
   }
 
 

@@ -64,21 +64,22 @@ const updateEarlyUsers = async ({strapi}) => {
 
 }
 
-// const checkEarlyUsers = async ({strapi}) => {
-//   const mm = MoralisManager.getInstance()
-//   const earluUsers = await getEarlyUsers({strapi, start: 0, limit: 100 })
-  
+const updatePastEarlyUsers = async ({strapi}) => {
 
-//   const checkPromises = earluUsers.map(earlyUser => {
-//     return mm.checkWalletActivity(earlyUser.wallet).then(isValidWallet => {
-//       return isValidWallet
-//     })
-//   })
+  const pastEarlyUsers = await strapi.db.query("api::early-user.early-user").updateMany({
+    where: {
+      createdAt: {
+        $lt: getISOString(dayjs("2024-02-23").unix())
+      }
+    },
+    data: {
+      isValidWallet: true
+    }
+  })
 
-// const results = await Promise.all(checkPromises)
-// const invalidWallets = results.filter(_ => _ !== true)
-// console.log(invalidWallets);
-// }
+
+}
+
 
 
 const getEarlyUsers = async ({strapi,start, limit}) => {
@@ -691,6 +692,7 @@ const findBots = async (strapi, isTwitter = true) => {
     checkOGPassWithWalletList,
     checkOGPassWithTwitterId,
     // checkEarlyUsers
+    updatePastEarlyUsers,
     updateEarlyUsers
   }
 

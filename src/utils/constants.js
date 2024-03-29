@@ -22,7 +22,13 @@ module.exports = {
   },
   EX_TYPE: {
     WEN: "WEN",
-    ELEMENT: "ELEMENT"
+    ELEMENT: "ELEMENT",
+    MINTIFY: "MINTIFY"
+  },
+
+  SALE_TYPE: {
+    SELL: "SELL",
+    BUY: "BUY"
   },
 
     API_TOKEN: {

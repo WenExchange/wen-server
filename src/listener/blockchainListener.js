@@ -1,5 +1,6 @@
 const {ethers} = require("ethers");
 const ExchangeContractABI = require("../web3/abis/ExchangeContractABI.json")
+const SeportABI = require("../web3/abis/Seaport.json");
 const TokenTransferQueueManager = require("../transfer-queue-manager/TokenTransferQueueManager")
 
 //TODO: change it to mainnet
@@ -14,6 +15,9 @@ const {
 const { elementContractListener } = require("./elementContractListener");
 const { wenContractListener } = require("./wenContractListener");
 const { transferListener } = require("./transferListener");
+const {
+  mintifyContractListener,
+} = require("./mintifyContractListener");
 const { collectionDeployerERC721And1155Listener } = require("./collectionDeployerERC721And1155Listener");
 
 async function createTransferListener({ strapi }) {
@@ -31,6 +35,20 @@ async function createTransferListener({ strapi }) {
       console.error(`transferListener error - ${error}`)
     }
     
+  });
+
+  /** Mintify */
+  const mintifyContract = new ethers.Contract(
+    CONTRACT_ADDRESSES.MIN_EX,
+    SeportABI.abi,
+    jsonRpcProvider
+  );
+  mintifyContract.on("*", async event => {
+    try {
+      await mintifyContractListener({ event, strapi });
+    } catch (error) {
+      console.error(`elementContractListener error - ${error}`);
+    }
   });
 
   /** Element Listener */

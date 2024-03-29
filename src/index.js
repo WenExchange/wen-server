@@ -11,13 +11,11 @@ const { listingCollectionScript } = require("./utils/listing-script");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const {
-  mintifyContractListener,
-} = require("./listener/mintifyContractListener");
+
 
 const { ethers } = require("ethers");
 
-const SeportABI = require("./web3/abis/Seaport.json");
+
 
 module.exports = {
   /**
@@ -29,19 +27,6 @@ module.exports = {
   register(/*{ strapi }*/) {},
 
   async bootstrap({ strapi }) {
-    const mintifyContract = new ethers.Contract(
-      "0x00000000000000adc04c56bf30ac9d3c0aaf14dc",
-      SeportABI.abi,
-      jsonRpcProvider
-    );
-    mintifyContract.on("*", async (event) => {
-      try {
-        await mintifyContractListener({ event, strapi });
-      } catch (error) {
-        console.error(`elementContractListener error - ${error}`);
-      }
-    });
-
     try {
       // listingCollectionScript({address: "0xc904e6115f011fC530ea756A673E0c0eD0334680", strapi})
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;

@@ -35,7 +35,7 @@ module.exports = class MoralisManager {
       return result.active_chains[0].first_transaction ? true : false;
     } catch (error) {
       console.log(error.message);
-      return false;
+      return null;
     }
   };
   

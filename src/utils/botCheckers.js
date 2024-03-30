@@ -20,7 +20,7 @@ const checkBotUsers = async ({strapi}) => {
       guests: "desc"
     },
     offset: 0,
-    limit: 1
+    limit: 100
   })
 
   console.log(willCheckEarlyUsers);

@@ -8,7 +8,7 @@ const dayjs = require("dayjs");
 var utc = require("dayjs/plugin/utc");
 var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
 const { listingCollectionScript } = require("./utils/listing-script");
-const { updateEarlyUsers, updatePastEarlyUsers, checkBotUsers } = require("./utils/botCheckers");
+const { updateEarlyUsers, updatePastEarlyUsers, checkBotUsers, checkIsValidTwitterUser } = require("./utils/botCheckers");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -29,7 +29,11 @@ module.exports = {
       // listingCollectionScript({address: "0xc904e6115f011fC530ea756A673E0c0eD0334680", strapi})
       // updateEarlyUsers({strapi})
       // updatePastEarlyUsers({strapi})
-      checkBotUsers({strapi})
+      // checkBotUsers({strapi})
+      // checkIsValidTwitterUser({strapi, user: {
+      //   twitter_id: "1455205839925485571",
+      //   twitter_name: "Airdroop18"
+      // }})
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT
       if (isBOTServer) {
         createTransferListener({ strapi }).catch((e) => {

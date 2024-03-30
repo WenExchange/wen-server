@@ -26,7 +26,7 @@ module.exports = {
   async bootstrap({ strapi }) {
     try {
       // listingCollectionScript({address: "0xc904e6115f011fC530ea756A673E0c0eD0334680", strapi})
-      const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
+      const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT
       if (isBOTServer) {
         createTransferListener({ strapi }).catch((e) => {
           console.error(`createTransferListener error - ${e.message}`);

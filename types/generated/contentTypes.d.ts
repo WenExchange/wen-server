@@ -957,6 +957,9 @@ export interface ApiEarlyUserEarlyUser extends Schema.CollectionType {
     bridging_point: Attribute.BigInteger & Attribute.DefaultTo<'0'>;
     isFinalized: Attribute.Boolean & Attribute.DefaultTo<false>;
     isValidWallet: Attribute.Boolean;
+    isValidDiscord: Attribute.Boolean & Attribute.DefaultTo<true>;
+    isValidTwitter: Attribute.Boolean & Attribute.DefaultTo<true>;
+    is_suspended: Attribute.Boolean & Attribute.DefaultTo<false>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

@@ -1001,6 +1001,11 @@ export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
     username: Attribute.String;
     icon_url: Attribute.String;
     at_last_login: Attribute.DateTime;
+    early_user: Attribute.Relation<
+      'api::exchange-user.exchange-user',
+      'oneToOne',
+      'api::early-user.early-user'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

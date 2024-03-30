@@ -41,6 +41,11 @@
     },
     "at_last_login": {
       "type": "datetime"
+    },
+    "early_user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::early-user.early-user"
     }
   }
 }

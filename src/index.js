@@ -29,7 +29,7 @@ module.exports = {
       // listingCollectionScript({address: "0xc904e6115f011fC530ea756A673E0c0eD0334680", strapi})
       // updateEarlyUsers({strapi})
       // updatePastEarlyUsers({strapi})
-      checkBotUsers({strapi})
+      // checkBotUsers({strapi})
       // checkIsValidTwitterUser({strapi, user: {
       //   twitter_id: "1455205839925485571",
       //   twitter_name: "Airdroop18"

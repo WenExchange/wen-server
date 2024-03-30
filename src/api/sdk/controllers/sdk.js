@@ -68,7 +68,7 @@ module.exports = {
         {
           filters: {
             address: {
-              $eq: maker,
+              $eqi: maker,
             },
           },
         }
@@ -132,7 +132,7 @@ module.exports = {
           {
             filters: {
               contract_address: {
-                $eq: item.contractAddress,
+                $eqi: item.contractAddress,
               },
             },
           }
@@ -176,7 +176,7 @@ module.exports = {
         {
           filters: {
             address: {
-              $eq: data.maker,
+              $eqi: data.maker,
             },
           },
         }
@@ -198,7 +198,7 @@ module.exports = {
             {
               filters: {
                 contract_address: {
-                  $eq: item.nftAddress,
+                  $eqi: item.nftAddress,
                 },
               },
             }
@@ -222,7 +222,7 @@ module.exports = {
             {
               filters: {
                 contract_address: {
-                  $eq: item.nftAddress,
+                  $eqi: item.nftAddress,
                 },
               },
             }
@@ -401,7 +401,7 @@ module.exports = {
         {
           filters: {
             address: {
-              $eq: data.buyer,
+              $eqi: data.buyer,
             },
           },
         }
@@ -423,7 +423,7 @@ module.exports = {
             {
               filters: {
                 contract_address: {
-                  $eq: item.contractAddress,
+                  $eqi: item.contractAddress,
                 },
               },
             }
@@ -668,7 +668,7 @@ module.exports = {
 
     // 1. check if the sender is user
     try {
-      checkIfUserExist(data.buyer.toLowerCase());
+      await checkIfUserExist(data.buyer.toLowerCase());
     } catch (error) {
       ctx.body = {
         code: ERROR_RESPONSE,
@@ -824,7 +824,7 @@ async function checkIfUserExist(userAddress) {
 
   console.log(userAddress);
   if (r == null) {
-    throw Error();
+    throw new Error();
   }
 }
 

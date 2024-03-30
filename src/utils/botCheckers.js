@@ -7,6 +7,77 @@ const twitterClient = () => {
 const dayjs = require("dayjs")
 const { getISOString } = require("./helpers");
 
+const checkBotUsers = async ({strapi}) => {
+
+  let count = 0
+
+  const willCheckEarlyUsers = await strapi.db.query("api::early-user.early-user").findMany({
+    orderBy: {
+      guests: "desc"
+    },
+    offset: 0,
+    limit: 10
+  })
+
+  console.log(willCheckEarlyUsers);
+
+
+  return 
+
+  while (true) {
+    
+    const willCheckEarlyUsers = await strapi.db.query("api::early-user.early-user").findMany({
+      where: {
+        isValidWallet: {
+          $null: true
+        }
+      },
+      orderBy: {
+        createdAt: "desc"
+      },
+      offset: 0,
+      limit: 25
+    })
+
+    if (willCheckEarlyUsers.length <= 0) break
+
+
+    const willUpdatePromises = willCheckEarlyUsers.map(earlyUser => {
+      return mm.checkWalletActivity(earlyUser.wallet).then(isValidWallet => {
+        if (isValidWallet === null) return null
+        return strapi.db.query("api::early-user.early-user").update({
+          where: {
+            id: earlyUser.id
+          },
+          data: {
+            isValidWallet
+          }
+        })
+      })
+    })
+
+    try {
+      const results = await Promise.all(willUpdatePromises)
+      const updatedCount = results.filter(_ => _ !== null).length
+      console.log(`loop count: ${count} - updatedCount: ${updatedCount}`);
+    } catch (error) {
+      console.log(`loop count ${count} - error`);
+      continue
+    }
+    
+    count += 1
+
+    
+
+  }
+  
+
+
+ 
+
+
+}
+
 
 const mm = MoralisManager.getInstance()
 const updateEarlyUsers = async ({strapi}) => {
@@ -696,7 +767,8 @@ const findBots = async (strapi, isTwitter = true) => {
     checkOGPassWithTwitterId,
     // checkEarlyUsers
     updatePastEarlyUsers,
-    updateEarlyUsers
+    updateEarlyUsers,
+    checkBotUsers
   }
 
 

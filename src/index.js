@@ -1,15 +1,20 @@
 "use strict";
 require("dotenv").config();
-const {SERVER_TYPE, jsonRpcProvider} = require("./utils/constants")
+const { SERVER_TYPE, jsonRpcProvider, CONTRACT_ADDRESSES } = require("./utils/constants");
 const { createTransferListener } = require("./listener/blockchainListener");
 const CollectionCacheManager = require("./cache-managers/CollectionCacheManager");
+
 const dayjs = require("dayjs");
 var utc = require("dayjs/plugin/utc");
 var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
 const { listingCollectionScript } = require("./utils/listing-script");
-const { updateEarlyUsers, updatePastEarlyUsers } = require("./utils/botCheckers");
+const { updateEarlyUsers, updatePastEarlyUsers, checkBotUsers } = require("./utils/botCheckers");
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+const { ethers } = require("ethers");
+
+
 module.exports = {
   /**
    * An asynchronous register function that runs before
@@ -22,16 +27,15 @@ module.exports = {
   async bootstrap({ strapi }) {
     try {
       // listingCollectionScript({address: "0xc904e6115f011fC530ea756A673E0c0eD0334680", strapi})
-      updateEarlyUsers({strapi})
+      // updateEarlyUsers({strapi})
       // updatePastEarlyUsers({strapi})
+      checkBotUsers({strapi})
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT
       if (isBOTServer) {
-        createTransferListener({ strapi }).catch(e => { 
-          console.error(`createTransferListener error - ${e.message}`)
+        createTransferListener({ strapi }).catch((e) => {
+          console.error(`createTransferListener error - ${e.message}`);
         });
         const ccm = CollectionCacheManager.getInstance(strapi);
-
-       
       }
     } catch (error) {
       console.log(`bootstrap error - ${error.message}`);

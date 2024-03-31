@@ -1,0 +1,40 @@
+{
+  "kind": "collectionType",
+  "collectionName": "airdrop_history_logs",
+  "info": {
+    "singularName": "airdrop-history-log",
+    "pluralName": "airdrop-history-logs",
+    "displayName": "Airdrop History Log",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "type": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "biginteger"
+    },
+    "nft_trade_log": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::nft-trade-log.nft-trade-log"
+    },
+    "pre_point": {
+      "type": "float",
+      "default": 0
+    },
+    "airdrop_point": {
+      "type": "float",
+      "default": 0
+    },
+    "exchange_user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::exchange-user.exchange-user"
+    }
+  }
+}

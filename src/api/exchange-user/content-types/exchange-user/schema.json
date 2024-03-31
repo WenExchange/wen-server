@@ -46,6 +46,10 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::early-user.early-user"
+    },
+    "total_airdrop_point": {
+      "type": "float",
+      "default": 0
     }
   }
 }

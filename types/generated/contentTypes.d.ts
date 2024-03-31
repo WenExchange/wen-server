@@ -781,6 +781,88 @@ export interface PluginI18NLocale extends Schema.CollectionType {
   };
 }
 
+export interface ApiAirdropHistoryLogAirdropHistoryLog
+  extends Schema.CollectionType {
+  collectionName: 'airdrop_history_logs';
+  info: {
+    singularName: 'airdrop-history-log';
+    pluralName: 'airdrop-history-logs';
+    displayName: 'Airdrop History Log';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    type: Attribute.String;
+    timestamp: Attribute.BigInteger;
+    nft_trade_log: Attribute.Relation<
+      'api::airdrop-history-log.airdrop-history-log',
+      'oneToOne',
+      'api::nft-trade-log.nft-trade-log'
+    >;
+    pre_point: Attribute.Float & Attribute.DefaultTo<0>;
+    airdrop_point: Attribute.Float & Attribute.DefaultTo<0>;
+    exchange_user: Attribute.Relation<
+      'api::airdrop-history-log.airdrop-history-log',
+      'oneToOne',
+      'api::exchange-user.exchange-user'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::airdrop-history-log.airdrop-history-log',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::airdrop-history-log.airdrop-history-log',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiAirdropStatLogAirdropStatLog extends Schema.CollectionType {
+  collectionName: 'airdrop_stat_logs';
+  info: {
+    singularName: 'airdrop-stat-log';
+    pluralName: 'airdrop-stat-logs';
+    displayName: 'Airdrop Stat Log';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    exchange_user: Attribute.Relation<
+      'api::airdrop-stat-log.airdrop-stat-log',
+      'oneToOne',
+      'api::exchange-user.exchange-user'
+    >;
+    sale_point_24h: Attribute.Float & Attribute.DefaultTo<0>;
+    listing_point_24h: Attribute.Float & Attribute.DefaultTo<0>;
+    biding_point_24h: Attribute.Float & Attribute.DefaultTo<0>;
+    timestamp: Attribute.BigInteger;
+    bonus_point_24h: Attribute.Float & Attribute.DefaultTo<0>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::airdrop-stat-log.airdrop-stat-log',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::airdrop-stat-log.airdrop-stat-log',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiCoinPriceCoinPrice extends Schema.CollectionType {
   collectionName: 'coin_prices';
   info: {
@@ -960,6 +1042,9 @@ export interface ApiEarlyUserEarlyUser extends Schema.CollectionType {
     isValidDiscord: Attribute.Boolean & Attribute.DefaultTo<true>;
     isValidTwitter: Attribute.Boolean & Attribute.DefaultTo<true>;
     is_suspended: Attribute.Boolean & Attribute.DefaultTo<false>;
+    blur_point: Attribute.Float & Attribute.DefaultTo<0>;
+    is_og: Attribute.Boolean & Attribute.DefaultTo<false>;
+    pre_token: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1006,6 +1091,7 @@ export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
       'oneToOne',
       'api::early-user.early-user'
     >;
+    total_airdrop_point: Attribute.Float & Attribute.DefaultTo<0>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1305,6 +1391,8 @@ declare module '@strapi/types' {
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
       'plugin::i18n.locale': PluginI18NLocale;
+      'api::airdrop-history-log.airdrop-history-log': ApiAirdropHistoryLogAirdropHistoryLog;
+      'api::airdrop-stat-log.airdrop-stat-log': ApiAirdropStatLogAirdropStatLog;
       'api::coin-price.coin-price': ApiCoinPriceCoinPrice;
       'api::collection.collection': ApiCollectionCollection;
       'api::collection-stat-log.collection-stat-log': ApiCollectionStatLogCollectionStatLog;

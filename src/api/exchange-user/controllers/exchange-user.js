@@ -355,20 +355,24 @@ const isoString = dayjs(currentTimestamp).toISOString();
                   }
 
 
-                //   strapi.db.query('api::early-user.early-user').count({
-                //     where: { 
-                //         pre_token: 
-                //     } 
-                //   });
+                  const count = strapi.db.query('api::early-user.early-user').count({
+                    where: { 
+                        pre_token: {
+                            $gt: earlyUser.pre_token
+                        }
+                        
+                        
+                    } 
+                  });
                 
 
                 
                 
                   
-                //   return ctx.body = {
-                //     success: true,
-                //     user
-                // }  
+                  return ctx.body = {
+                    success: true,
+                    count
+                }  
 
             } catch (error) {
                 console.error(error.message)

@@ -14,5 +14,11 @@ module.exports = {
         path: '/exchange-user/bridge',
         handler: 'exchange-user.earlyAccessBridge',
       },
+
+      { // Path defined with an URL parameter
+        method: 'GET',
+        path: '/exchange-user/rank',
+        handler: 'exchange-user.getEarlyAccessRank',
+      },
     ]
   }

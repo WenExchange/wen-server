@@ -1,0 +1,24 @@
+{
+  "kind": "collectionType",
+  "collectionName": "wen_trade_pool_stats",
+  "info": {
+    "singularName": "wen-trade-pool-stat",
+    "pluralName": "wen-trade-pool-stats",
+    "displayName": "WenTradePoolStat"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "timestamp": {
+      "type": "biginteger"
+    },
+    "pool_balance": {
+      "type": "float"
+    },
+    "yield_in_eth": {
+      "type": "float"
+    }
+  }
+}

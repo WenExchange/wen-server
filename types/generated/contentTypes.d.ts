@@ -1044,7 +1044,7 @@ export interface ApiEarlyUserEarlyUser extends Schema.CollectionType {
     is_suspended: Attribute.Boolean & Attribute.DefaultTo<false>;
     blur_point: Attribute.Float & Attribute.DefaultTo<0>;
     is_og: Attribute.Boolean & Attribute.DefaultTo<false>;
-    pre_token: Attribute.String;
+    pre_token: Attribute.BigInteger & Attribute.DefaultTo<'0'>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

@@ -337,5 +337,46 @@ const isoString = dayjs(currentTimestamp).toISOString();
            
 
         
+    },
+
+    async getEarlyAccessRank(ctx) {
+        {
+            try {
+                const { early_user_id } = ctx.request.query;
+
+                  const earlyUser = await strapi.db.query('api::early-user.early-user').findOne({
+                    where: { 
+                        id: early_user_id
+                    } 
+                  });
+
+                  if (!earlyUser) {
+                    throw new Error("Not found early user")
+                  }
+
+
+                //   strapi.db.query('api::early-user.early-user').count({
+                //     where: { 
+                //         pre_token: 
+                //     } 
+                //   });
+                
+
+                
+                
+                  
+                //   return ctx.body = {
+                //     success: true,
+                //     user
+                // }  
+
+            } catch (error) {
+                console.error(error.message)
+            }
+        }
+           
+
+        
     }
+
   }) );

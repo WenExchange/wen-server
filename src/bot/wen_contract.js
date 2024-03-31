@@ -400,8 +400,4 @@ function toEther(num) {
   return parseFloat(web3.utils.fromWei(num, "ether")).toFixed(5);
 }
 
-async function test() {
-  console.log(await claimAllBlastYieldFromWenTradePool());
-}
-test();
 module.exports = {};

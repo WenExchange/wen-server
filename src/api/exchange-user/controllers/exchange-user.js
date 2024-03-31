@@ -94,11 +94,6 @@ const isoString = dayjs(currentTimestamp).toISOString();
                     message
                   } = ctx.request.body.data;
                   const recoveredAddress = ethers.utils.verifyMessage(message, signature);
-
-                  console.log(signature,
-                    address,
-                    message);
-    
       
                   if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
                       return ctx.body = {
@@ -107,14 +102,11 @@ const isoString = dayjs(currentTimestamp).toISOString();
                       }
                   }
 
-
                   let user = await strapi.db.query('api::exchange-user.exchange-user').findOne({
-                
                     where: { address  },
                     populate: {
                         "early_user": true
                     }
-           
                   });
 
                   if (!user) {
@@ -297,8 +289,6 @@ const isoString = dayjs(currentTimestamp).toISOString();
                          }); 
                       }
                       
-                      
-                    
                       let total_airdrop_point = user.total_airdrop_point && !Number.isNaN(user.total_airdrop_point) ? Number(user.total_airdrop_point) + airdrop_point : airdrop_point
                     user = await strapi.db.query('api::exchange-user.exchange-user').update({
                         where: { 
@@ -315,17 +305,11 @@ const isoString = dayjs(currentTimestamp).toISOString();
                          }
                
                       }); 
-
-
                 }
-
-                
-                
-                  
-                  return ctx.body = {
+                return ctx.body = {
                     success: true,
                     user
-                }  
+                  }  
 
             } catch (error) {
                 console.error(error.message)

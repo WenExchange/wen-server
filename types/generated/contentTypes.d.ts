@@ -940,7 +940,7 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     volume_total: Attribute.Float & Attribute.DefaultTo<0>;
     floor_price: Attribute.Float & Attribute.DefaultTo<0>;
     sale_24h: Attribute.Integer & Attribute.DefaultTo<0>;
-    boost_point: Attribute.Integer & Attribute.DefaultTo<0>;
+    airdrop_multiplier: Attribute.Decimal & Attribute.DefaultTo<1>;
     change_7d: Attribute.Float;
     creator_address: Attribute.String;
     createdAt: Attribute.DateTime;
@@ -1044,7 +1044,7 @@ export interface ApiEarlyUserEarlyUser extends Schema.CollectionType {
     is_suspended: Attribute.Boolean & Attribute.DefaultTo<false>;
     blur_point: Attribute.Float & Attribute.DefaultTo<0>;
     is_og: Attribute.Boolean & Attribute.DefaultTo<false>;
-    pre_token: Attribute.Float;
+    pre_token: Attribute.Float & Attribute.DefaultTo<0>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

@@ -78,5 +78,74 @@ const isoString = dayjs(currentTimestamp).toISOString();
            
 
         
+    },
+
+    async earlyAccessBridge(ctx) {
+        {
+            try {
+                const {
+                    signature,
+                    address,
+                    message
+                  } = ctx.request.body.data;
+                  const recoveredAddress = ethers.utils.verifyMessage(message, signature);
+    
+      
+                  if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
+                      return ctx.body = {
+                          success: false,
+                          message: "Signature verification failed."
+                      }
+                  }
+
+                  let user = await strapi.db.query('api::exchange-user.exchange-user').findOne({
+                
+                    where: { address  },
+           
+                  });
+
+                  if (!user) {
+                    return ctx.body = {
+                        success: false,
+                        message: "Connect the wallet first"
+                    }
+                  }
+
+                  const earlyUser = await strapi.db.query('api::early-user.early-user').findOne({
+                    where: { wallet: address },
+                  });
+
+                  if (!earlyUser) {
+                    return ctx.body = {
+                        success: false,
+                        message: "You are not an early access user"
+                    }
+                  }
+
+                //   user
+                if (!user["early-user"])
+                user = await strapi.db.query('api::exchange-user.exchange-user').update({
+                    where: { 
+                        id: user.id
+                     },
+
+                     data: {
+                        "early-user": earlyUser.id
+                     }
+           
+                  }); 
+                  
+                  return ctx.body = {
+                    success: true,
+                    user
+                }  
+
+            } catch (error) {
+                console.error(error.message)
+            }
+        }
+           
+
+        
     }
   }) );

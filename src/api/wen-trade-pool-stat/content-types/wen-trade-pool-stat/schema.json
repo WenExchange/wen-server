@@ -4,10 +4,11 @@
   "info": {
     "singularName": "wen-trade-pool-stat",
     "pluralName": "wen-trade-pool-stats",
-    "displayName": "WenTradePoolStat"
+    "displayName": "WenTradePoolStat",
+    "description": ""
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
@@ -19,6 +20,9 @@
     },
     "yield_in_eth": {
       "type": "float"
+    },
+    "error_log": {
+      "type": "text"
     }
   }
 }

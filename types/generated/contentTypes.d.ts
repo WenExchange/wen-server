@@ -1382,7 +1382,7 @@ export interface ApiWenOgPassStatWenOgPassStat extends Schema.CollectionType {
     description: '';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     total_staked: Attribute.BigInteger;
@@ -1394,7 +1394,6 @@ export interface ApiWenOgPassStatWenOgPassStat extends Schema.CollectionType {
     eth_to_team_wallet: Attribute.Float;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
       'api::wen-og-pass-stat.wen-og-pass-stat',
       'oneToOne',
@@ -1417,17 +1416,18 @@ export interface ApiWenTradePoolStatWenTradePoolStat
     singularName: 'wen-trade-pool-stat';
     pluralName: 'wen-trade-pool-stats';
     displayName: 'WenTradePoolStat';
+    description: '';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     timestamp: Attribute.BigInteger;
     pool_balance: Attribute.Float;
     yield_in_eth: Attribute.Float;
+    error_log: Attribute.Text;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
       'api::wen-trade-pool-stat.wen-trade-pool-stat',
       'oneToOne',

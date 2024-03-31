@@ -5,7 +5,11 @@ const {
   listing_cancel_detector_approve,
 } = require("./listing_cancel_detector");
 const { update_ether_price } = require("./update_ether_price");
-const { stats_24h_og_staking } = require("./stats_24h_og_staking");
+const {
+  claimAllBlastYieldFromWenTradePool,
+  protocolFeeReceiverJob,
+} = require("./stats_24h_contract");
+
 module.exports = {
   cacheCollection: {
     task: async ({ strapi }) => {
@@ -63,10 +67,18 @@ module.exports = {
     },
   },
 
-  stats_24h_og_staking: {
-    task: stats_24h_og_staking,
+  protocolFeeReceiverJob: {
+    task: protocolFeeReceiverJob,
     options: {
-      rule: `00 00 * * *`,
+      rule: `0 22 * * *`,
+      tz: "Asia/Seoul",
+    },
+  },
+
+  claimAllBlastYieldFromWenTradePool: {
+    task: claimAllBlastYieldFromWenTradePool,
+    options: {
+      rule: `0 23 * * *`,
       tz: "Asia/Seoul",
     },
   },

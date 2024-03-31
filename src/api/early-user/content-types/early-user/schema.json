@@ -122,7 +122,8 @@
       "default": false
     },
     "pre_token": {
-      "type": "string"
+      "type": "biginteger",
+      "default": "0"
     }
   }
 }

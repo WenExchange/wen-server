@@ -290,7 +290,6 @@ const isoString = dayjs(currentTimestamp).toISOString();
                       }); 
 
                       const airdrop_point = total_pre_token * 0.02465493614
-                      console.log(333, `airdrop_point: ${airdrop_point} | pre_token: ${pre_token} | boost: ${boost} | total_pre_token: ${total_pre_token}`);
 
                       const airdropHistoryLog = await strapi.db.query('api::airdrop-history-log.airdrop-history-log').create({
                          data: {
@@ -303,13 +302,14 @@ const isoString = dayjs(currentTimestamp).toISOString();
                       }); 
                       
                     
+                      let total_airdrop_point = user.total_airdrop_point && !Number.isNaN(user.total_airdrop_point) ? Number(user.total_airdrop_point) + airdrop_point : airdrop_point
                     user = await strapi.db.query('api::exchange-user.exchange-user').update({
                         where: { 
                             id: user.id
                          },
                          data: {
                             early_user: earlyUser.id,
-                            airdrop_point
+                            total_airdrop_point
                             
                             
                          },

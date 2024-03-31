@@ -1373,6 +1373,76 @@ export interface ApiTokenToken extends Schema.CollectionType {
   };
 }
 
+export interface ApiWenOgPassStatWenOgPassStat extends Schema.CollectionType {
+  collectionName: 'wen_og_pass_stats';
+  info: {
+    singularName: 'wen-og-pass-stat';
+    pluralName: 'wen-og-pass-stats';
+    displayName: 'WenOgPassStat';
+    description: '';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    total_staked: Attribute.BigInteger;
+    yield_in_weneth: Attribute.Float;
+    yield_in_eth: Attribute.Float;
+    floor_price: Attribute.Float;
+    timestamp: Attribute.BigInteger;
+    error_log: Attribute.Text;
+    eth_to_team_wallet: Attribute.Float;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::wen-og-pass-stat.wen-og-pass-stat',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::wen-og-pass-stat.wen-og-pass-stat',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiWenTradePoolStatWenTradePoolStat
+  extends Schema.CollectionType {
+  collectionName: 'wen_trade_pool_stats';
+  info: {
+    singularName: 'wen-trade-pool-stat';
+    pluralName: 'wen-trade-pool-stats';
+    displayName: 'WenTradePoolStat';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    timestamp: Attribute.BigInteger;
+    pool_balance: Attribute.Float;
+    yield_in_eth: Attribute.Float;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::wen-trade-pool-stat.wen-trade-pool-stat',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::wen-trade-pool-stat.wen-trade-pool-stat',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 declare module '@strapi/types' {
   export module Shared {
     export interface ContentTypes {
@@ -1404,6 +1474,8 @@ declare module '@strapi/types' {
       'api::order.order': ApiOrderOrder;
       'api::request-log.request-log': ApiRequestLogRequestLog;
       'api::token.token': ApiTokenToken;
+      'api::wen-og-pass-stat.wen-og-pass-stat': ApiWenOgPassStatWenOgPassStat;
+      'api::wen-trade-pool-stat.wen-trade-pool-stat': ApiWenTradePoolStatWenTradePoolStat;
     }
   }
 }

@@ -32,6 +32,9 @@ module.exports = createCoreController('api::exchange-user.exchange-user',({ stra
                   let user = await strapi.db.query('api::exchange-user.exchange-user').findOne({
                 
                     where: { address, signature  },
+                    populate: {
+                        early_user: true
+                    }
            
                   });
 
@@ -97,12 +100,12 @@ const isoString = dayjs(currentTimestamp).toISOString();
                     message);
     
       
-                //   if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
-                //       return ctx.body = {
-                //           success: false,
-                //           message: "Signature verification failed."
-                //       }
-                //   }
+                  if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
+                      return ctx.body = {
+                          success: false,
+                          message: "Signature verification failed."
+                      }
+                  }
 
 
                   let user = await strapi.db.query('api::exchange-user.exchange-user').findOne({
@@ -210,7 +213,7 @@ const isoString = dayjs(currentTimestamp).toISOString();
                             blur_point = 0
                           }
 
-                          console.log(333, "blur_point",blur_point);
+                
                       } catch (error) {
                         console.error(error.message)
                         return ctx.body = {
@@ -229,52 +232,40 @@ const isoString = dayjs(currentTimestamp).toISOString();
                     // 초대해서 들어온 사람
                     if(earlyUser.ref_code) {
                         boost += 15
-                        console.log(333, `ref_code: ${earlyUser.ref_code} | pre_token: ${pre_token} | boost: ${boost} `);
                     }
-
-                    console.log(333, `types - pretoken ${typeof pre_token },`);
 
                     // 초대코드
                     if (earlyUser.total_invite_point && !Number.isNaN(earlyUser.total_invite_point)) {
                        
                         pre_token += Number(earlyUser.total_invite_point)
-                        console.log(333, `types - ${typeof pre_token }, ${typeof earlyUser.total_invite_point}`);
-                        console.log(333, `total_invite_point: ${earlyUser.total_invite_point} | pre_token: ${pre_token} | boost: ${boost} `);
                     }
                     if (earlyUser.guests) {
                         const guestBoost = earlyUser.guests >= 10 ? 10 * 15 : 15 * earlyUser.guests
                         boost += guestBoost
-                        console.log(333, `earlyUser.guests: ${earlyUser.guests} | pre_token: ${pre_token} | boost: ${boost} `);
                     }
 
                     // bridging
                     if (earlyUser.bridging_point && !Number.isNaN(earlyUser.bridging_point)) {
                         pre_token += Number(earlyUser.bridging_point)
-                        console.log(333, `earlyUser.bridging_point: ${earlyUser.bridging_point} | pre_token: ${pre_token} | boost: ${boost} `);
                     }
 
                     // blur point
                     if (blur_point > 0) {
                         pre_token += blur_point * 7
-                        console.log(333, `blur_point: ${blur_point} | pre_token: ${pre_token} | boost: ${boost} `);
                     }
 
 
                     // community incentive
                     if (earlyUser.community_incentive && !Number.isNaN(earlyUser.community_incentive)){
                         pre_token += Number(earlyUser.community_incentive)
-                        console.log(333, `earlyUser.community_incentive: ${earlyUser.community_incentive} | pre_token: ${pre_token} | boost: ${boost} `);
 
                     }
 
                     // ogpass
                     if (is_og) {
                         boost += 150
-                        console.log(333, `is_og: ${is_og} | pre_token: ${pre_token} | boost: ${boost} `);
                     }
-
                     const total_pre_token = pre_token * (1 + boost / 100)
-                    console.log(333, `total_pre_token: ${total_pre_token} | pre_token: ${pre_token} | boost: ${boost} `);
 
                     await strapi.db.query('api::early-user.early-user').update({
                         where: { 
@@ -289,17 +280,23 @@ const isoString = dayjs(currentTimestamp).toISOString();
                
                       }); 
 
-                      const airdrop_point = total_pre_token * 0.02465493614
+                      let airdrop_point = total_pre_token * 0.02465493614
+                      if (earlyUser.is_suspended) airdrop_point = 0
 
-                      const airdropHistoryLog = await strapi.db.query('api::airdrop-history-log.airdrop-history-log').create({
-                         data: {
-                            "exchange_user": user.id,
-                            type: "EARLY_ACCESS",
-                            timestamp: dayjs().unix(),
-                            airdrop_point,
-                         }
-               
-                      }); 
+                      
+
+                      if (!earlyUser.is_suspended) {
+                        const airdropHistoryLog = await strapi.db.query('api::airdrop-history-log.airdrop-history-log').create({
+                            data: {
+                               "exchange_user": user.id,
+                               type: "EARLY_ACCESS",
+                               timestamp: dayjs().unix(),
+                               airdrop_point,
+                            }
+                  
+                         }); 
+                      }
+                      
                       
                     
                       let total_airdrop_point = user.total_airdrop_point && !Number.isNaN(user.total_airdrop_point) ? Number(user.total_airdrop_point) + airdrop_point : airdrop_point
@@ -355,7 +352,7 @@ const isoString = dayjs(currentTimestamp).toISOString();
                   }
 
 
-                  const count = strapi.db.query('api::early-user.early-user').count({
+                  const count = await strapi.db.query('api::early-user.early-user').count({
                     where: { 
                         pre_token: {
                             $gt: earlyUser.pre_token
@@ -363,12 +360,7 @@ const isoString = dayjs(currentTimestamp).toISOString();
                         
                         
                     } 
-                  });
-                
-
-                
-                
-                  
+                  }); 
                   return ctx.body = {
                     success: true,
                     count

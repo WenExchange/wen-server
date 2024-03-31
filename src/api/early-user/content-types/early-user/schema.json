@@ -122,7 +122,8 @@
       "default": false
     },
     "pre_token": {
-      "type": "float"
+      "type": "float",
+      "default": 0
     }
   }
 }

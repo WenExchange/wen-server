@@ -781,6 +781,41 @@ export interface PluginI18NLocale extends Schema.CollectionType {
   };
 }
 
+export interface ApiAirdropDistributionStatAirdropDistributionStat
+  extends Schema.CollectionType {
+  collectionName: 'airdrop_distribution_stats';
+  info: {
+    singularName: 'airdrop-distribution-stat';
+    pluralName: 'airdrop-distribution-stats';
+    displayName: 'Airdrop Distribution Stat';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    timestamp: Attribute.BigInteger;
+    snapshot_id: Attribute.BigInteger;
+    distributed_listing_point: Attribute.BigInteger;
+    distributed_bidding_point: Attribute.BigInteger;
+    distributed_sale_point: Attribute.BigInteger;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::airdrop-distribution-stat.airdrop-distribution-stat',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::airdrop-distribution-stat.airdrop-distribution-stat',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiAirdropHistoryLogAirdropHistoryLog
   extends Schema.CollectionType {
   collectionName: 'airdrop_history_logs';
@@ -814,6 +849,7 @@ export interface ApiAirdropHistoryLogAirdropHistoryLog
     nft_address: Attribute.String;
     is_cancelled: Attribute.Boolean & Attribute.DefaultTo<false>;
     is_distributed: Attribute.Boolean & Attribute.DefaultTo<false>;
+    snapshot_id: Attribute.BigInteger;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1098,6 +1134,7 @@ export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
       'api::early-user.early-user'
     >;
     total_airdrop_point: Attribute.Float & Attribute.DefaultTo<0>;
+    airdrop_multiplier: Attribute.Float;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1467,6 +1504,7 @@ declare module '@strapi/types' {
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
       'plugin::i18n.locale': PluginI18NLocale;
+      'api::airdrop-distribution-stat.airdrop-distribution-stat': ApiAirdropDistributionStatAirdropDistributionStat;
       'api::airdrop-history-log.airdrop-history-log': ApiAirdropHistoryLogAirdropHistoryLog;
       'api::airdrop-stat-log.airdrop-stat-log': ApiAirdropStatLogAirdropStatLog;
       'api::coin-price.coin-price': ApiCoinPriceCoinPrice;

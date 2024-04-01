@@ -55,6 +55,9 @@
     "is_distributed": {
       "type": "boolean",
       "default": false
+    },
+    "snapshot_id": {
+      "type": "biginteger"
     }
   }
 }

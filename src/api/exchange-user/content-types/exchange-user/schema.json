@@ -50,6 +50,9 @@
     "total_airdrop_point": {
       "type": "float",
       "default": 0
+    },
+    "airdrop_multiplier": {
+      "type": "float"
     }
   }
 }

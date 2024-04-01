@@ -1,0 +1,53 @@
+{
+  "kind": "collectionType",
+  "collectionName": "airdrop_stat_logs",
+  "info": {
+    "singularName": "airdrop-stat-log",
+    "pluralName": "airdrop-stat-logs",
+    "displayName": "Airdrop Stat Log",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "exchange_user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::exchange-user.exchange-user"
+    },
+    "sale_point_24h": {
+      "type": "float",
+      "default": 0
+    },
+    "listing_point_24h": {
+      "type": "float",
+      "required": false,
+      "default": 0
+    },
+    "bidding_point_24h": {
+      "type": "float",
+      "default": 0
+    },
+    "timestamp": {
+      "type": "biginteger"
+    },
+    "extra_point_24h": {
+      "type": "float",
+      "default": 0
+    },
+    "multiplier_detail": {
+      "type": "json"
+    },
+    "total_trade_point": {
+      "type": "float"
+    },
+    "total_airdrop_point": {
+      "type": "float"
+    },
+    "snapshot_id": {
+      "type": "biginteger"
+    }
+  }
+}

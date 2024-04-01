@@ -41,6 +41,18 @@
     },
     "at_last_login": {
       "type": "datetime"
+    },
+    "early_user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::early-user.early-user"
+    },
+    "total_airdrop_point": {
+      "type": "float",
+      "default": 0
+    },
+    "airdrop_multiplier": {
+      "type": "float"
     }
   }
 }

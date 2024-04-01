@@ -7,6 +7,10 @@ const {
   batchUpdateFloorPrice,
 } = require("../../../listener/collectionStats.js");
 
+const {
+  updateListingPoint,
+} = require("../../../utils/airdropPrePointHelper.js");
+
 /**
  * A set of functions called "actions" for `sdk`
  */
@@ -998,6 +1002,16 @@ async function processItem(
       },
     }
   );
+
+  await updateListingPoint(
+    makerAddress,
+    collection.nftAddress,
+    item.nftId,
+    weiToEther(item.erc20TokenAmount.toString()),
+    result.id,
+    { strapi }
+  );
+
   return {
     error: false,
     assetContract: collection.nftAddress,

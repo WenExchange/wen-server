@@ -34,7 +34,9 @@ const updateListingPoint = async (
       .findOne({
         where: {
           $and: [
-            { exchange_user: user.id },
+            { exchange_user: {
+              id: user.id
+            } },
             { nft_address: _collectionAddress },
             {
               is_cancelled: false,

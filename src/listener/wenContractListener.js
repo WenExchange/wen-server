@@ -573,7 +573,7 @@ const cancelProcessInWen = async ({ data, strapi }) => {
       true,
       data.maker,
       result.contract_address,
-      result.nft.id,
+      result.nft.token_id,
       0,
       0,
       { strapi }

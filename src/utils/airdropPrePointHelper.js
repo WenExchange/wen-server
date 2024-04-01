@@ -28,13 +28,26 @@ const updateListingPoint = async (
       });
     if (!user) return;
 
+    console.log(
+      "cancel request :  ",
+      _isCancelRequest,
+      _userAddress,
+      _collectionAddress,
+      _tokenId,
+      _listingPrice,
+      _nftTradeLogId
+    );
     // 1. airdrop-history-log 가 있나 체크.
     const airdropHistoryLog = await strapi.db
       .query("api::airdrop-history-log.airdrop-history-log")
       .findOne({
         where: {
           $and: [
-            { exchange_user: user.id },
+            {
+              exchange_user: {
+                id: user.id,
+              },
+            },
             { nft_address: _collectionAddress },
             {
               is_cancelled: false,
@@ -105,7 +118,7 @@ const updateListingPoint = async (
 
     // 2. Check prepoint
     const fp = parseFloat(collection.floor_price);
-    if (_listingPrice <= fp) {
+    if (_listingPrice <= fp || _listingPrice == 0) {
       prePoint = LISTING_UNDER_FP;
     } else {
       const priceDifferencePercentage = Math.abs(_listingPrice - fp) / fp;

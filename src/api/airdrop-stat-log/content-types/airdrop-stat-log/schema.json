@@ -41,10 +41,10 @@
       "type": "json"
     },
     "total_trade_point": {
-      "type": "biginteger"
+      "type": "float"
     },
     "total_airdrop_point": {
-      "type": "biginteger"
+      "type": "float"
     },
     "snapshot_id": {
       "type": "biginteger"

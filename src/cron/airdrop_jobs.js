@@ -94,6 +94,15 @@ const updateCollectionAirdrop = async ({ strapi }) => {
 
 const updateUserMultiplier = async ({ strapi }) => {
   // createAirdropStat을 하고 나서 update 해주면 된다.
+
+  const airdropStat = await strapi.db
+  .query("api::airdrop-distribution-stat.airdrop-distribution-stat")
+  .findOne({
+    orderBy: {
+      snapshot_id: "desc",
+    },
+  });
+  
 };
 const createAirdropStat = async ({ strapi }) => {
   let sales = [];
@@ -142,13 +151,14 @@ const createAirdropStat = async ({ strapi }) => {
 
   // 중복 제거를 위해 Set을 사용하여 유일한 exchange_user id를 추출
   const uniqueIds = new Set(historyList.map((item) => item.exchange_user.id));
-
+  console.log("unique Ids : ", uniqueIds);
   // 중복되지 않은 각 exchange_user id에 대해 객체를 생성
-  uniqueIds.forEach(async (id) => {
+  for (const id of uniqueIds) {
     const userItem = historyList.find((item) => item.exchange_user.id === id);
     const userAirdropMultiplier = userItem.exchange_user.airdrop_multiplier;
-    const userAddress = userItem.address;
-    const originalTotalAirdropPoint = userItem.total_airdrop_point;
+    const userAddress = userItem.exchange_user.address;
+    const originalTotalAirdropPoint =
+      userItem.exchange_user.total_airdrop_point;
     userObject[id] = {
       originalTotalAirdropPoint,
       total_bidding: 0,
@@ -177,26 +187,40 @@ const createAirdropStat = async ({ strapi }) => {
           name: "Wen OG Pass Boost",
           boost: `${0.45 * 100}%`,
         };
-        multiplier = 1 + 0.45;
+        multiplier = 0.45;
       } else {
         boostData = {
           name: "Wen OG Pass Boost",
           boost: `${0.05 * ogPassCount * 100}%`,
         };
-        multiplier = 1 + 0.05 * ogPassCount;
+        multiplier = 0.05 * ogPassCount;
       }
       userObject[id].total_multiplier_detail.data.push(boostData);
-      userObject[id].total_multiplier_detail.total_multiplier += multiplier;
+      if (userObject[id].total_multiplier_detail.total_multiplier == 0) {
+        userObject[id].total_multiplier_detail.total_multiplier +=
+          multiplier + 1;
+      } else {
+        userObject[id].total_multiplier_detail.total_multiplier += multiplier;
+      }
     }
 
     if (userObject[id].total_multiplier_detail.total_multiplier == 0) {
       userObject[id].total_multiplier_detail.total_multiplier = 1;
     }
-  });
-
-  for (let i of historyList) {
-    console.log(i);
   }
+
+  console.log(
+    "sales : ",
+    sales.length,
+    "listing : ",
+    listings.length,
+    "biddings : ",
+    biddings.length
+  );
+
+  // for (let i of historyList) {
+  //   console.log(i);
+  // }
 
   console.log(
     "sales : ",
@@ -218,7 +242,7 @@ const createAirdropStat = async ({ strapi }) => {
 
   let snapshotId = 0;
   if (airdropStat) {
-    snapshotId = airdropStat.snapshot_id + 1;
+    snapshotId = parseInt(airdropStat.snapshot_id) + 1;
   }
   // 2. Listing 업데이트
   // 2-1. currentTime > valid_listing_timestamp 인 전체 Listing을 구한다.
@@ -402,7 +426,7 @@ const createAirdropStat = async ({ strapi }) => {
 
         // 2. Exchange User Total Point 추가
         await strapi.entityService.update(
-          "api::exchange_user.exchange_user",
+          "api::exchange-user.exchange-user",
           key,
           {
             data: {
@@ -433,9 +457,18 @@ const createAirdropStat = async ({ strapi }) => {
       },
     }
   );
+  console.log("distribution stat", {
+    distributed_listing_point: listingAddedPoint,
+    distributed_bidding_point: biddingAddedPoint,
+    distributed_sale_point: salesAddedPoint,
+    distributed_extra_point: extraAddedPoint,
+    timestamp: dayjs().unix(),
+    snapshot_id: snapshotId,
+  });
 };
 
 async function getWenOGPassCount(address) {
+  console.log("here", address);
   const ogpassStakingContract = new ethers.Contract(
     "0xcCBA7f02f53b3cE11eBF9Bf15067429fE6479bC2",
     [

@@ -892,8 +892,8 @@ export interface ApiAirdropStatLogAirdropStatLog extends Schema.CollectionType {
     timestamp: Attribute.BigInteger;
     extra_point_24h: Attribute.Float & Attribute.DefaultTo<0>;
     multiplier_detail: Attribute.JSON;
-    total_trade_point: Attribute.BigInteger;
-    total_airdrop_point: Attribute.BigInteger;
+    total_trade_point: Attribute.Float;
+    total_airdrop_point: Attribute.Float;
     snapshot_id: Attribute.BigInteger;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;

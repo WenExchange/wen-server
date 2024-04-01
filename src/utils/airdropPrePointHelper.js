@@ -3,7 +3,8 @@ const { AIRDROP_TYPE } = require("./constants");
 
 const LISTING_UNDER_FP = 6;
 const VALID_COLLECTION_THRESHOLD = 0.5;
-const LISTING_VALID_DURATION = 60 * 60 * 6;
+// const LISTING_VALID_DURATION = 60 * 60 * 6; // TODO: 바꿔~
+const LISTING_VALID_DURATION = 300; // TODO: 바꿔~
 
 const updateListingPoint = async (
   _isCancelRequest,
@@ -140,12 +141,22 @@ const updateListingPoint = async (
     }
 
     // 4. Check prepoint
+    console.log(
+      "userId : ",
+      user.id,
+      "prePoint: ",
+      prePoint,
+      "fp : ",
+      fp,
+      "token_id ",
+      _tokenId
+    );
+
     if (prePoint > 0 && isValidCollection) {
       const collectionMultiplier = collection.airdrop_multiplier;
       if (collectionMultiplier > 1) {
         prePoint = prePoint * collectionMultiplier;
       }
-      // console.log("userId : ", user.id, "prePoint: ", prePoint, "fp : ", fp);
       const currentTs = dayjs().unix();
       const updatedLog = await strapi.db
         .query("api::airdrop-history-log.airdrop-history-log")
@@ -247,20 +258,15 @@ const updateSalePoint = async (
     }
   }
 
+  console.log("token", _tokenId, "userId : ", user.id, "prePoint: ", prePoint);
+
   // 4. Check prepoint
   if (prePoint > 0 && isValidCollection) {
     const collectionMultiplier = collection.airdrop_multiplier;
     if (collectionMultiplier > 1) {
       prePoint = prePoint * collectionMultiplier;
     }
-    console.log(
-      "token",
-      _tokenId,
-      "userId : ",
-      user.id,
-      "prePoint: ",
-      prePoint
-    );
+
     const currentTs = dayjs().unix();
     const updatedLog = await strapi.db
       .query("api::airdrop-history-log.airdrop-history-log")

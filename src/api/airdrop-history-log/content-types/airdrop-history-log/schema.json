@@ -35,6 +35,18 @@
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::exchange-user.exchange-user"
+    },
+    "listing_valid_timestamp": {
+      "type": "biginteger"
+    },
+    "floor_price_atm": {
+      "type": "float"
+    },
+    "token_id": {
+      "type": "biginteger"
+    },
+    "nft_address": {
+      "type": "string"
     }
   }
 }

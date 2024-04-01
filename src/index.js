@@ -15,6 +15,8 @@ const { listingCollectionScript } = require("./utils/listing-script");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+const { updateListingPoint } = require("./utils/airdropPrePointHelper");
+
 const { ethers } = require("ethers");
 
 module.exports = {
@@ -30,22 +32,40 @@ module.exports = {
     try {
       // listingCollectionScript({address: "0xc904e6115f011fC530ea756A673E0c0eD0334680", strapi})
 
-      const collection = await strapi.db
-        .query("api::collection.collection")
-        .findOne({
-          where: {
-            publishedAt: {
-              $notNull: true,
-            },
-          },
-        });
+      // updateListingPoint(
+      //   "0x000ae4be6ed39943679071dbd7d681b6ccdb146b",
+      //   "0xf084962cdc640ed5c7d4e35e52929dac06b60f7c",
+      //   33,
+      //   2,
+      //   125082,
+      //   { strapi }
+      // );
 
-      console.log(
-        "collection published at : ",
-        collection.publishedAt,
-        "timestamp:  ",
-        parseInt((Date.parse(collection.publishedAt) / 1000).toString())
-      );
+      // updateListingPoint(
+      //   "0x000ae4be6ed39943679071dbd7d681b6ccdb146b",
+      //   "0xf084962cdc640ed5c7d4e35e52929dac06b60f7c",
+      //   120,
+      //   2.148,
+      //   125082,
+      //   { strapi }
+      // );
+      // updateListingPoint(
+      //   "0x000ae4be6ed39943679071dbd7d681b6ccdb146b",
+      //   "0xf084962cdc640ed5c7d4e35e52929dac06b60f7c",
+      //   234,
+      //   2.548,
+      //   125082,
+      //   { strapi }
+      // );
+
+      // updateListingPoint(
+      //   "0x000ae4be6ed39943679071dbd7d681b6ccdb146b",
+      //   "0xf084962cdc640ed5c7d4e35e52929dac06b60f7c",
+      //   1000,
+      //   4.548,
+      //   125082,
+      //   { strapi }
+      // );
 
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {

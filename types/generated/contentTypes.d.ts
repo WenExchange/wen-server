@@ -808,6 +808,10 @@ export interface ApiAirdropHistoryLogAirdropHistoryLog
       'oneToOne',
       'api::exchange-user.exchange-user'
     >;
+    listing_valid_timestamp: Attribute.BigInteger;
+    floor_price_atm: Attribute.Float;
+    token_id: Attribute.BigInteger;
+    nft_address: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

@@ -788,6 +788,7 @@ export interface ApiAirdropDistributionStatAirdropDistributionStat
     singularName: 'airdrop-distribution-stat';
     pluralName: 'airdrop-distribution-stats';
     displayName: 'Airdrop Distribution Stat';
+    description: '';
   };
   options: {
     draftAndPublish: true;
@@ -798,6 +799,7 @@ export interface ApiAirdropDistributionStatAirdropDistributionStat
     distributed_listing_point: Attribute.BigInteger;
     distributed_bidding_point: Attribute.BigInteger;
     distributed_sale_point: Attribute.BigInteger;
+    distributed_extra_point: Attribute.BigInteger;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -873,6 +875,7 @@ export interface ApiAirdropStatLogAirdropStatLog extends Schema.CollectionType {
     singularName: 'airdrop-stat-log';
     pluralName: 'airdrop-stat-logs';
     displayName: 'Airdrop Stat Log';
+    description: '';
   };
   options: {
     draftAndPublish: false;
@@ -885,9 +888,13 @@ export interface ApiAirdropStatLogAirdropStatLog extends Schema.CollectionType {
     >;
     sale_point_24h: Attribute.Float & Attribute.DefaultTo<0>;
     listing_point_24h: Attribute.Float & Attribute.DefaultTo<0>;
-    biding_point_24h: Attribute.Float & Attribute.DefaultTo<0>;
+    bidding_point_24h: Attribute.Float & Attribute.DefaultTo<0>;
     timestamp: Attribute.BigInteger;
-    bonus_point_24h: Attribute.Float & Attribute.DefaultTo<0>;
+    extra_point_24h: Attribute.Float & Attribute.DefaultTo<0>;
+    multiplier_detail: Attribute.JSON;
+    total_trade_point: Attribute.BigInteger;
+    total_airdrop_point: Attribute.BigInteger;
+    snapshot_id: Attribute.BigInteger;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

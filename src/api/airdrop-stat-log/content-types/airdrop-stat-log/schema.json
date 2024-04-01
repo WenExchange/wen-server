@@ -4,7 +4,8 @@
   "info": {
     "singularName": "airdrop-stat-log",
     "pluralName": "airdrop-stat-logs",
-    "displayName": "Airdrop Stat Log"
+    "displayName": "Airdrop Stat Log",
+    "description": ""
   },
   "options": {
     "draftAndPublish": false
@@ -25,16 +26,28 @@
       "required": false,
       "default": 0
     },
-    "biding_point_24h": {
+    "bidding_point_24h": {
       "type": "float",
       "default": 0
     },
     "timestamp": {
       "type": "biginteger"
     },
-    "bonus_point_24h": {
+    "extra_point_24h": {
       "type": "float",
       "default": 0
+    },
+    "multiplier_detail": {
+      "type": "json"
+    },
+    "total_trade_point": {
+      "type": "biginteger"
+    },
+    "total_airdrop_point": {
+      "type": "biginteger"
+    },
+    "snapshot_id": {
+      "type": "biginteger"
     }
   }
 }

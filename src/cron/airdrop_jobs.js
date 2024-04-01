@@ -4,6 +4,7 @@ const EXCHANGE_VOLUME_MULTIPLIER = 0;
 
 const { ethers } = require("ethers");
 const { jsonRpcProvider_cron, AIRDROP_TYPE } = require("../utils/constants");
+const airdropDistributionStat = require("../api/airdrop-distribution-stat/controllers/airdrop-distribution-stat");
 const updateCollectionAirdrop = async ({ strapi }) => {
   //  TOP 11-20 : 1.5x
   //  TOP 4-10 : 2x
@@ -91,6 +92,9 @@ const updateCollectionAirdrop = async ({ strapi }) => {
   }
 };
 
+const updateUserMultiplier = async ({ strapi }) => {
+  // createAirdropStat을 하고 나서 update 해주면 된다.
+};
 const createAirdropStat = async ({ strapi }) => {
   let sales = [];
   let biddings = [];
@@ -144,8 +148,9 @@ const createAirdropStat = async ({ strapi }) => {
     const userItem = historyList.find((item) => item.exchange_user.id === id);
     const userAirdropMultiplier = userItem.exchange_user.airdrop_multiplier;
     const userAddress = userItem.address;
-
+    const originalTotalAirdropPoint = userItem.total_airdrop_point;
     userObject[id] = {
+      originalTotalAirdropPoint,
       total_bidding: 0,
       total_sale: 0,
       total_listing: 0,
@@ -324,6 +329,9 @@ const createAirdropStat = async ({ strapi }) => {
     );
   });
 
+  // 4. [TODO] Bidding
+  let biddingAddedPoint = 0;
+
   // 5. 추가 포인트 관련 계산
   let extraAddedPoint = 0;
   // 3-3. 유저 별 Listing point 를 계산해 더해준다.
@@ -356,8 +364,75 @@ const createAirdropStat = async ({ strapi }) => {
 
   // 6. 전체 유저 스탯 계산
   console.log("All user stat : ", JSON.stringify(userObject));
+  for (const key in userObject) {
+    if (Object.hasOwnProperty.call(userObject, key)) {
+      console.log(`Key: ${key}, Value: `, userObject[key]);
+      const userData = userObject[key];
+      if (
+        userData.total_bidding != 0 ||
+        userData.total_sale != 0 ||
+        userData.total_listing != 0 ||
+        userData.total_extra != 0
+      ) {
+        // 1. Airdrop Stat Log 추가
+        await strapi.entityService.create(
+          "api::airdrop-stat-log.airdrop-stat-log",
+          {
+            data: {
+              sale_point_24h: userData.total_sale,
+              listing_point_24h: userData.total_listing,
+              bidding_point_24h: userData.total_bidding,
+              extra_point_24h: userData.total_extra,
+              exchange_user: key,
+              timestamp: dayjs().unix(),
+              multiplier_detail: userData.total_multiplier_detail,
+              total_trade_point:
+                userData.total_sale +
+                userData.total_listing +
+                userData.total_bidding,
+              total_airdrop_point:
+                userData.total_sale +
+                userData.total_listing +
+                userData.total_bidding +
+                userData.total_extra,
+              snapshot_id: snapshotId,
+            },
+          }
+        );
+
+        // 2. Exchange User Total Point 추가
+        await strapi.entityService.update(
+          "api::exchange_user.exchange_user",
+          key,
+          {
+            data: {
+              total_airdrop_point:
+                userData.originalTotalAirdropPoint +
+                userData.total_sale +
+                userData.total_listing +
+                userData.total_bidding +
+                userData.total_extra,
+            },
+          }
+        );
+      }
+    }
+  }
 
   // 7. airdrop-distribution-stat 업데이트
+  await strapi.entityService.create(
+    "api::airdrop-distribution-stat.airdrop-distribution-stat",
+    {
+      data: {
+        distributed_listing_point: listingAddedPoint,
+        distributed_bidding_point: biddingAddedPoint,
+        distributed_sale_point: salesAddedPoint,
+        distributed_extra_point: extraAddedPoint,
+        timestamp: dayjs().unix(),
+        snapshot_id: snapshotId,
+      },
+    }
+  );
 };
 
 async function getWenOGPassCount(address) {

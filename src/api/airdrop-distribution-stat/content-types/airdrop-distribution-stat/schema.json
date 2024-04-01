@@ -4,7 +4,8 @@
   "info": {
     "singularName": "airdrop-distribution-stat",
     "pluralName": "airdrop-distribution-stats",
-    "displayName": "Airdrop Distribution Stat"
+    "displayName": "Airdrop Distribution Stat",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true
@@ -24,6 +25,9 @@
       "type": "biginteger"
     },
     "distributed_sale_point": {
+      "type": "biginteger"
+    },
+    "distributed_extra_point": {
       "type": "biginteger"
     }
   }

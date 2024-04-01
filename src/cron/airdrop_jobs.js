@@ -9,6 +9,11 @@ const updateCollectionAirdrop = async ({ strapi }) => {
   const collectionData = await strapi.db
     .query("api::collection.collection")
     .findMany({
+      where: {
+        publishedAt: {
+          $notNull: true,
+        },
+      },
       orderBy: {
         volume_24h: "desc",
       },

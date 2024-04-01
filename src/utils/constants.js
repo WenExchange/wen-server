@@ -80,7 +80,12 @@ module.exports = {
     RECEIVER: "0x4123B6B29006Ed7160B2EEDB89A0c062F976b511",
     POINT: 200,
   },
-
+  AIRDROP_TYPE: {
+    EARLY_ACCESS: "EARLY_ACCESS",
+    LISTING: "LISTING",
+    SALE: "SALE",
+    BIDDING: "BIDDING",
+  },
   IPFS: {
     GATEWAY_URL: "https://wen-ex.myfilebase.com/ipfs/",
   },

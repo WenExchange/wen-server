@@ -13,6 +13,7 @@ const {
 const { decodeData } = require("./listenerhelpers");
 const ERC721Event = require("../web3/abis/ERC721Event.json");
 const ERC1155Event = require("../web3/abis/ERC1155Event.json");
+const { updateSalePoint } = require("../utils/airdropPrePointHelper");
 const {
   updateFloorPrice,
   updateOrdersCount,
@@ -439,8 +440,18 @@ const sellOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
       },
     })
     .catch((e) => console.error(e.message));
+
+  await updateSalePoint(
+    data.payment_token,
+    data.price,
+    data.to,
+    data.contract_address,
+    nftData.token_id,
+    createdLog.id,
+    { strapi }
+  );
   console.log(
-    `[WEN] ERC721SellOrderFilled - 4. nft id: ${nftData.id} created SALE log id ${createdLog.id}`
+    `[WEN] ERC721SellOrderFilled - 4. nft id: ${nftData.id} created SALE log id ${createdLog.id} `
   );
 };
 

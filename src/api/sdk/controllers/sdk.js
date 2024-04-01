@@ -1004,6 +1004,7 @@ async function processItem(
   );
 
   await updateListingPoint(
+    false,
     makerAddress,
     collection.nftAddress,
     item.nftId,

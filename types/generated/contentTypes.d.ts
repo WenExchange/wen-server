@@ -812,6 +812,8 @@ export interface ApiAirdropHistoryLogAirdropHistoryLog
     floor_price_atm: Attribute.Float;
     token_id: Attribute.BigInteger;
     nft_address: Attribute.String;
+    is_cancelled: Attribute.Boolean & Attribute.DefaultTo<false>;
+    is_distributed: Attribute.Boolean & Attribute.DefaultTo<false>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

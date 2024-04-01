@@ -47,6 +47,14 @@
     },
     "nft_address": {
       "type": "string"
+    },
+    "is_cancelled": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_distributed": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

@@ -1,0 +1,504 @@
+const dayjs = require("dayjs");
+
+const EXCHANGE_VOLUME_MULTIPLIER = 0;
+
+const { ethers } = require("ethers");
+const { jsonRpcProvider_cron, AIRDROP_TYPE } = require("../utils/constants");
+const airdropDistributionStat = require("../api/airdrop-distribution-stat/controllers/airdrop-distribution-stat");
+const updateCollectionAirdrop = async ({ strapi }) => {
+  //  TOP 11-20 : 1.5x
+  //  TOP 4-10 : 2x
+  //  TOP 1-3 : 4x
+
+  // 1. Get All Collection by volume_24h
+  const collectionData = await strapi.db
+    .query("api::collection.collection")
+    .findMany({
+      where: {
+        publishedAt: {
+          $notNull: true,
+        },
+      },
+      orderBy: {
+        volume_24h: "desc",
+      },
+    });
+
+  for (let i of collectionData) {
+    console.log(i.name, i.volume_24h);
+  }
+
+  for (let i = 0; i < 3; i++) {
+    await strapi.entityService.update(
+      "api::collection.collection",
+      collectionData[i].id,
+      {
+        data: {
+          airdrop_multiplier: 4,
+        },
+      }
+    );
+  }
+
+  for (let i = 3; i < 10; i++) {
+    await strapi.entityService.update(
+      "api::collection.collection",
+      collectionData[i].id,
+      {
+        data: {
+          airdrop_multiplier: 2,
+        },
+      }
+    );
+  }
+
+  for (let i = 10; i < 20; i++) {
+    await strapi.entityService.update(
+      "api::collection.collection",
+      collectionData[i].id,
+      {
+        data: {
+          airdrop_multiplier: 1.5,
+        },
+      }
+    );
+  }
+
+  for (let i = 20; i < collectionData.length; i++) {
+    const collection = collectionData[i];
+    if (collection.airdrop_multiplier != 1) {
+      await strapi.entityService.update(
+        "api::collection.collection",
+        collection.id,
+        {
+          data: {
+            airdrop_multiplier: 1,
+          },
+        }
+      );
+    }
+  }
+
+  const afterCollectionData = await strapi.db
+    .query("api::collection.collection")
+    .findMany({
+      orderBy: {
+        airdrop_multiplier: "desc",
+      },
+    });
+
+  for (let i of afterCollectionData) {
+    console.log(i.name, i.volume_24h, i.airdrop_multiplier);
+  }
+};
+
+const updateUserMultiplier = async ({ strapi }) => {
+  // createAirdropStat을 하고 나서 update 해주면 된다.
+
+  const airdropStat = await strapi.db
+  .query("api::airdrop-distribution-stat.airdrop-distribution-stat")
+  .findOne({
+    orderBy: {
+      snapshot_id: "desc",
+    },
+  });
+  
+};
+const createAirdropStat = async ({ strapi }) => {
+  let sales = [];
+  let biddings = [];
+  let listings = [];
+  let extras = [];
+
+  const userObject = {};
+
+  // 1. Distribution point 지정
+  const totalListingPoint = 1000000 * (1 + 0.2 * EXCHANGE_VOLUME_MULTIPLIER);
+  const totalSalePoint = 1400000 * (1 + 0.2 * EXCHANGE_VOLUME_MULTIPLIER);
+  const totalBiddingPoint = 1200000 * (1 + 0.2 * EXCHANGE_VOLUME_MULTIPLIER);
+
+  // 2. 모든 Airdrop_history_log 를 가져옴 (isDistributed = false && isCancelled = false)
+  const historyList = await strapi.db
+    .query("api::airdrop-history-log.airdrop-history-log")
+    .findMany({
+      where: {
+        $and: [
+          { is_distributed: false },
+          {
+            is_cancelled: false,
+          },
+        ],
+      },
+      populate: {
+        exchange_user: true,
+      },
+    });
+
+  // [전처리 1] 각각 array로 분류
+
+  historyList.forEach((item) => {
+    if (item.type === AIRDROP_TYPE.SALE) {
+      sales.push(item);
+    } else if (item.type === AIRDROP_TYPE.BIDDING) {
+      biddings.push(item);
+    } else if (item.type === AIRDROP_TYPE.LISTING) {
+      listings.push(item);
+    } else {
+      extras.push(item);
+    }
+  });
+  // [전처리 2] 존재하는 유저를 찾음
+
+  // 중복 제거를 위해 Set을 사용하여 유일한 exchange_user id를 추출
+  const uniqueIds = new Set(historyList.map((item) => item.exchange_user.id));
+  console.log("unique Ids : ", uniqueIds);
+  // 중복되지 않은 각 exchange_user id에 대해 객체를 생성
+  for (const id of uniqueIds) {
+    const userItem = historyList.find((item) => item.exchange_user.id === id);
+    const userAirdropMultiplier = userItem.exchange_user.airdrop_multiplier;
+    const userAddress = userItem.exchange_user.address;
+    const originalTotalAirdropPoint =
+      userItem.exchange_user.total_airdrop_point;
+    userObject[id] = {
+      originalTotalAirdropPoint,
+      total_bidding: 0,
+      total_sale: 0,
+      total_listing: 0,
+      total_extra: 0,
+      total_extra_detail: { data: [] },
+      total_multiplier_detail: { total_multiplier: 0, data: [] },
+    };
+    if (userAirdropMultiplier) {
+      userObject[id].total_multiplier_detail.data.push({
+        name: "Top 200 Boost",
+        boost: `${userAirdropMultiplier * 100}%`,
+      });
+      userObject[id].total_multiplier_detail.total_multiplier +=
+        userAirdropMultiplier;
+    }
+
+    // Get user og pass count
+    const ogPassCount = await getWenOGPassCount(userAddress);
+    if (ogPassCount > 0) {
+      let boostData;
+      let multiplier;
+      if (ogPassCount > 9) {
+        boostData = {
+          name: "Wen OG Pass Boost",
+          boost: `${0.45 * 100}%`,
+        };
+        multiplier = 0.45;
+      } else {
+        boostData = {
+          name: "Wen OG Pass Boost",
+          boost: `${0.05 * ogPassCount * 100}%`,
+        };
+        multiplier = 0.05 * ogPassCount;
+      }
+      userObject[id].total_multiplier_detail.data.push(boostData);
+      if (userObject[id].total_multiplier_detail.total_multiplier == 0) {
+        userObject[id].total_multiplier_detail.total_multiplier +=
+          multiplier + 1;
+      } else {
+        userObject[id].total_multiplier_detail.total_multiplier += multiplier;
+      }
+    }
+
+    if (userObject[id].total_multiplier_detail.total_multiplier == 0) {
+      userObject[id].total_multiplier_detail.total_multiplier = 1;
+    }
+  }
+
+  console.log(
+    "sales : ",
+    sales.length,
+    "listing : ",
+    listings.length,
+    "biddings : ",
+    biddings.length
+  );
+
+  // for (let i of historyList) {
+  //   console.log(i);
+  // }
+
+  console.log(
+    "sales : ",
+    sales.length,
+    "listing : ",
+    listings.length,
+    "biddings : ",
+    biddings.length
+  );
+
+  // 3. 가장 최근 airdrop stat을 가져온다.
+  const airdropStat = await strapi.db
+    .query("api::airdrop-distribution-stat.airdrop-distribution-stat")
+    .findOne({
+      orderBy: {
+        snapshot_id: "desc",
+      },
+    });
+
+  let snapshotId = 0;
+  if (airdropStat) {
+    snapshotId = parseInt(airdropStat.snapshot_id) + 1;
+  }
+  // 2. Listing 업데이트
+  // 2-1. currentTime > valid_listing_timestamp 인 전체 Listing을 구한다.
+  const currentTs = dayjs().unix();
+  let validListing = [];
+  listings.forEach((item) => {
+    if (currentTs >= parseInt(item.listing_valid_timestamp)) {
+      validListing.push(item);
+    }
+  });
+  // 2-2. Valid listing 의 합을 구한다. (user 의 multiplier 도 함께 곱해준다.)
+  let validListingPrePointSum = 0;
+  validListing.forEach((item) => {
+    validListingPrePointSum +=
+      item.pre_point *
+      userObject[item.exchange_user.id].total_multiplier_detail
+        .total_multiplier;
+  });
+
+  // 2-3. Valid Listing 과 Pre-Point 의 교환 비율을 구한다.
+  let listingConversionRatio = totalListingPoint / validListingPrePointSum;
+  let listingAddedPoint = 0;
+
+  // 2-4. 유저 별 Listing point 를 계산해 더해준다.
+  validListing.forEach((item) => {
+    const point =
+      item.pre_point *
+      userObject[item.exchange_user.id].total_multiplier_detail
+        .total_multiplier *
+      listingConversionRatio;
+    userObject[item.exchange_user.id].total_listing += point;
+    item.airdrop_point = point;
+    listingAddedPoint += point;
+  });
+
+  console.log(
+    "valid listing count : ",
+    validListing.length,
+    "valid listings pre-point sum : ",
+    validListingPrePointSum,
+    "listingAddedPoint",
+    listingAddedPoint
+  );
+
+  // 2-5. Update All Listing airdrop-history-log , is_distributed = true, snapshot_id = snapshot
+  validListing.forEach(async (item) => {
+    await strapi.entityService.update(
+      "api::airdrop-history-log.airdrop-history-log",
+      item.id,
+      {
+        data: {
+          is_distributed: true,
+          snapshot_id: snapshotId,
+          airdrop_point: item.airdrop_point,
+        },
+      }
+    );
+  });
+
+  // 3. Sale 계산
+
+  // 3-1. Sale 의 합을 구한다. (user 의 multiplier 도 함께 곱해준다.)
+  let salesPrePointSum = 0;
+  sales.forEach((item) => {
+    salesPrePointSum +=
+      item.pre_point *
+      userObject[item.exchange_user.id].total_multiplier_detail
+        .total_multiplier;
+  });
+
+  // 3-2. Sale 과 Pre-Point 의 교환 비율을 구한다.
+  let salesConversionRatio = totalSalePoint / salesPrePointSum;
+  let salesAddedPoint = 0;
+
+  // 3-3. 유저 별 Listing point 를 계산해 더해준다.
+  sales.forEach((item) => {
+    const point =
+      item.pre_point *
+      userObject[item.exchange_user.id].total_multiplier_detail
+        .total_multiplier *
+      salesConversionRatio;
+    userObject[item.exchange_user.id].total_sale += point;
+    item.airdrop_point = point;
+    salesAddedPoint += point;
+  });
+
+  console.log(
+    " sale count : ",
+    sales.length,
+    "sale pre-point sum : ",
+    salesPrePointSum,
+    "saleAddedPoint",
+    salesAddedPoint
+  );
+
+  // 3-4. Update All sales airdrop-history-log , is_distributed = true, snapshot_id = snapshot
+  sales.forEach(async (item) => {
+    await strapi.entityService.update(
+      "api::airdrop-history-log.airdrop-history-log",
+      item.id,
+      {
+        data: {
+          is_distributed: true,
+          snapshot_id: snapshotId,
+          airdrop_point: item.airdrop_point,
+        },
+      }
+    );
+  });
+
+  // 4. [TODO] Bidding
+  let biddingAddedPoint = 0;
+
+  // 5. 추가 포인트 관련 계산
+  let extraAddedPoint = 0;
+  // 3-3. 유저 별 Listing point 를 계산해 더해준다.
+  extras.forEach((item) => {
+    const point = item.airdrop_point;
+    userObject[item.exchange_user.id].total_extra += point;
+    extraAddedPoint += point;
+  });
+
+  console.log(
+    " extra count : ",
+    extras.length,
+    "extraAddedPoint",
+    extraAddedPoint
+  );
+
+  // 3-4. Update All extras airdrop-history-log , is_distributed = true, snapshot_id = snapshot
+  extras.forEach(async (item) => {
+    await strapi.entityService.update(
+      "api::airdrop-history-log.airdrop-history-log",
+      item.id,
+      {
+        data: {
+          is_distributed: true,
+          snapshot_id: snapshotId,
+        },
+      }
+    );
+  });
+
+  // 6. 전체 유저 스탯 계산
+  console.log("All user stat : ", JSON.stringify(userObject));
+  for (const key in userObject) {
+    if (Object.hasOwnProperty.call(userObject, key)) {
+      console.log(`Key: ${key}, Value: `, userObject[key]);
+      const userData = userObject[key];
+      if (
+        userData.total_bidding != 0 ||
+        userData.total_sale != 0 ||
+        userData.total_listing != 0 ||
+        userData.total_extra != 0
+      ) {
+        // 1. Airdrop Stat Log 추가
+        await strapi.entityService.create(
+          "api::airdrop-stat-log.airdrop-stat-log",
+          {
+            data: {
+              sale_point_24h: userData.total_sale,
+              listing_point_24h: userData.total_listing,
+              bidding_point_24h: userData.total_bidding,
+              extra_point_24h: userData.total_extra,
+              exchange_user: key,
+              timestamp: dayjs().unix(),
+              multiplier_detail: userData.total_multiplier_detail,
+              total_trade_point:
+                userData.total_sale +
+                userData.total_listing +
+                userData.total_bidding,
+              total_airdrop_point:
+                userData.total_sale +
+                userData.total_listing +
+                userData.total_bidding +
+                userData.total_extra,
+              snapshot_id: snapshotId,
+            },
+          }
+        );
+
+        // 2. Exchange User Total Point 추가
+        await strapi.entityService.update(
+          "api::exchange-user.exchange-user",
+          key,
+          {
+            data: {
+              total_airdrop_point:
+                userData.originalTotalAirdropPoint +
+                userData.total_sale +
+                userData.total_listing +
+                userData.total_bidding +
+                userData.total_extra,
+            },
+          }
+        );
+      }
+    }
+  }
+
+  // 7. airdrop-distribution-stat 업데이트
+  await strapi.entityService.create(
+    "api::airdrop-distribution-stat.airdrop-distribution-stat",
+    {
+      data: {
+        distributed_listing_point: listingAddedPoint,
+        distributed_bidding_point: biddingAddedPoint,
+        distributed_sale_point: salesAddedPoint,
+        distributed_extra_point: extraAddedPoint,
+        timestamp: dayjs().unix(),
+        snapshot_id: snapshotId,
+      },
+    }
+  );
+  console.log("distribution stat", {
+    distributed_listing_point: listingAddedPoint,
+    distributed_bidding_point: biddingAddedPoint,
+    distributed_sale_point: salesAddedPoint,
+    distributed_extra_point: extraAddedPoint,
+    timestamp: dayjs().unix(),
+    snapshot_id: snapshotId,
+  });
+};
+
+async function getWenOGPassCount(address) {
+  console.log("here", address);
+  const ogpassStakingContract = new ethers.Contract(
+    "0xcCBA7f02f53b3cE11eBF9Bf15067429fE6479bC2",
+    [
+      {
+        inputs: [
+          {
+            internalType: "address",
+            name: "user",
+            type: "address",
+          },
+        ],
+        name: "stakedTokensByUser",
+        outputs: [
+          {
+            internalType: "uint256[]",
+            name: "",
+            type: "uint256[]",
+          },
+        ],
+        stateMutability: "view",
+        type: "function",
+      },
+    ],
+    jsonRpcProvider_cron
+  );
+
+  const staked = await ogpassStakingContract.stakedTokensByUser(address);
+  return staked.length;
+}
+module.exports = {
+  updateCollectionAirdrop,
+  createAirdropStat,
+};

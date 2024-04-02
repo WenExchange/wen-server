@@ -34,7 +34,7 @@ module.exports = createCoreController(
           let user = await strapi.db
             .query("api::exchange-user.exchange-user")
             .findOne({
-              where: { address, signature },
+              where: { address },
               populate: {
                 early_user: true,
               },
@@ -51,6 +51,7 @@ module.exports = createCoreController(
               {
                 data: {
                   at_last_login: isoString,
+                  signature
                 },
               }
             );

@@ -97,11 +97,13 @@ const updateUserMultiplier = async ({ strapi }) => {
 
   const airdropStat = await strapi.db
     .query("api::airdrop-distribution-stat.airdrop-distribution-stat")
-    .findOne();
+    .findOne({ orderBy: { snapshot_id: "desc" } });
   console.log("airdropStat : ", airdropStat);
   let snapshotId = 0;
   if (airdropStat) {
-    snapshotId = parseInt(airdropStat.snapshot_id) + 1;
+    snapshotId = parseInt(airdropStat.snapshot_id);
+  } else {
+    return;
   }
 
   // 1. 만약 과거 multipler 데이터가 있다면 모두 multiplier 1로 다시 변경
@@ -112,19 +114,21 @@ const updateUserMultiplier = async ({ strapi }) => {
         snapshot_id: snapshotId - 1,
       },
     });
+
+  console.log("previousStat !!! ", previousStat);
   if (previousStat && previousStat.user_multiplier_json) {
     const multipliers = previousStat.user_multiplier_json;
     const keys = Object.keys(multipliers);
     console.log("multiplier 각각 데이터 1로 변경 시작");
 
     for (const key of keys) {
-      console.log(`Current Multiplier: ${key}`);
+      console.log(`previousStat Current Multiplier: ${key}`);
 
       const users = multipliers[key];
       for (const user of users) {
-        console.log(
-          `Updating info for exchange_user_id: ${user.exchange_user_id}`
-        );
+        // console.log(
+        //   `Updating info for exchange_user_id: ${user.exchange_user_id}`
+        // );
         try {
           // await를 사용한 비동기 작업
           await strapi.entityService.update(
@@ -136,11 +140,11 @@ const updateUserMultiplier = async ({ strapi }) => {
               },
             }
           );
-          console.log(
-            `Updated exchange_user_id: ${
-              user.exchange_user_id
-            } with multiplier: ${1}`
-          );
+          // console.log(
+          //   `Updated exchange_user_id: ${
+          //     user.exchange_user_id
+          //   } with multiplier: ${1}`
+          // );
         } catch (error) {
           console.error(
             `Error updating exchange_user_id: ${user.exchange_user_id}`,
@@ -207,9 +211,9 @@ const updateUserMultiplier = async ({ strapi }) => {
 
     const users = multipliers[key];
     for (const user of users) {
-      console.log(
-        `Updating info for exchange_user_id: ${user.exchange_user_id}`
-      );
+      // console.log(
+      //   `Updating info for exchange_user_id: ${user.exchange_user_id}`
+      // );
       try {
         // await를 사용한 비동기 작업
         await strapi.entityService.update(
@@ -221,9 +225,9 @@ const updateUserMultiplier = async ({ strapi }) => {
             },
           }
         );
-        console.log(
-          `Updated exchange_user_id: ${user.exchange_user_id} with multiplier: ${key}`
-        );
+        // console.log(
+        //   `Updated exchange_user_id: ${user.exchange_user_id} with multiplier: ${key}`
+        // );
       } catch (error) {
         console.error(
           `Error updating exchange_user_id: ${user.exchange_user_id}`,

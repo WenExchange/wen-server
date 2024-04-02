@@ -32,6 +32,10 @@
     },
     "user_multiplier_json": {
       "type": "json"
+    },
+    "is_user_multiplier_disabled": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

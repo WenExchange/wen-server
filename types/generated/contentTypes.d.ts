@@ -801,6 +801,7 @@ export interface ApiAirdropDistributionStatAirdropDistributionStat
     distributed_sale_point: Attribute.BigInteger;
     distributed_extra_point: Attribute.BigInteger;
     user_multiplier_json: Attribute.JSON;
+    is_user_multiplier_disabled: Attribute.Boolean & Attribute.DefaultTo<false>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

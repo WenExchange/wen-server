@@ -14,11 +14,13 @@ module.exports = createCoreController('api::airdrop-stat-log.airdrop-stat-log',
         try {
           const { exchange_user_id } = ctx.request.query;
 
+          console.log("exchange_user_id",exchange_user_id);
+
           const currentDistributionStatLog  = await strapi.db
             .query("api::airdrop-distribution-stat.airdrop-distribution-stat")
             .findOne({
               orderBy: {
-                  shapshot_id: "desc"
+                  snapshot_id: "desc"
               }
             });
 

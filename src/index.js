@@ -11,15 +11,9 @@ const CollectionCacheManager = require("./cache-managers/CollectionCacheManager"
 const dayjs = require("dayjs");
 var utc = require("dayjs/plugin/utc");
 var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
-const { listingCollectionScript } = require("./utils/listing-script");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const { updateExchangeUserTotalData } = require("./utils/backup");
-
-const { ethers } = require("ethers");
-
-const { listingAndSaleUpdate } = require("./utils/backup");
 module.exports = {
   /**
    * An asynchronous register function that runs before
@@ -30,7 +24,6 @@ module.exports = {
   register(/*{ strapi }*/) {},
 
   async bootstrap({ strapi }) {
-    updateExchangeUserTotalData({ strapi });
     try {
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {

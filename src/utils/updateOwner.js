@@ -11,7 +11,7 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
     const unit = 20
 
     let totalUpdatedCount = 0
-    for (let i = 0; i < 110000 / 20; i++) {
+    for (let i = 5195; i < 110000 / 20; i++) {
         console.log(`${i} start`);
         const start = i * unit
         const end = unit * (i+1)
@@ -63,7 +63,7 @@ const updateOwnerOfNFTs = async ({strapi, nfts}) => {
                             data: {
                                 owner: realOwner
                             }
-                        }) )
+                        }) ).catch(e => null)
                     }
                     console.log(`${nft.id} ${nft.name} will change owner ${nft.owner} -> ${realOwner}`)
                     
@@ -71,7 +71,7 @@ const updateOwnerOfNFTs = async ({strapi, nfts}) => {
                         data: {
                             owner: realOwner
                         }
-                    })
+                    }).catch(e => null)
                 }
                 return null
             } catch (error) {
@@ -79,7 +79,7 @@ const updateOwnerOfNFTs = async ({strapi, nfts}) => {
                 return null
             }
            
-        }).catch(e => console.error(e.message))
+        }).catch(e => null)
     })
     let result  = await Promise.all(willUpdateOwnerPromises)
     result = result.filter(_ => _ !== null)

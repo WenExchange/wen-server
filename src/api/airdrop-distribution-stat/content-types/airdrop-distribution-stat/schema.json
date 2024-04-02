@@ -1,0 +1,41 @@
+{
+  "kind": "collectionType",
+  "collectionName": "airdrop_distribution_stats",
+  "info": {
+    "singularName": "airdrop-distribution-stat",
+    "pluralName": "airdrop-distribution-stats",
+    "displayName": "Airdrop Distribution Stat",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "timestamp": {
+      "type": "biginteger"
+    },
+    "snapshot_id": {
+      "type": "biginteger"
+    },
+    "distributed_listing_point": {
+      "type": "biginteger"
+    },
+    "distributed_bidding_point": {
+      "type": "biginteger"
+    },
+    "distributed_sale_point": {
+      "type": "biginteger"
+    },
+    "distributed_extra_point": {
+      "type": "biginteger"
+    },
+    "user_multiplier_json": {
+      "type": "json"
+    },
+    "is_user_multiplier_disabled": {
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

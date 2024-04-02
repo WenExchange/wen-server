@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "wen_og_pass_stats",
+  "info": {
+    "singularName": "wen-og-pass-stat",
+    "pluralName": "wen-og-pass-stats",
+    "displayName": "WenOgPassStat",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "total_staked": {
+      "type": "biginteger"
+    },
+    "yield_in_weneth": {
+      "type": "float"
+    },
+    "yield_in_eth": {
+      "type": "float"
+    },
+    "floor_price": {
+      "type": "float"
+    },
+    "timestamp": {
+      "type": "biginteger"
+    },
+    "error_log": {
+      "type": "text"
+    },
+    "eth_to_team_wallet": {
+      "type": "float"
+    }
+  }
+}

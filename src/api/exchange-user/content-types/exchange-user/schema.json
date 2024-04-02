@@ -41,6 +41,55 @@
     },
     "at_last_login": {
       "type": "datetime"
+    },
+    "early_user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::early-user.early-user"
+    },
+    "total_airdrop_point": {
+      "type": "float",
+      "default": 0
+    },
+    "airdrop_multiplier": {
+      "type": "float"
+    },
+    "box_unrevealed": {
+      "type": "integer",
+      "default": 0
+    },
+    "box_explorer": {
+      "type": "integer",
+      "default": 0
+    },
+    "box_gurdian": {
+      "default": 0,
+      "type": "integer"
+    },
+    "box_epic": {
+      "type": "integer",
+      "default": 0
+    },
+    "box_legendary": {
+      "type": "integer",
+      "required": false,
+      "default": 0
+    },
+    "total_bridging_point": {
+      "type": "float",
+      "default": 0
+    },
+    "total_extra_point": {
+      "type": "float"
+    },
+    "total_sale_point": {
+      "type": "float"
+    },
+    "total_bidding_point": {
+      "type": "float"
+    },
+    "total_listing_point": {
+      "type": "float"
     }
   }
 }

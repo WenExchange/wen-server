@@ -781,6 +781,138 @@ export interface PluginI18NLocale extends Schema.CollectionType {
   };
 }
 
+export interface ApiAirdropDistributionStatAirdropDistributionStat
+  extends Schema.CollectionType {
+  collectionName: 'airdrop_distribution_stats';
+  info: {
+    singularName: 'airdrop-distribution-stat';
+    pluralName: 'airdrop-distribution-stats';
+    displayName: 'Airdrop Distribution Stat';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    timestamp: Attribute.BigInteger;
+    snapshot_id: Attribute.BigInteger;
+    distributed_listing_point: Attribute.BigInteger;
+    distributed_bidding_point: Attribute.BigInteger;
+    distributed_sale_point: Attribute.BigInteger;
+    distributed_extra_point: Attribute.BigInteger;
+    user_multiplier_json: Attribute.JSON;
+    is_user_multiplier_disabled: Attribute.Boolean & Attribute.DefaultTo<false>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::airdrop-distribution-stat.airdrop-distribution-stat',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::airdrop-distribution-stat.airdrop-distribution-stat',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiAirdropHistoryLogAirdropHistoryLog
+  extends Schema.CollectionType {
+  collectionName: 'airdrop_history_logs';
+  info: {
+    singularName: 'airdrop-history-log';
+    pluralName: 'airdrop-history-logs';
+    displayName: 'Airdrop History Log';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    type: Attribute.String;
+    timestamp: Attribute.BigInteger;
+    nft_trade_log: Attribute.Relation<
+      'api::airdrop-history-log.airdrop-history-log',
+      'oneToOne',
+      'api::nft-trade-log.nft-trade-log'
+    >;
+    pre_point: Attribute.Float & Attribute.DefaultTo<0>;
+    airdrop_point: Attribute.Float & Attribute.DefaultTo<0>;
+    exchange_user: Attribute.Relation<
+      'api::airdrop-history-log.airdrop-history-log',
+      'oneToOne',
+      'api::exchange-user.exchange-user'
+    >;
+    listing_valid_timestamp: Attribute.BigInteger;
+    floor_price_atm: Attribute.Float;
+    token_id: Attribute.BigInteger;
+    nft_address: Attribute.String;
+    is_cancelled: Attribute.Boolean & Attribute.DefaultTo<false>;
+    is_distributed: Attribute.Boolean & Attribute.DefaultTo<false>;
+    snapshot_id: Attribute.BigInteger;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::airdrop-history-log.airdrop-history-log',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::airdrop-history-log.airdrop-history-log',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiAirdropStatLogAirdropStatLog extends Schema.CollectionType {
+  collectionName: 'airdrop_stat_logs';
+  info: {
+    singularName: 'airdrop-stat-log';
+    pluralName: 'airdrop-stat-logs';
+    displayName: 'Airdrop Stat Log';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    exchange_user: Attribute.Relation<
+      'api::airdrop-stat-log.airdrop-stat-log',
+      'oneToOne',
+      'api::exchange-user.exchange-user'
+    >;
+    sale_point_24h: Attribute.Float & Attribute.DefaultTo<0>;
+    listing_point_24h: Attribute.Float & Attribute.DefaultTo<0>;
+    bidding_point_24h: Attribute.Float & Attribute.DefaultTo<0>;
+    timestamp: Attribute.BigInteger;
+    extra_point_24h: Attribute.Float & Attribute.DefaultTo<0>;
+    multiplier_detail: Attribute.JSON;
+    total_trade_point: Attribute.Float;
+    total_airdrop_point: Attribute.Float;
+    snapshot_id: Attribute.BigInteger;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::airdrop-stat-log.airdrop-stat-log',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::airdrop-stat-log.airdrop-stat-log',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiCoinPriceCoinPrice extends Schema.CollectionType {
   collectionName: 'coin_prices';
   info: {
@@ -858,7 +990,7 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     volume_total: Attribute.Float & Attribute.DefaultTo<0>;
     floor_price: Attribute.Float & Attribute.DefaultTo<0>;
     sale_24h: Attribute.Integer & Attribute.DefaultTo<0>;
-    boost_point: Attribute.Integer & Attribute.DefaultTo<0>;
+    airdrop_multiplier: Attribute.Decimal & Attribute.DefaultTo<1>;
     change_7d: Attribute.Float;
     creator_address: Attribute.String;
     createdAt: Attribute.DateTime;
@@ -957,6 +1089,12 @@ export interface ApiEarlyUserEarlyUser extends Schema.CollectionType {
     bridging_point: Attribute.BigInteger & Attribute.DefaultTo<'0'>;
     isFinalized: Attribute.Boolean & Attribute.DefaultTo<false>;
     isValidWallet: Attribute.Boolean;
+    isValidDiscord: Attribute.Boolean & Attribute.DefaultTo<true>;
+    isValidTwitter: Attribute.Boolean & Attribute.DefaultTo<true>;
+    is_suspended: Attribute.Boolean & Attribute.DefaultTo<false>;
+    blur_point: Attribute.Float & Attribute.DefaultTo<0>;
+    is_og: Attribute.Boolean & Attribute.DefaultTo<false>;
+    pre_token: Attribute.Float & Attribute.DefaultTo<0>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -998,6 +1136,23 @@ export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
     username: Attribute.String;
     icon_url: Attribute.String;
     at_last_login: Attribute.DateTime;
+    early_user: Attribute.Relation<
+      'api::exchange-user.exchange-user',
+      'oneToOne',
+      'api::early-user.early-user'
+    >;
+    total_airdrop_point: Attribute.Float & Attribute.DefaultTo<0>;
+    airdrop_multiplier: Attribute.Float;
+    box_unrevealed: Attribute.Integer & Attribute.DefaultTo<0>;
+    box_explorer: Attribute.Integer & Attribute.DefaultTo<0>;
+    box_gurdian: Attribute.Integer & Attribute.DefaultTo<0>;
+    box_epic: Attribute.Integer & Attribute.DefaultTo<0>;
+    box_legendary: Attribute.Integer & Attribute.DefaultTo<0>;
+    total_bridging_point: Attribute.Float & Attribute.DefaultTo<0>;
+    total_extra_point: Attribute.Float;
+    total_sale_point: Attribute.Float;
+    total_bidding_point: Attribute.Float;
+    total_listing_point: Attribute.Float;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1279,6 +1434,76 @@ export interface ApiTokenToken extends Schema.CollectionType {
   };
 }
 
+export interface ApiWenOgPassStatWenOgPassStat extends Schema.CollectionType {
+  collectionName: 'wen_og_pass_stats';
+  info: {
+    singularName: 'wen-og-pass-stat';
+    pluralName: 'wen-og-pass-stats';
+    displayName: 'WenOgPassStat';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    total_staked: Attribute.BigInteger;
+    yield_in_weneth: Attribute.Float;
+    yield_in_eth: Attribute.Float;
+    floor_price: Attribute.Float;
+    timestamp: Attribute.BigInteger;
+    error_log: Attribute.Text;
+    eth_to_team_wallet: Attribute.Float;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::wen-og-pass-stat.wen-og-pass-stat',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::wen-og-pass-stat.wen-og-pass-stat',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiWenTradePoolStatWenTradePoolStat
+  extends Schema.CollectionType {
+  collectionName: 'wen_trade_pool_stats';
+  info: {
+    singularName: 'wen-trade-pool-stat';
+    pluralName: 'wen-trade-pool-stats';
+    displayName: 'WenTradePoolStat';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    timestamp: Attribute.BigInteger;
+    pool_balance: Attribute.Float;
+    yield_in_eth: Attribute.Float;
+    error_log: Attribute.Text;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::wen-trade-pool-stat.wen-trade-pool-stat',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::wen-trade-pool-stat.wen-trade-pool-stat',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 declare module '@strapi/types' {
   export module Shared {
     export interface ContentTypes {
@@ -1297,6 +1522,9 @@ declare module '@strapi/types' {
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
       'plugin::i18n.locale': PluginI18NLocale;
+      'api::airdrop-distribution-stat.airdrop-distribution-stat': ApiAirdropDistributionStatAirdropDistributionStat;
+      'api::airdrop-history-log.airdrop-history-log': ApiAirdropHistoryLogAirdropHistoryLog;
+      'api::airdrop-stat-log.airdrop-stat-log': ApiAirdropStatLogAirdropStatLog;
       'api::coin-price.coin-price': ApiCoinPriceCoinPrice;
       'api::collection.collection': ApiCollectionCollection;
       'api::collection-stat-log.collection-stat-log': ApiCollectionStatLogCollectionStatLog;
@@ -1308,6 +1536,8 @@ declare module '@strapi/types' {
       'api::order.order': ApiOrderOrder;
       'api::request-log.request-log': ApiRequestLogRequestLog;
       'api::token.token': ApiTokenToken;
+      'api::wen-og-pass-stat.wen-og-pass-stat': ApiWenOgPassStatWenOgPassStat;
+      'api::wen-trade-pool-stat.wen-trade-pool-stat': ApiWenTradePoolStatWenTradePoolStat;
     }
   }
 }

@@ -23,6 +23,7 @@ const {
 const { createAirdropStat } = require("./cron/airdrop_jobs");
 
 const { ethers } = require("ethers");
+const { checkNFTTradeLogAndCreateExchangeUser } = require("./utils/exchangeUserBot");
 
 module.exports = {
   /**
@@ -34,6 +35,8 @@ module.exports = {
   register(/*{ strapi }*/) {},
 
   async bootstrap({ strapi }) {
+
+    checkNFTTradeLogAndCreateExchangeUser({strapi})
 
     try {
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;

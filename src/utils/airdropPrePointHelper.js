@@ -3,8 +3,7 @@ const { AIRDROP_TYPE } = require("./constants");
 
 const LISTING_UNDER_FP = 6;
 const VALID_COLLECTION_THRESHOLD = 0.5;
-// const LISTING_VALID_DURATION = 60 * 60 * 6; // TODO: 바꿔~
-const LISTING_VALID_DURATION = 300; // TODO: 바꿔~
+const LISTING_VALID_DURATION = 60 * 60 * 6; // TODO: 바꿔~
 
 const updateListingPoint = async (
   _isCancelRequest,

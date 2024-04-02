@@ -20,7 +20,10 @@ const {
   updateListingPoint,
 } = require("./utils/airdropPrePointHelper");
 
-const { createAirdropStat } = require("./cron/airdrop_jobs");
+const {
+  createAirdropStat,
+  updateUserMultiplier,
+} = require("./cron/airdrop_jobs");
 
 const { ethers } = require("ethers");
 
@@ -35,8 +38,7 @@ module.exports = {
   register(/*{ strapi }*/) {},
 
   async bootstrap({ strapi }) {
-    listingAndSaleUpdate({ strapi });
-
+    // updateUserMultiplier({ strapi });
     try {
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {

@@ -791,7 +791,7 @@ export interface ApiAirdropDistributionStatAirdropDistributionStat
     description: '';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     timestamp: Attribute.BigInteger;
@@ -800,9 +800,9 @@ export interface ApiAirdropDistributionStatAirdropDistributionStat
     distributed_bidding_point: Attribute.BigInteger;
     distributed_sale_point: Attribute.BigInteger;
     distributed_extra_point: Attribute.BigInteger;
+    user_multiplier_json: Attribute.JSON;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
       'api::airdrop-distribution-stat.airdrop-distribution-stat',
       'oneToOne',

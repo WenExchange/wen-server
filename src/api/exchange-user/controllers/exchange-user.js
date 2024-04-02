@@ -126,6 +126,14 @@ module.exports = createCoreController(
             });
           }
 
+          if (earlyUser.is_suspended) {
+            return (ctx.body = {
+              success: false,
+              is_suspended: true,
+              message: "Your early access has been suspended.",
+            });
+          }
+          
           if (user.early_user) {
             return (ctx.body = {
               success: false,
@@ -133,6 +141,8 @@ module.exports = createCoreController(
             });
           }
 
+          
+          
     
           // og pass check
           let is_og = false;

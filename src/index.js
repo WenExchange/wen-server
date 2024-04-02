@@ -38,7 +38,7 @@ module.exports = {
   register(/*{ strapi }*/) {},
 
   async bootstrap({ strapi }) {
-    // updateUserMultiplier({ strapi });
+    updateUserMultiplier({ strapi });
     try {
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {

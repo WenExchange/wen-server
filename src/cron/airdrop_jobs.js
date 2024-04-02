@@ -97,17 +97,11 @@ const updateUserMultiplier = async ({ strapi }) => {
 
   const airdropStat = await strapi.db
     .query("api::airdrop-distribution-stat.airdrop-distribution-stat")
-    .findMany({
-      orderBy: {
-        snapshot_id: "desc",
-      },
-      offset: 0,
-      limit: 1,
-    });
-  console.log("airdropStat : ", airdropStat[0]);
+    .findOne();
+  console.log("airdropStat : ", airdropStat);
   let snapshotId = 0;
-  if (airdropStat[0]) {
-    snapshotId = parseInt(airdropStat[0].snapshot_id) + 1;
+  if (airdropStat) {
+    snapshotId = parseInt(airdropStat.snapshot_id) + 1;
   }
 
   // 1. 만약 과거 multipler 데이터가 있다면 모두 multiplier 1로 다시 변경
@@ -123,41 +117,38 @@ const updateUserMultiplier = async ({ strapi }) => {
     const keys = Object.keys(multipliers);
     console.log("multiplier 각각 데이터 1로 변경 시작");
 
-    // async 함수 내에서 작업을 수행해야 합니다.
-    (async () => {
-      for (const key of keys) {
-        console.log(`Current Multiplier: ${key}`);
+    for (const key of keys) {
+      console.log(`Current Multiplier: ${key}`);
 
-        const users = multipliers[key];
-        for (const user of users) {
-          console.log(
-            `Updating info for exchange_user_id: ${user.exchange_user_id}`
+      const users = multipliers[key];
+      for (const user of users) {
+        console.log(
+          `Updating info for exchange_user_id: ${user.exchange_user_id}`
+        );
+        try {
+          // await를 사용한 비동기 작업
+          await strapi.entityService.update(
+            "api::exchange-user.exchange-user",
+            user.exchange_user_id,
+            {
+              data: {
+                airdrop_multiplier: 1,
+              },
+            }
           );
-          try {
-            // await를 사용한 비동기 작업
-            await strapi.entityService.update(
-              "api::exchange-user.exchange-user",
-              user.exchange_user_id,
-              {
-                data: {
-                  airdrop_multiplier: 1,
-                },
-              }
-            );
-            console.log(
-              `Updated exchange_user_id: ${
-                user.exchange_user_id
-              } with multiplier: ${1}`
-            );
-          } catch (error) {
-            console.error(
-              `Error updating exchange_user_id: ${user.exchange_user_id}`,
-              error
-            );
-          }
+          console.log(
+            `Updated exchange_user_id: ${
+              user.exchange_user_id
+            } with multiplier: ${1}`
+          );
+        } catch (error) {
+          console.error(
+            `Error updating exchange_user_id: ${user.exchange_user_id}`,
+            error
+          );
         }
       }
-    })();
+    }
   }
 
   // 2. Get 이번 스냅샷의 current user stat을 total_trade_point순으로 가져온다.
@@ -211,38 +202,36 @@ const updateUserMultiplier = async ({ strapi }) => {
   console.log("multiplier 각각 데이터 추가");
 
   // async 함수 내에서 작업을 수행해야 합니다.
-  (async () => {
-    for (const key of keys) {
-      console.log(`Current Multiplier: ${key}`);
+  for (const key of keys) {
+    console.log(`Current Multiplier: ${key}`);
 
-      const users = multipliers[key];
-      for (const user of users) {
-        console.log(
-          `Updating info for exchange_user_id: ${user.exchange_user_id}`
+    const users = multipliers[key];
+    for (const user of users) {
+      console.log(
+        `Updating info for exchange_user_id: ${user.exchange_user_id}`
+      );
+      try {
+        // await를 사용한 비동기 작업
+        await strapi.entityService.update(
+          "api::exchange-user.exchange-user",
+          user.exchange_user_id,
+          {
+            data: {
+              airdrop_multiplier: key,
+            },
+          }
         );
-        try {
-          // await를 사용한 비동기 작업
-          await strapi.entityService.update(
-            "api::exchange-user.exchange-user",
-            user.exchange_user_id,
-            {
-              data: {
-                airdrop_multiplier: key,
-              },
-            }
-          );
-          console.log(
-            `Updated exchange_user_id: ${user.exchange_user_id} with multiplier: ${key}`
-          );
-        } catch (error) {
-          console.error(
-            `Error updating exchange_user_id: ${user.exchange_user_id}`,
-            error
-          );
-        }
+        console.log(
+          `Updated exchange_user_id: ${user.exchange_user_id} with multiplier: ${key}`
+        );
+      } catch (error) {
+        console.error(
+          `Error updating exchange_user_id: ${user.exchange_user_id}`,
+          error
+        );
       }
     }
-  })();
+  }
 
   console.log("airdrop-distribution-stat 에 multiplier 데이터 저장");
 

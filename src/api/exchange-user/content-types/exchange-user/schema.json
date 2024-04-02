@@ -53,6 +53,27 @@
     },
     "airdrop_multiplier": {
       "type": "float"
+    },
+    "box_unrevealed": {
+      "type": "integer",
+      "default": 0
+    },
+    "box_explorer": {
+      "type": "integer",
+      "default": 0
+    },
+    "box_gurdian": {
+      "default": 0,
+      "type": "integer"
+    },
+    "box_epic": {
+      "type": "integer",
+      "default": 0
+    },
+    "box_legendary": {
+      "type": "integer",
+      "required": false,
+      "default": 0
     }
   }
 }

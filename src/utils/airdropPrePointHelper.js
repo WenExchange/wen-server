@@ -118,7 +118,7 @@ const updateListingPoint = async (
 
     // 2. Check prepoint
     if (!collection.floor_price || collection.floor_price == 0) {
-      prePoint = LISTING_UNDER_FP;
+      prePoint = 0;
     } else {
       const fp = parseFloat(collection.floor_price);
       if (_listingPrice <= fp) {

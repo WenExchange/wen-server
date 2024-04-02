@@ -23,9 +23,6 @@ const updateCollectionAirdrop = async ({ strapi }) => {
       },
     });
 
-  for (let i of collectionData) {
-    console.log(i.name, i.volume_24h);
-  }
 
   for (let i = 0; i < 3; i++) {
     await strapi.entityService.update(
@@ -78,17 +75,6 @@ const updateCollectionAirdrop = async ({ strapi }) => {
     }
   }
 
-  const afterCollectionData = await strapi.db
-    .query("api::collection.collection")
-    .findMany({
-      orderBy: {
-        airdrop_multiplier: "desc",
-      },
-    });
-
-  for (let i of afterCollectionData) {
-    console.log(i.name, i.volume_24h, i.airdrop_multiplier);
-  }
 };
 
 const updateUserMultiplier = async ({ strapi }) => {
@@ -122,15 +108,11 @@ const updateUserMultiplier = async ({ strapi }) => {
       },
     });
 
-  // console.log("previousStat !!! ", previousStats);
   for (let previousStat of previousStats) {
     if (previousStat && previousStat.user_multiplier_json) {
       const multipliers = previousStat.user_multiplier_json;
       const keys = Object.keys(multipliers);
-      // console.log(
-      //   "multiplier 각각 데이터 1로 변경 시작 id : ",
-      //   previousStat.id
-      // );
+
 
       for (const key of keys) {
         const users = multipliers[key];
@@ -213,17 +195,12 @@ const updateUserMultiplier = async ({ strapi }) => {
   });
 
   const keys = Object.keys(multipliers);
-  // console.log("multiplier 각각 데이터 추가");
 
   // async 함수 내에서 작업을 수행해야 합니다.
   for (const key of keys) {
-    console.log(`Current Multiplier: ${key}`);
 
     const users = multipliers[key];
     for (const user of users) {
-      // console.log(
-      //   `Updating info for exchange_user_id: ${user.exchange_user_id}`
-      // );
       try {
         // await를 사용한 비동기 작업
         await strapi.entityService.update(
@@ -235,9 +212,6 @@ const updateUserMultiplier = async ({ strapi }) => {
             },
           }
         );
-        // console.log(
-        //   `Updated exchange_user_id: ${user.exchange_user_id} with multiplier: ${key}`
-        // );
       } catch (error) {
         console.error(
           `Error updating exchange_user_id: ${user.exchange_user_id}`,
@@ -247,7 +221,6 @@ const updateUserMultiplier = async ({ strapi }) => {
     }
   }
 
-  console.log("airdrop-distribution-stat 에 multiplier 데이터 저장");
 
   // airdrop-distribution-stat 에 multiplier 데이터 저장
   await strapi.entityService.update(
@@ -259,7 +232,6 @@ const updateUserMultiplier = async ({ strapi }) => {
       },
     }
   );
-  console.log("done");
 };
 const createAirdropStat = async ({ strapi }) => {
   let sales = [];
@@ -308,7 +280,6 @@ const createAirdropStat = async ({ strapi }) => {
 
   // 중복 제거를 위해 Set을 사용하여 유일한 exchange_user id를 추출
   const uniqueIds = new Set(historyList.map((item) => item.exchange_user.id));
-  console.log("unique Ids : ", uniqueIds);
   // 중복되지 않은 각 exchange_user id에 대해 객체를 생성
   for (const id of uniqueIds) {
     const userItem = historyList.find((item) => item.exchange_user.id === id);
@@ -372,27 +343,6 @@ const createAirdropStat = async ({ strapi }) => {
     }
   }
 
-  console.log(
-    "sales : ",
-    sales.length,
-    "listing : ",
-    listings.length,
-    "biddings : ",
-    biddings.length
-  );
-
-  // for (let i of historyList) {
-  //   console.log(i);
-  // }
-
-  console.log(
-    "sales : ",
-    sales.length,
-    "listing : ",
-    listings.length,
-    "biddings : ",
-    biddings.length
-  );
 
   // 3. 가장 최근 airdrop stat을 가져온다.
   const airdropStat = await strapi.db
@@ -441,15 +391,6 @@ const createAirdropStat = async ({ strapi }) => {
     listingAddedPoint += point;
   });
 
-  console.log(
-    "valid listing count : ",
-    validListing.length,
-    "valid listings pre-point sum : ",
-    validListingPrePointSum,
-    "listingAddedPoint",
-    listingAddedPoint
-  );
-
   // 2-5. Update All Listing airdrop-history-log , is_distributed = true, snapshot_id = snapshot
   validListing.forEach(async (item) => {
     await strapi.entityService.update(
@@ -492,15 +433,6 @@ const createAirdropStat = async ({ strapi }) => {
     salesAddedPoint += point;
   });
 
-  console.log(
-    " sale count : ",
-    sales.length,
-    "sale pre-point sum : ",
-    salesPrePointSum,
-    "saleAddedPoint",
-    salesAddedPoint
-  );
-
   // 3-4. Update All sales airdrop-history-log , is_distributed = true, snapshot_id = snapshot
   sales.forEach(async (item) => {
     await strapi.entityService.update(
@@ -528,13 +460,6 @@ const createAirdropStat = async ({ strapi }) => {
     extraAddedPoint += point;
   });
 
-  console.log(
-    " extra count : ",
-    extras.length,
-    "extraAddedPoint",
-    extraAddedPoint
-  );
-
   // 3-4. Update All extras airdrop-history-log , is_distributed = true, snapshot_id = snapshot
   extras.forEach(async (item) => {
     await strapi.entityService.update(
@@ -550,10 +475,8 @@ const createAirdropStat = async ({ strapi }) => {
   });
 
   // 6. 전체 유저 스탯 계산
-  console.log("All user stat : ", JSON.stringify(userObject));
   for (const key in userObject) {
     if (Object.hasOwnProperty.call(userObject, key)) {
-      console.log(`Key: ${key}, Value: `, userObject[key]);
       const userData = userObject[key];
       if (
         userData.total_bidding != 0 ||
@@ -628,18 +551,10 @@ const createAirdropStat = async ({ strapi }) => {
       },
     }
   );
-  console.log("distribution stat", {
-    distributed_listing_point: listingAddedPoint,
-    distributed_bidding_point: biddingAddedPoint,
-    distributed_sale_point: salesAddedPoint,
-    distributed_extra_point: extraAddedPoint,
-    timestamp: dayjs().unix(),
-    snapshot_id: snapshotId,
-  });
+
 };
 
 async function getWenOGPassCount(address) {
-  console.log("here", address);
   const ogpassStakingContract = new ethers.Contract(
     "0xcCBA7f02f53b3cE11eBF9Bf15067429fE6479bC2",
     [
@@ -675,7 +590,7 @@ const airdropStatCombined = async ({ strapi }) => {
     await updateUserMultiplier({ strapi });
     await updateCollectionAirdrop;
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 };
 

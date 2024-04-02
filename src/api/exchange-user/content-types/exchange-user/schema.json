@@ -74,6 +74,10 @@
       "type": "integer",
       "required": false,
       "default": 0
+    },
+    "total_bridging_point": {
+      "type": "float",
+      "default": 0
     }
   }
 }

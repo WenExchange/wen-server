@@ -1147,6 +1147,7 @@ export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
     box_gurdian: Attribute.Integer & Attribute.DefaultTo<0>;
     box_epic: Attribute.Integer & Attribute.DefaultTo<0>;
     box_legendary: Attribute.Integer & Attribute.DefaultTo<0>;
+    total_bridging_point: Attribute.Float & Attribute.DefaultTo<0>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

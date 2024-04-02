@@ -11,18 +11,8 @@ const CollectionCacheManager = require("./cache-managers/CollectionCacheManager"
 const dayjs = require("dayjs");
 var utc = require("dayjs/plugin/utc");
 var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
-const { listingCollectionScript } = require("./utils/listing-script");
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
-const {
-  updateSalePoint,
-  updateListingPoint,
-} = require("./utils/airdropPrePointHelper");
-
-const { createAirdropStat } = require("./cron/airdrop_jobs");
-
-const { ethers } = require("ethers");
 
 module.exports = {
   /**
@@ -34,7 +24,6 @@ module.exports = {
   register(/*{ strapi }*/) {},
 
   async bootstrap({ strapi }) {
-
     try {
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {

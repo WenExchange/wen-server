@@ -791,7 +791,7 @@ export interface ApiAirdropDistributionStatAirdropDistributionStat
     description: '';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     timestamp: Attribute.BigInteger;
@@ -800,9 +800,10 @@ export interface ApiAirdropDistributionStatAirdropDistributionStat
     distributed_bidding_point: Attribute.BigInteger;
     distributed_sale_point: Attribute.BigInteger;
     distributed_extra_point: Attribute.BigInteger;
+    user_multiplier_json: Attribute.JSON;
+    is_user_multiplier_disabled: Attribute.Boolean & Attribute.DefaultTo<false>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
-    publishedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
       'api::airdrop-distribution-stat.airdrop-distribution-stat',
       'oneToOne',
@@ -1142,6 +1143,16 @@ export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
     >;
     total_airdrop_point: Attribute.Float & Attribute.DefaultTo<0>;
     airdrop_multiplier: Attribute.Float;
+    box_unrevealed: Attribute.Integer & Attribute.DefaultTo<0>;
+    box_explorer: Attribute.Integer & Attribute.DefaultTo<0>;
+    box_gurdian: Attribute.Integer & Attribute.DefaultTo<0>;
+    box_epic: Attribute.Integer & Attribute.DefaultTo<0>;
+    box_legendary: Attribute.Integer & Attribute.DefaultTo<0>;
+    total_bridging_point: Attribute.Float & Attribute.DefaultTo<0>;
+    total_extra_point: Attribute.Float;
+    total_sale_point: Attribute.Float;
+    total_bidding_point: Attribute.Float;
+    total_listing_point: Attribute.Float;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

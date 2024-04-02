@@ -8,7 +8,7 @@
     "description": ""
   },
   "options": {
-    "draftAndPublish": true
+    "draftAndPublish": false
   },
   "pluginOptions": {},
   "attributes": {
@@ -29,6 +29,13 @@
     },
     "distributed_extra_point": {
       "type": "biginteger"
+    },
+    "user_multiplier_json": {
+      "type": "json"
+    },
+    "is_user_multiplier_disabled": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

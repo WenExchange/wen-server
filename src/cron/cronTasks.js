@@ -10,6 +10,8 @@ const {
   protocolFeeReceiverJob,
 } = require("./stats_24h_contract");
 
+const { airdropStatCombined } = require("./airdrop_jobs");
+
 module.exports = {
   cacheCollection: {
     task: async ({ strapi }) => {
@@ -79,6 +81,14 @@ module.exports = {
     task: claimAllBlastYieldFromWenTradePool,
     options: {
       rule: `0 23 * * *`,
+      tz: "Asia/Seoul",
+    },
+  },
+
+  airdropStatCombined: {
+    task: airdropStatCombined,
+    options: {
+      rule: `0 16 * * *`,
       tz: "Asia/Seoul",
     },
   },

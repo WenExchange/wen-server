@@ -15,7 +15,6 @@ const updateListingPoint = async (
   _nftTradeLogId,
   { strapi }
 ) => {
-
   if (_isCancelRequest) {
     // Cancel Listing Point
 
@@ -35,9 +34,11 @@ const updateListingPoint = async (
       .findOne({
         where: {
           $and: [
-            { exchange_user: {
-              id: user.id
-            } },
+            {
+              exchange_user: {
+                id: user.id,
+              },
+            },
             { nft_address: _collectionAddress },
             {
               is_cancelled: false,
@@ -106,20 +107,26 @@ const updateListingPoint = async (
       });
     if (!user) return;
 
+    let fp = 0;
     // 2. Check prepoint
-    const fp = parseFloat(collection.floor_price);
-    if (_listingPrice <= fp) {
-      prePoint = LISTING_UNDER_FP;
+    if (!collection.floor_price || collection.floor_price == 0) {
+      prePoint = 0;
     } else {
-      const priceDifferencePercentage = Math.abs(_listingPrice - fp) / fp;
-      const k = 10; // 감소율 조정 상수
-
-      if (priceDifferencePercentage >= 0.3) {
-        prePoint = 0; // 가격 차이가 30% 이상이면 점수를 0으로 설정
+      fp = parseFloat(collection.floor_price);
+      if (_listingPrice <= fp) {
+        prePoint = LISTING_UNDER_FP;
       } else {
-        prePoint = 4 * Math.exp(-k * priceDifferencePercentage); // 가격 차이에 따라 지수적으로 점수 계산
+        const priceDifferencePercentage = Math.abs(_listingPrice - fp) / fp;
+        const k = 10; // 감소율 조정 상수
+
+        if (priceDifferencePercentage >= 0.3) {
+          prePoint = 0; // 가격 차이가 30% 이상이면 점수를 0으로 설정
+        } else {
+          prePoint = 4 * Math.exp(-k * priceDifferencePercentage); // 가격 차이에 따라 지수적으로 점수 계산
+        }
       }
     }
+
     //3.  Check if this is valid collection.
     let isValidCollection = false;
 

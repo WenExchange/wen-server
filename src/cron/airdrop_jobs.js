@@ -4,7 +4,6 @@ const EXCHANGE_VOLUME_MULTIPLIER = 0;
 
 const { ethers } = require("ethers");
 const { jsonRpcProvider_cron, AIRDROP_TYPE } = require("../utils/constants");
-const airdropDistributionStat = require("../api/airdrop-distribution-stat/controllers/airdrop-distribution-stat");
 const updateCollectionAirdrop = async ({ strapi }) => {
   //  TOP 11-20 : 1.5x
   //  TOP 4-10 : 2x
@@ -98,7 +97,6 @@ const updateUserMultiplier = async ({ strapi }) => {
   const airdropStat = await strapi.db
     .query("api::airdrop-distribution-stat.airdrop-distribution-stat")
     .findOne({ orderBy: { snapshot_id: "desc" } });
-  console.log("airdropStat : ", airdropStat);
   let snapshotId = 0;
   if (airdropStat) {
     snapshotId = parseInt(airdropStat.snapshot_id);
@@ -107,50 +105,63 @@ const updateUserMultiplier = async ({ strapi }) => {
   }
 
   // 1. 만약 과거 multipler 데이터가 있다면 모두 multiplier 1로 다시 변경
-  const previousStat = await strapi.db
+  const previousStats = await strapi.db
     .query("api::airdrop-distribution-stat.airdrop-distribution-stat")
-    .findOne({
+    .findMany({
       where: {
-        snapshot_id: snapshotId - 1,
+        $and: [
+          {
+            is_user_multiplier_disabled: false,
+          },
+          {
+            $not: {
+              snapshot_id: snapshotId,
+            },
+          },
+        ],
       },
     });
 
-  console.log("previousStat !!! ", previousStat);
-  if (previousStat && previousStat.user_multiplier_json) {
-    const multipliers = previousStat.user_multiplier_json;
-    const keys = Object.keys(multipliers);
-    console.log("multiplier 각각 데이터 1로 변경 시작");
+  // console.log("previousStat !!! ", previousStats);
+  for (let previousStat of previousStats) {
+    if (previousStat && previousStat.user_multiplier_json) {
+      const multipliers = previousStat.user_multiplier_json;
+      const keys = Object.keys(multipliers);
+      // console.log(
+      //   "multiplier 각각 데이터 1로 변경 시작 id : ",
+      //   previousStat.id
+      // );
 
-    for (const key of keys) {
-      console.log(`previousStat Current Multiplier: ${key}`);
-
-      const users = multipliers[key];
-      for (const user of users) {
-        // console.log(
-        //   `Updating info for exchange_user_id: ${user.exchange_user_id}`
-        // );
-        try {
-          // await를 사용한 비동기 작업
-          await strapi.entityService.update(
-            "api::exchange-user.exchange-user",
-            user.exchange_user_id,
-            {
-              data: {
-                airdrop_multiplier: 1,
-              },
-            }
-          );
-          // console.log(
-          //   `Updated exchange_user_id: ${
-          //     user.exchange_user_id
-          //   } with multiplier: ${1}`
-          // );
-        } catch (error) {
-          console.error(
-            `Error updating exchange_user_id: ${user.exchange_user_id}`,
-            error
-          );
+      for (const key of keys) {
+        const users = multipliers[key];
+        for (const user of users) {
+          try {
+            // await를 사용한 비동기 작업
+            await strapi.entityService.update(
+              "api::exchange-user.exchange-user",
+              user.exchange_user_id,
+              {
+                data: {
+                  airdrop_multiplier: 1,
+                },
+              }
+            );
+          } catch (error) {
+            console.error(
+              `Error updating exchange_user_id: ${user.exchange_user_id}`,
+              error
+            );
+          }
         }
+        await strapi.entityService.update(
+          "api::airdrop-distribution-stat.airdrop-distribution-stat",
+          previousStat.id,
+          {
+            data: {
+              is_user_multiplier_disabled: true,
+            },
+          }
+        );
       }
     }
   }
@@ -201,9 +212,8 @@ const updateUserMultiplier = async ({ strapi }) => {
     }
   });
 
-  console.log(multipliers);
   const keys = Object.keys(multipliers);
-  console.log("multiplier 각각 데이터 추가");
+  // console.log("multiplier 각각 데이터 추가");
 
   // async 함수 내에서 작업을 수행해야 합니다.
   for (const key of keys) {
@@ -306,6 +316,12 @@ const createAirdropStat = async ({ strapi }) => {
     const userAddress = userItem.exchange_user.address;
     const originalTotalAirdropPoint =
       userItem.exchange_user.total_airdrop_point;
+    const originalBiddingAirdropPoint =
+      userItem.exchange_user.total_bidding_point;
+    const originalListingAirdropPoint =
+      userItem.exchange_user.total_listing_point;
+    const originalSaleAirdropPoint = userItem.exchange_user.total_sale_point;
+    const originalExtraAirdropPoint = userItem.exchange_user.total_extra_point;
     userObject[id] = {
       originalTotalAirdropPoint,
       total_bidding: 0,
@@ -583,6 +599,14 @@ const createAirdropStat = async ({ strapi }) => {
                 userData.total_listing +
                 userData.total_bidding +
                 userData.total_extra,
+              total_bidding_point:
+                userData.originalBiddingAirdropPoint + userData.total_bidding,
+              total_listing_point:
+                userData.originalListingAirdropPoint + userData.total_listing,
+              total_sale_point:
+                userData.originalSaleAirdropPoint + userData.total_bidding,
+              total_extra_point:
+                userData.originalExtraAirdropPoint + userData.total_extra,
             },
           }
         );
@@ -645,8 +669,19 @@ async function getWenOGPassCount(address) {
   const staked = await ogpassStakingContract.stakedTokensByUser(address);
   return staked.length;
 }
+const airdropStatCombined = async ({ strapi }) => {
+  try {
+    await createAirdropStat({ strapi });
+    await updateUserMultiplier({ strapi });
+    await updateCollectionAirdrop;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 module.exports = {
-  updateCollectionAirdrop,
   createAirdropStat,
   updateUserMultiplier,
+  updateCollectionAirdrop,
+  airdropStatCombined,
 };

@@ -269,7 +269,7 @@ const listingAndSaleUpdate = async ({ strapi }) => {
         // 2. Exchange User Total Point 추가
         await strapi.entityService.update(
           "api::exchange-user.exchange-user",
-          key,
+          userDbData.id,
           {
             data: {
               total_airdrop_point: userData.total_sale + userData.total_listing,

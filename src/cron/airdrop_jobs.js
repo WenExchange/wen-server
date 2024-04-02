@@ -316,6 +316,12 @@ const createAirdropStat = async ({ strapi }) => {
     const userAddress = userItem.exchange_user.address;
     const originalTotalAirdropPoint =
       userItem.exchange_user.total_airdrop_point;
+    const originalBiddingAirdropPoint =
+      userItem.exchange_user.total_bidding_point;
+    const originalListingAirdropPoint =
+      userItem.exchange_user.total_listing_point;
+    const originalSaleAirdropPoint = userItem.exchange_user.total_sale_point;
+    const originalExtraAirdropPoint = userItem.exchange_user.total_extra_point;
     userObject[id] = {
       originalTotalAirdropPoint,
       total_bidding: 0,
@@ -593,6 +599,14 @@ const createAirdropStat = async ({ strapi }) => {
                 userData.total_listing +
                 userData.total_bidding +
                 userData.total_extra,
+              total_bidding_point:
+                userData.originalBiddingAirdropPoint + userData.total_bidding,
+              total_listing_point:
+                userData.originalListingAirdropPoint + userData.total_listing,
+              total_sale_point:
+                userData.originalSaleAirdropPoint + userData.total_bidding,
+              total_extra_point:
+                userData.originalExtraAirdropPoint + userData.total_extra,
             },
           }
         );

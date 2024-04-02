@@ -78,6 +78,18 @@
     "total_bridging_point": {
       "type": "float",
       "default": 0
+    },
+    "total_extra_point": {
+      "type": "float"
+    },
+    "total_sale_point": {
+      "type": "float"
+    },
+    "total_bidding_point": {
+      "type": "float"
+    },
+    "total_listing_point": {
+      "type": "float"
     }
   }
 }

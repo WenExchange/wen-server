@@ -315,7 +315,38 @@ const listingAndSaleUpdate = async ({ strapi }) => {
     snapshot_id: snapshotId,
   });
 };
+const updateExchangeUserTotalData = async ({ strapi }) => {
+  // Get All stat data
+  let allLogs = await strapi.entityService.findMany(
+    "api::airdrop-stat-log.airdrop-stat-log",
+    {
+      populate: {
+        exchange_user: true,
+      },
+    }
+  );
+  console.log("All Logs Count : ", allLogs.length);
+  let count = 0;
+  // Update user accordingly.
+  for (let stat of allLogs) {
+    console.log(`${++count}/${allLogs.length}`);
+    await strapi.entityService.update(
+      "api::exchange-user.exchange-user",
+      stat.exchange_user.id,
+      {
+        data: {
+          total_airdrop_point: stat.total_airdrop_point,
+          total_bidding_point: stat.bidding_point_24h,
+          total_listing_point: stat.listing_point_24h,
+          total_sale_point: stat.sale_point_24h,
+          total_extra_point: stat.extra_point_24h,
+        },
+      }
+    );
+  }
+};
 
 module.exports = {
   listingAndSaleUpdate,
+  updateExchangeUserTotalData,
 };

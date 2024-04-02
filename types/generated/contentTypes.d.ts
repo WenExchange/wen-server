@@ -1149,6 +1149,10 @@ export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
     box_epic: Attribute.Integer & Attribute.DefaultTo<0>;
     box_legendary: Attribute.Integer & Attribute.DefaultTo<0>;
     total_bridging_point: Attribute.Float & Attribute.DefaultTo<0>;
+    total_extra_point: Attribute.Float;
+    total_sale_point: Attribute.Float;
+    total_bidding_point: Attribute.Float;
+    total_listing_point: Attribute.Float;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

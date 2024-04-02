@@ -26,17 +26,8 @@ const updateListingPoint = async (
           address: _userAddress,
         },
       });
-    if (!user) return;
 
-    console.log(
-      "cancel request :  ",
-      _isCancelRequest,
-      _userAddress,
-      _collectionAddress,
-      _tokenId,
-      _listingPrice,
-      _nftTradeLogId
-    );
+    if (!user) return;
     // 1. airdrop-history-log 가 있나 체크.
     const airdropHistoryLog = await strapi.db
       .query("api::airdrop-history-log.airdrop-history-log")

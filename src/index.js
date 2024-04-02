@@ -24,7 +24,7 @@ const { createAirdropStat } = require("./cron/airdrop_jobs");
 
 const { ethers } = require("ethers");
 
-const {listingAndSaleUpdate} = require("./utils/backup")
+const { listingAndSaleUpdate } = require("./utils/backup");
 module.exports = {
   /**
    * An asynchronous register function that runs before
@@ -35,7 +35,7 @@ module.exports = {
   register(/*{ strapi }*/) {},
 
   async bootstrap({ strapi }) {
-    listingAndSaleUpdate({strapi})
+    listingAndSaleUpdate({ strapi });
 
     try {
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;

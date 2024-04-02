@@ -1142,6 +1142,11 @@ export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
     >;
     total_airdrop_point: Attribute.Float & Attribute.DefaultTo<0>;
     airdrop_multiplier: Attribute.Float;
+    box_unrevealed: Attribute.Integer & Attribute.DefaultTo<0>;
+    box_explorer: Attribute.Integer & Attribute.DefaultTo<0>;
+    box_gurdian: Attribute.Integer & Attribute.DefaultTo<0>;
+    box_epic: Attribute.Integer & Attribute.DefaultTo<0>;
+    box_legendary: Attribute.Integer & Attribute.DefaultTo<0>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

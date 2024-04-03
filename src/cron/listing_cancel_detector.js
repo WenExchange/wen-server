@@ -31,6 +31,12 @@ const listing_cancel_detector_expiration = async ({ strapi }) => {
           nft: true,
         },
       });
+
+    
+
+
+
+      
     const willDeletePromise = willDeleteOrders.map((order) => {
       return strapi.db
         .query("api::order.order")
@@ -42,6 +48,7 @@ const listing_cancel_detector_expiration = async ({ strapi }) => {
           },
           populate: {
             nft: true,
+            collection: true
           },
         })
         .then((deletedOrder) => {

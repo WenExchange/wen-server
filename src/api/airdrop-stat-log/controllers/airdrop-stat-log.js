@@ -149,9 +149,15 @@ module.exports = createCoreController('api::airdrop-stat-log.airdrop-stat-log',
 
               let count = await strapi.db.query("api::airdrop-stat-log.airdrop-stat-log").count({
                 where: {
-                  total_trade_point: {
-                    $gt: entry.total_trade_point
-                  }
+                  $and: [
+                    {snapshot_id},
+                    {
+                      total_trade_point: {
+                        $gt: entry.total_trade_point
+                      }
+                    }
+                  ]
+                  
                 }
               })
 

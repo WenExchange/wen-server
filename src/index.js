@@ -14,6 +14,11 @@ var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+const {
+  updateCollectionAirdrop,
+  updateUserMultiplier,
+} = require("./cron/airdrop_jobs");
+
 module.exports = {
   /**
    * An asynchronous register function that runs before

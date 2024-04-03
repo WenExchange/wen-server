@@ -23,7 +23,6 @@ const updateCollectionAirdrop = async ({ strapi }) => {
       },
     });
 
-
   for (let i = 0; i < 3; i++) {
     await strapi.entityService.update(
       "api::collection.collection",
@@ -74,7 +73,6 @@ const updateCollectionAirdrop = async ({ strapi }) => {
       );
     }
   }
-
 };
 
 const updateUserMultiplier = async ({ strapi }) => {
@@ -90,68 +88,34 @@ const updateUserMultiplier = async ({ strapi }) => {
     return;
   }
 
-  // 1. 만약 과거 multipler 데이터가 있다면 모두 multiplier 1로 다시 변경
-  const previousStats = await strapi.db
-    .query("api::airdrop-distribution-stat.airdrop-distribution-stat")
+  const pastList = await strapi.db
+    .query("api::exchange-user.exchange-user")
     .findMany({
       where: {
-        $and: [
-          {
-            is_user_multiplier_disabled: false,
-          },
-          {
-            $not: {
-              snapshot_id: snapshotId,
-            },
-          },
-        ],
+        $not: { airdrop_multiplier: 1 },
       },
     });
 
-  for (let previousStat of previousStats) {
-    if (previousStat && previousStat.user_multiplier_json) {
-      const multipliers = previousStat.user_multiplier_json;
-      const keys = Object.keys(multipliers);
-
-
-      for (const key of keys) {
-        const users = multipliers[key];
-        for (const user of users) {
-          try {
-            // await를 사용한 비동기 작업
-            await strapi.entityService.update(
-              "api::exchange-user.exchange-user",
-              user.exchange_user_id,
-              {
-                data: {
-                  airdrop_multiplier: 1,
-                },
-              }
-            );
-          } catch (error) {
-            console.error(
-              `Error updating exchange_user_id: ${user.exchange_user_id}`,
-              error
-            );
-          }
-        }
-        await strapi.entityService.update(
-          "api::airdrop-distribution-stat.airdrop-distribution-stat",
-          previousStat.id,
-          {
-            data: {
-              is_user_multiplier_disabled: true,
-            },
-          }
-        );
+  for (let user of pastList) {
+    console.log("user id : ", user.id, user.airdrop_multiplier);
+    await strapi.entityService.update(
+      "api::exchange-user.exchange-user",
+      user.id,
+      {
+        data: {
+          airdrop_multiplier: 1,
+        },
       }
-    }
+    );
   }
 
   // 2. Get 이번 스냅샷의 current user stat을 total_trade_point순으로 가져온다.
   const userList = await strapi.db
     .query("api::airdrop-stat-log.airdrop-stat-log")
     .findMany({
+      where: {
+        snapshot_id: snapshotId,
+      },
       orderBy: {
         total_trade_point: "desc",
       },
@@ -198,7 +162,6 @@ const updateUserMultiplier = async ({ strapi }) => {
 
   // async 함수 내에서 작업을 수행해야 합니다.
   for (const key of keys) {
-
     const users = multipliers[key];
     for (const user of users) {
       try {
@@ -221,7 +184,6 @@ const updateUserMultiplier = async ({ strapi }) => {
     }
   }
 
-
   // airdrop-distribution-stat 에 multiplier 데이터 저장
   await strapi.entityService.update(
     "api::airdrop-distribution-stat.airdrop-distribution-stat",
@@ -233,6 +195,7 @@ const updateUserMultiplier = async ({ strapi }) => {
     }
   );
 };
+
 const createAirdropStat = async ({ strapi }) => {
   let sales = [];
   let biddings = [];
@@ -253,6 +216,7 @@ const createAirdropStat = async ({ strapi }) => {
       where: {
         $and: [
           { is_distributed: false },
+          { $not: { type: "EARLY_ACCESS" } },
           {
             is_cancelled: false,
           },
@@ -262,6 +226,8 @@ const createAirdropStat = async ({ strapi }) => {
         exchange_user: true,
       },
     });
+
+  console.log("History List Count : ", historyList.length);
 
   // [전처리 1] 각각 array로 분류
 
@@ -295,6 +261,10 @@ const createAirdropStat = async ({ strapi }) => {
     const originalExtraAirdropPoint = userItem.exchange_user.total_extra_point;
     userObject[id] = {
       originalTotalAirdropPoint,
+      originalBiddingAirdropPoint,
+      originalListingAirdropPoint,
+      originalSaleAirdropPoint,
+      originalExtraAirdropPoint,
       total_bidding: 0,
       total_sale: 0,
       total_listing: 0,
@@ -342,7 +312,6 @@ const createAirdropStat = async ({ strapi }) => {
       userObject[id].total_multiplier_detail.total_multiplier = 1;
     }
   }
-
 
   // 3. 가장 최근 airdrop stat을 가져온다.
   const airdropStat = await strapi.db
@@ -392,7 +361,8 @@ const createAirdropStat = async ({ strapi }) => {
   });
 
   // 2-5. Update All Listing airdrop-history-log , is_distributed = true, snapshot_id = snapshot
-  validListing.forEach(async (item) => {
+
+  for (let item of validListing) {
     await strapi.entityService.update(
       "api::airdrop-history-log.airdrop-history-log",
       item.id,
@@ -404,7 +374,7 @@ const createAirdropStat = async ({ strapi }) => {
         },
       }
     );
-  });
+  }
 
   // 3. Sale 계산
 
@@ -434,7 +404,8 @@ const createAirdropStat = async ({ strapi }) => {
   });
 
   // 3-4. Update All sales airdrop-history-log , is_distributed = true, snapshot_id = snapshot
-  sales.forEach(async (item) => {
+
+  for (let item of sales) {
     await strapi.entityService.update(
       "api::airdrop-history-log.airdrop-history-log",
       item.id,
@@ -446,7 +417,7 @@ const createAirdropStat = async ({ strapi }) => {
         },
       }
     );
-  });
+  }
 
   // 4. [TODO] Bidding
   let biddingAddedPoint = 0;
@@ -461,7 +432,8 @@ const createAirdropStat = async ({ strapi }) => {
   });
 
   // 3-4. Update All extras airdrop-history-log , is_distributed = true, snapshot_id = snapshot
-  extras.forEach(async (item) => {
+
+  for (let item of extras) {
     await strapi.entityService.update(
       "api::airdrop-history-log.airdrop-history-log",
       item.id,
@@ -472,8 +444,7 @@ const createAirdropStat = async ({ strapi }) => {
         },
       }
     );
-  });
-
+  }
   // 6. 전체 유저 스탯 계산
   for (const key in userObject) {
     if (Object.hasOwnProperty.call(userObject, key)) {
@@ -510,6 +481,11 @@ const createAirdropStat = async ({ strapi }) => {
           }
         );
 
+        console.log(
+          "Exchange user total point 추가",
+          userData.originalListingAirdropPoint,
+          userData.total_listing
+        );
         // 2. Exchange User Total Point 추가
         await strapi.entityService.update(
           "api::exchange-user.exchange-user",
@@ -527,7 +503,7 @@ const createAirdropStat = async ({ strapi }) => {
               total_listing_point:
                 userData.originalListingAirdropPoint + userData.total_listing,
               total_sale_point:
-                userData.originalSaleAirdropPoint + userData.total_bidding,
+                userData.originalSaleAirdropPoint + userData.total_sale,
               total_extra_point:
                 userData.originalExtraAirdropPoint + userData.total_extra,
             },
@@ -551,7 +527,6 @@ const createAirdropStat = async ({ strapi }) => {
       },
     }
   );
-
 };
 
 async function getWenOGPassCount(address) {

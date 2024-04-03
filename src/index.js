@@ -14,11 +14,6 @@ var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const {
-  updateCollectionAirdrop,
-  updateUserMultiplier,
-} = require("./cron/airdrop_jobs");
-
 module.exports = {
   /**
    * An asynchronous register function that runs before
@@ -30,8 +25,6 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
-
-      
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
         createTransferListener({ strapi }).catch((e) => {

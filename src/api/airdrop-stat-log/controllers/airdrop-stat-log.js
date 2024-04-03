@@ -138,6 +138,9 @@ module.exports = createCoreController('api::airdrop-stat-log.airdrop-stat-log',
                    },
                    {snapshot_id}
                   ]
+                },
+                populate: {
+                  exchange_user: true
                 }
               });
 

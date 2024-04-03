@@ -31,6 +31,9 @@
     },
     "new_nonce": {
       "type": "integer"
+    },
+    "post_batch_data": {
+      "type": "json"
     }
   }
 }

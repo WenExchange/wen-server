@@ -98,7 +98,8 @@ module.exports = {
             original_nonce: makerNonce,
             new_nonce: makerNonce + parseInt(count),
           },
-          r[0].id
+          r[0].id,
+          {}
         );
       } else {
         ctx.body = {
@@ -378,7 +379,8 @@ module.exports = {
         requestUuid,
         POST_BATCH,
         { successList, failList },
-        r[0].id
+        r[0].id,
+        data
       );
 
       ctx.body = {
@@ -505,7 +507,8 @@ module.exports = {
         requestUuid,
         GET_BATCH_SIGNED_ORDERS,
         {},
-        userData[0].id
+        userData[0].id,
+        {}
       );
       ctx.body = {
         code: SUCCESS_RESPONSE,
@@ -832,7 +835,7 @@ async function checkIfUserExist(userAddress) {
   }
 }
 
-async function createRequestLog(uuid, type, data, userId) {
+async function createRequestLog(uuid, type, data, userId, post_batch_data) {
   // 3. request log 를 찍는다.
   const r = await strapi.entityService.create("api::request-log.request-log", {
     data: {
@@ -840,6 +843,7 @@ async function createRequestLog(uuid, type, data, userId) {
       type: type,
       data: JSON.stringify(data),
       exchange_user: userId,
+      post_batch_data,
     },
   });
 

@@ -1382,6 +1382,7 @@ export interface ApiRequestLogRequestLog extends Schema.CollectionType {
     >;
     original_nonce: Attribute.Integer;
     new_nonce: Attribute.Integer;
+    post_batch_data: Attribute.JSON;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

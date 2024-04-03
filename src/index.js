@@ -30,6 +30,8 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
+
+      
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
         createTransferListener({ strapi }).catch((e) => {

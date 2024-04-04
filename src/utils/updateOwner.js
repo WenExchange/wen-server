@@ -11,7 +11,7 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
     const unit = 20
 
     let totalUpdatedCount = 0
-    for (let i = 5195; i < 110000 / 20; i++) {
+    for (let i = 0; i < 30000 / 20; i++) {
         console.log(`${i} start`);
         const start = i * unit
         const end = unit * (i+1)
@@ -29,6 +29,13 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
                             }
                         },
                     },
+                    {
+                        collection: {
+                            airdrop_multiplier: {
+                                $gt: 0
+                            }
+                        }
+                    }
                 ]
             },
             offset: start,

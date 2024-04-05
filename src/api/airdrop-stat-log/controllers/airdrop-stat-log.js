@@ -24,9 +24,7 @@ module.exports = createCoreController('api::airdrop-stat-log.airdrop-stat-log',
               }
             });
 
-          if (!currentDistributionStatLog) {
-            throw new Error("Not found airdrop dashbord - distribution");
-          }
+         
 
           const snapshot_id = currentDistributionStatLog.snapshot_id
 
@@ -45,9 +43,6 @@ module.exports = createCoreController('api::airdrop-stat-log.airdrop-stat-log',
             }
           });
 
-          if (!airdropStatLog) {
-            throw new Error("Not found airdrop dashbord - stat log");
-          }
 
           return (ctx.body = {
             success: true,

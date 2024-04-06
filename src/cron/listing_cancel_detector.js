@@ -15,6 +15,7 @@ const { ethers } = require("ethers");
 const dayjs = require("dayjs");
 const IERC721 = require("../api/sdk/controllers/IERC721");
 const { updateListingPoint } = require("../utils/airdropPrePointHelper");
+const { getISOString } = require("../utils/helpers");
 const listing_cancel_detector_expiration = async ({ strapi }) => {
   console.log("[CRON TASK] LISTING CANCEL DETECTOR - Expirtation");
   try {
@@ -104,8 +105,8 @@ const listing_cancel_detector_approve = async ({ strapi }) => {
         nft: true,
       },
       where: {
-        listing_time: {
-          $gte: dayjs().unix() - 60 * 16
+        createdAt: {
+          $gte: getISOString(dayjs().unix() - 60 * 16)
         }
       }
     });

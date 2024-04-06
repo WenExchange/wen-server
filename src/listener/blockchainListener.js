@@ -13,12 +13,7 @@ const {
   EVENT_TYPE,
   EX_TYPE
 } = require("../utils/constants");
-const { elementContractListener } = require("./elementContractListener");
-const { wenContractListener } = require("./wenContractListener");
 const { transferListener } = require("./transferListener");
-const {
-  mintifyContractListener,
-} = require("./mintifyContractListener");
 const { collectionDeployerERC721And1155Listener } = require("./collectionDeployerERC721And1155Listener");
 
 
@@ -52,11 +47,6 @@ async function createTransferListener({ strapi }) {
   );
   mintifyContract.on("*", async event => {
     eqm.addQueue({event, type: EX_TYPE.MINTIFY})
-    // try {
-    //   // await mintifyContractListener({ event, strapi });
-    // } catch (error) {
-    //   console.error(`elementContractListener error - ${error}`);
-    // }
   });
 
   /** Element Listener */
@@ -67,11 +57,6 @@ async function createTransferListener({ strapi }) {
   );
   elementContract.on("*", async event => {
     eqm.addQueue({event, type: EX_TYPE.ELEMENT})
-    // try {
-    //   await elementContractListener({event, strapi})
-    // } catch (error) {
-    //   console.error(`elementContractListener error - ${error}`)
-    // }
     
   });
 
@@ -84,11 +69,6 @@ async function createTransferListener({ strapi }) {
   );
   wenContract.on("*", async event => {
     eqm.addQueue({event, type: EX_TYPE.WEN})
-    // try {
-    //   await wenContractListener({event,strapi})
-    // } catch (error) {
-    //   console.error(`wenContractListener error - ${error}`)
-    // }
   });
 
 

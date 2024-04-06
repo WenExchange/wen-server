@@ -1,7 +1,8 @@
 const {ethers} = require("ethers");
 const ExchangeContractABI = require("../web3/abis/ExchangeContractABI.json")
 const SeportABI = require("../web3/abis/Seaport.json");
-const TokenTransferQueueManager = require("../transfer-queue-manager/TokenTransferQueueManager")
+const TokenTransferQueueManager = require("../queue-manager/TokenTransferQueueManager")
+const ExchangeQueueManager = require("../queue-manager/ExchangeQueueManager");
 
 //TODO: change it to mainnet
 const {
@@ -12,13 +13,9 @@ const {
   EVENT_TYPE,
   EX_TYPE
 } = require("../utils/constants");
-const { elementContractListener } = require("./elementContractListener");
-const { wenContractListener } = require("./wenContractListener");
 const { transferListener } = require("./transferListener");
-const {
-  mintifyContractListener,
-} = require("./mintifyContractListener");
 const { collectionDeployerERC721And1155Listener } = require("./collectionDeployerERC721And1155Listener");
+
 
 async function createTransferListener({ strapi }) {
   console.log("[TRANSFER EVENT LISTENING ON]");
@@ -39,6 +36,9 @@ async function createTransferListener({ strapi }) {
     
   });
 
+
+  const eqm = ExchangeQueueManager.getInstance(strapi)
+
   /** Mintify */
   const mintifyContract = new ethers.Contract(
     CONTRACT_ADDRESSES.MIN_EX,
@@ -46,11 +46,7 @@ async function createTransferListener({ strapi }) {
     jsonRpcProvider
   );
   mintifyContract.on("*", async event => {
-    try {
-      await mintifyContractListener({ event, strapi });
-    } catch (error) {
-      console.error(`elementContractListener error - ${error}`);
-    }
+    eqm.addQueue({event, type: EX_TYPE.MINTIFY})
   });
 
   /** Element Listener */
@@ -60,11 +56,7 @@ async function createTransferListener({ strapi }) {
     jsonRpcProvider
   );
   elementContract.on("*", async event => {
-    try {
-      await elementContractListener({event, strapi})
-    } catch (error) {
-      console.error(`elementContractListener error - ${error}`)
-    }
+    eqm.addQueue({event, type: EX_TYPE.ELEMENT})
     
   });
 
@@ -76,11 +68,7 @@ async function createTransferListener({ strapi }) {
     jsonRpcProvider
   );
   wenContract.on("*", async event => {
-    try {
-      await wenContractListener({event,strapi})
-    } catch (error) {
-      console.error(`wenContractListener error - ${error}`)
-    }
+    eqm.addQueue({event, type: EX_TYPE.WEN})
   });
 
 

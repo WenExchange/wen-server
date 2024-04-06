@@ -69,21 +69,21 @@ module.exports = {
     },
   },
 
-  protocolFeeReceiverJob: {
-    task: protocolFeeReceiverJob,
-    options: {
-      rule: `0 22 * * *`,
-      tz: "Asia/Seoul",
-    },
-  },
+  // protocolFeeReceiverJob: {
+  //   task: protocolFeeReceiverJob,
+  //   options: {
+  //     rule: `0 22 * * *`,
+  //     tz: "Asia/Seoul",
+  //   },
+  // },
 
-  claimAllBlastYieldFromWenTradePool: {
-    task: claimAllBlastYieldFromWenTradePool,
-    options: {
-      rule: `0 23 * * *`,
-      tz: "Asia/Seoul",
-    },
-  },
+  // claimAllBlastYieldFromWenTradePool: {
+  //   task: claimAllBlastYieldFromWenTradePool,
+  //   options: {
+  //     rule: `0 23 * * *`,
+  //     tz: "Asia/Seoul",
+  //   },
+  // },
 
   airdropStatCombined: {
     task: airdropStatCombined,

@@ -441,6 +441,10 @@ const sellOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
     })
     .catch((e) => console.error(e.message));
 
+    console.log(
+      `[WEN] ERC721SellOrderFilled - 4. nft id: ${nftData.id} created SALE log id ${createdLog.id} `
+    );
+
   await updateSalePoint(
     data.payment_token,
     data.price,
@@ -450,9 +454,11 @@ const sellOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
     createdLog.id,
     { strapi }
   );
+
   console.log(
-    `[WEN] ERC721SellOrderFilled - 4. nft id: ${nftData.id} created SALE log id ${createdLog.id} `
+    `[WEN] ERC721SellOrderFilled - 5. nft id: ${nftData.id} update sale point `
   );
+ 
 };
 
 const buyOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {

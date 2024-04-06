@@ -28,11 +28,6 @@ module.exports = {
   register({ strapi }) {
     const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
     if (isBOTServer) {
-      const tqm = TokenTransferQueueManager.getInstance(strapi)
-      const mcqm = MintifyContractQueueManager.getInstance(strapi)
-      const ecqm = ElementContractQueueManager.getInstance(strapi)
-      const wcqm = WenContractQueueManager.getInstance(strapi)
-      const ccm = CollectionCacheManager.getInstance(strapi);
     }
   },
 
@@ -40,6 +35,12 @@ module.exports = {
     try {
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
+        const tqm = TokenTransferQueueManager.getInstance(strapi)
+      const mcqm = MintifyContractQueueManager.getInstance(strapi)
+      const ecqm = ElementContractQueueManager.getInstance(strapi)
+      const wcqm = WenContractQueueManager.getInstance(strapi)
+      const ccm = CollectionCacheManager.getInstance(strapi);
+
         createTransferListener({ strapi }).catch((e) => {
           console.error(`createTransferListener error - ${e.message}`);
         });

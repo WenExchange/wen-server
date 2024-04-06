@@ -23,21 +23,21 @@ const { collectionDeployerERC721And1155Listener } = require("./collectionDeploye
 async function createTransferListener({ strapi }) {
   console.log("[TRANSFER EVENT LISTENING ON]");
   
-  // await jsonRpcProvider.removeAllListeners();
+  await jsonRpcProvider.removeAllListeners();
 
   /** Transfer */
-  // let filter = {
-  //   topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId
-  // };
-  // const tqm = TokenTransferQueueManager.getInstance(strapi)
-  // jsonRpcProvider.on(filter, async (log, _) => {
-  //   try {
-  //     await transferListener({log, strapi, tqm})
-  //   } catch (error) {
-  //     console.error(`transferListener error - ${error}`)
-  //   }
+  let filter = {
+    topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId
+  };
+  const tqm = TokenTransferQueueManager.getInstance(strapi)
+  jsonRpcProvider.on(filter, async (log, _) => {
+    try {
+      await transferListener({log, strapi, tqm})
+    } catch (error) {
+      console.error(`transferListener error - ${error}`)
+    }
     
-  // });
+  });
 
 
   
@@ -77,14 +77,14 @@ async function createTransferListener({ strapi }) {
     wcqm.addQueue(event)
   });
   
-  // jsonRpcProvider_cron.on("block", async blockNumber => {
-  //   try {
-  //     await collectionDeployerERC721And1155Listener({strapi, blockNumber})
-  //   } catch (error) {
-  //     console.error(`collectionDeployerERC721And1155Listener errir - ${error}`)
-  //   }
+  jsonRpcProvider_cron.on("block", async blockNumber => {
+    try {
+      await collectionDeployerERC721And1155Listener({strapi, blockNumber})
+    } catch (error) {
+      console.error(`collectionDeployerERC721And1155Listener errir - ${error}`)
+    }
     
-  // });
+  });
 
 
   

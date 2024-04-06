@@ -13,10 +13,10 @@ module.exports = ({ env }) => {
     webhooks: {
       populateRelations: env.bool('WEBHOOKS_POPULATE_RELATIONS', false),
     },
-    // cron: {
-    //   enabled: isBOTServer,
-    //   tasks: cronTasks,
-    // },
+    cron: {
+      enabled: isBOTServer,
+      tasks: cronTasks,
+    },
   
   }
 };

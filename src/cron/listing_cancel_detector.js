@@ -15,6 +15,7 @@ const { ethers } = require("ethers");
 const dayjs = require("dayjs");
 const IERC721 = require("../api/sdk/controllers/IERC721");
 const { updateListingPoint } = require("../utils/airdropPrePointHelper");
+const { getISOString } = require("../utils/helpers");
 const listing_cancel_detector_expiration = async ({ strapi }) => {
   console.log("[CRON TASK] LISTING CANCEL DETECTOR - Expirtation");
   try {
@@ -103,24 +104,26 @@ const listing_cancel_detector_approve = async ({ strapi }) => {
         collection: true,
         nft: true,
       },
+      where: {
+        createdAt: {
+          $gte: getISOString(dayjs().unix() - 60 * 16)
+        }
+      }
     });
-    const unit = 20;
     console.log(
       `listing_cancel_detector_approve - start check ${orders.length} orders`
     );
-    console.log(orders.length);
-    for (let i = 0; i < orders.length; i++) {
-      const batchOrders = orders.slice(i * unit, (i + 1) * unit);
-      await checkIsApprovedForAllAndDelete({ strapi, orders: batchOrders });
-      if ((i + 1) * unit >= orders.length) break;
-    }
+
+    await checkIsApprovedForAllAndDelete({ strapi, orders });
+
   } catch (error) {
     console.error(`listing_cancel_detector_approve error- ${error.message}`);
   }
 };
 
 const checkIsApprovedForAllAndDelete = async ({ strapi, orders }) => {
-  const deletePromises = orders.map((order) => {
+  for (let i = 0; i < orders.length; i++) {
+    const order = orders[i];
     const collectionContract = new ethers.Contract(
       order.collection.contract_address,
       IERC721.abi,
@@ -176,8 +179,9 @@ const checkIsApprovedForAllAndDelete = async ({ strapi, orders }) => {
               });
           });
       });
-  });
-  await Promise.all(deletePromises);
+
+  }
+ 
 };
 
 module.exports = {

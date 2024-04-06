@@ -481,7 +481,7 @@ const extractData = (data) => {
     };
   } else {
     return {
-      error: `UNKNOWN DATA : ${data}`,
+      error: `UNKNOWN DATA : `,data,
     };
   }
 };

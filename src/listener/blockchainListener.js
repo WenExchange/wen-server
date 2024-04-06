@@ -2,7 +2,9 @@ const {ethers} = require("ethers");
 const ExchangeContractABI = require("../web3/abis/ExchangeContractABI.json")
 const SeportABI = require("../web3/abis/Seaport.json");
 const TokenTransferQueueManager = require("../queue-manager/TokenTransferQueueManager")
-const ExchangeQueueManager = require("../queue-manager/ExchangeQueueManager");
+const MintifyContractQueueManager = require("../queue-manager/MintifyContractQueueManager")
+const ElementContractQueueManager = require("../queue-manager/ElementContractQueueManager");
+const WenContractQueueManager = require("../queue-manager/WenContractQueueManager");
 
 //TODO: change it to mainnet
 const {
@@ -17,27 +19,28 @@ const { transferListener } = require("./transferListener");
 const { collectionDeployerERC721And1155Listener } = require("./collectionDeployerERC721And1155Listener");
 
 
+
 async function createTransferListener({ strapi }) {
   console.log("[TRANSFER EVENT LISTENING ON]");
   
-  await jsonRpcProvider.removeAllListeners();
+  // await jsonRpcProvider.removeAllListeners();
 
   /** Transfer */
-  let filter = {
-    topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId
-  };
-  const tqm = TokenTransferQueueManager.getInstance(strapi)
-  jsonRpcProvider.on(filter, async (log, _) => {
-    try {
-      await transferListener({log, strapi, tqm})
-    } catch (error) {
-      console.error(`transferListener error - ${error}`)
-    }
+  // let filter = {
+  //   topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId
+  // };
+  // const tqm = TokenTransferQueueManager.getInstance(strapi)
+  // jsonRpcProvider.on(filter, async (log, _) => {
+  //   try {
+  //     await transferListener({log, strapi, tqm})
+  //   } catch (error) {
+  //     console.error(`transferListener error - ${error}`)
+  //   }
     
-  });
+  // });
 
 
-  const eqm = ExchangeQueueManager.getInstance(strapi)
+  
 
   /** Mintify */
   const mintifyContract = new ethers.Contract(
@@ -45,8 +48,9 @@ async function createTransferListener({ strapi }) {
     SeportABI.abi,
     jsonRpcProvider
   );
+  const mcqm = MintifyContractQueueManager.getInstance(strapi)
   mintifyContract.on("*", async event => {
-    eqm.addQueue({event, type: EX_TYPE.MINTIFY})
+    mcqm.addQueue(event)
   });
 
   /** Element Listener */
@@ -55,8 +59,9 @@ async function createTransferListener({ strapi }) {
     ExchangeContractABI.abi,
     jsonRpcProvider
   );
+  const ecqm = ElementContractQueueManager.getInstance(strapi)
   elementContract.on("*", async event => {
-    eqm.addQueue({event, type: EX_TYPE.ELEMENT})
+    ecqm.addQueue(event)
     
   });
 
@@ -67,19 +72,19 @@ async function createTransferListener({ strapi }) {
     ExchangeContractABI.abi,
     jsonRpcProvider
   );
+  const wcqm = WenContractQueueManager.getInstance(strapi)
   wenContract.on("*", async event => {
-    eqm.addQueue({event, type: EX_TYPE.WEN})
+    wcqm.addQueue(event)
   });
-
-
-  jsonRpcProvider_cron.on("block", async blockNumber => {
-    try {
-      await collectionDeployerERC721And1155Listener({strapi, blockNumber})
-    } catch (error) {
-      console.error(`collectionDeployerERC721And1155Listener errir - ${error}`)
-    }
+  
+  // jsonRpcProvider_cron.on("block", async blockNumber => {
+  //   try {
+  //     await collectionDeployerERC721And1155Listener({strapi, blockNumber})
+  //   } catch (error) {
+  //     console.error(`collectionDeployerERC721And1155Listener errir - ${error}`)
+  //   }
     
-  });
+  // });
 
 
   

@@ -1,7 +1,8 @@
 const {ethers} = require("ethers");
 const ExchangeContractABI = require("../web3/abis/ExchangeContractABI.json")
 const SeportABI = require("../web3/abis/Seaport.json");
-const TokenTransferQueueManager = require("../transfer-queue-manager/TokenTransferQueueManager")
+const TokenTransferQueueManager = require("../queue-manager/TokenTransferQueueManager")
+const ExchangeQueueManager = require("../queue-manager/ExchangeQueueManager");
 
 //TODO: change it to mainnet
 const {
@@ -19,6 +20,7 @@ const {
   mintifyContractListener,
 } = require("./mintifyContractListener");
 const { collectionDeployerERC721And1155Listener } = require("./collectionDeployerERC721And1155Listener");
+
 
 async function createTransferListener({ strapi }) {
   console.log("[TRANSFER EVENT LISTENING ON]");
@@ -39,6 +41,9 @@ async function createTransferListener({ strapi }) {
     
   });
 
+
+  const eqm = ExchangeQueueManager.getInstance(strapi)
+
   /** Mintify */
   const mintifyContract = new ethers.Contract(
     CONTRACT_ADDRESSES.MIN_EX,
@@ -47,6 +52,7 @@ async function createTransferListener({ strapi }) {
   );
   mintifyContract.on("*", async event => {
     try {
+      // eqm.addQueue({event, type: EX_TYPE.MINTIFY})
       await mintifyContractListener({ event, strapi });
     } catch (error) {
       console.error(`elementContractListener error - ${error}`);

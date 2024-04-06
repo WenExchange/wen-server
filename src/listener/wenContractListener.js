@@ -75,7 +75,7 @@ const wenContractListener = async ({ event, strapi }) => {
         });
         if (typeof checkedInfo === "boolean") return;
         const { nftData, existedTradeLog } = checkedInfo;
-        sellOrderSaleProcessInWen({ data, strapi, nftData }).catch((e) =>
+        await sellOrderSaleProcessInWen({ data, strapi, nftData }).catch((e) =>
           console.error(e.message)
         );
         break;
@@ -123,7 +123,7 @@ const wenContractListener = async ({ event, strapi }) => {
         });
         if (typeof checkedInfo === "boolean") return;
         const { nftData, existedTradeLog } = checkedInfo;
-        buyOrderSaleProcessInWen({ data, strapi, nftData }).catch((e) =>
+        await buyOrderSaleProcessInWen({ data, strapi, nftData }).catch((e) =>
           console.error(e.message)
         );
         break;
@@ -149,7 +149,7 @@ const wenContractListener = async ({ event, strapi }) => {
           timestamp: dayjs().unix(),
         };
 
-        cancelProcessInWen({ data, strapi }).catch((e) =>
+        await cancelProcessInWen({ data, strapi }).catch((e) =>
           console.error(e.message)
         );
 

@@ -1,8 +1,7 @@
-
-const { checkValidationAndConnectWithDB} = require("../listener/transferListener");
+const { wenContractListener } = require("../listener/wenContractListener");
 
 let instance = null;
-module.exports = class TokenTransferQueueManager {
+module.exports = class WenContractQueueManager {
   LOG_QUEUE = [];
   isProcessing = false
   constructor(strapi) {
@@ -11,7 +10,7 @@ module.exports = class TokenTransferQueueManager {
 
   static getInstance(strapi) {
     if (!instance) {
-      instance = new TokenTransferQueueManager(strapi);
+      instance = new WenContractQueueManager(strapi);
     }
     return instance;
   }
@@ -21,7 +20,7 @@ module.exports = class TokenTransferQueueManager {
 
   addQueue = (log) => {
     this.LOG_QUEUE.push(log)
-    console.log(`addQueue - ${this.LOG_QUEUE.length -1} -> ${this.LOG_QUEUE.length}`);
+    console.log(`[WEN] addQueue - ${this.LOG_QUEUE.length -1} -> ${this.LOG_QUEUE.length}`);
     this.executeQueue()
   }
 
@@ -35,12 +34,12 @@ module.exports = class TokenTransferQueueManager {
     this.isProcessing = true
 
     while (this.LOG_QUEUE.length > 0) {
-      console.log(`Processing Queue Start - ${this.LOG_QUEUE.length} -> ${this.LOG_QUEUE.length - 1}`);
+      console.log(`[WEN] Processing Queue Start - ${this.LOG_QUEUE.length} -> ${this.LOG_QUEUE.length - 1}`);
       const log = this.LOG_QUEUE.shift();
       try {
-        await checkValidationAndConnectWithDB({strapi: this.strapi,log })
+        await wenContractListener({strapi: this.strapi,event: log })
       } catch (error) {
-        console.error(`checkValidationAndConnectWithDB error - ${error}`);
+        console.error(`[WEN] Processing Queue error - ${error.message}`);
       }
     }
     this.isProcessing = false;

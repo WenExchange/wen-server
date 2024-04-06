@@ -15,6 +15,7 @@ const WenContractQueueManager = require("./queue-manager/WenContractQueueManager
 const dayjs = require("dayjs");
 var utc = require("dayjs/plugin/utc");
 var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
+const { listing_cancel_detector_approve } = require("./cron/listing_cancel_detector");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -33,6 +34,7 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
+
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
         const tqm = TokenTransferQueueManager.getInstance(strapi)

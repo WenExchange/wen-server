@@ -15,6 +15,7 @@ const WenContractQueueManager = require("./queue-manager/WenContractQueueManager
 const dayjs = require("dayjs");
 var utc = require("dayjs/plugin/utc");
 var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
+const { protocolFeeReceiverJob, claimAllBlastYieldFromWenTradePool } = require("./cron/stats_24h_contract");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -33,6 +34,8 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
+      // protocolFeeReceiverJob({strapi})
+      // claimAllBlastYieldFromWenTradePool({strapi})
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
         const tqm = TokenTransferQueueManager.getInstance(strapi)

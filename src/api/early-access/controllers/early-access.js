@@ -7,7 +7,6 @@ const { TwitterApi } = require("twitter-api-v2");
 const axios = require("axios");
 const fs = require("fs/promises");
 const {
-  createUniqueRefCode,
   createRefCode,
 } = require("../../../earlyaccess/refCodeHandler");
 const DiscordManager = require("../../../discord/DiscordManager");

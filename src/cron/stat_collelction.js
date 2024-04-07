@@ -6,7 +6,13 @@ const seconds_1h = 60 * 60
 const stats_1h_collection =  async ({ strapi }) => {
     console.log("[CRON TASK] 1H COLLECTION STATS");
     try {
-      const colllections = await strapi.db.query("api::collection.collection").findMany();
+      const colllections = await strapi.db.query("api::collection.collection").findMany({
+        where: {
+          publishedAt: {
+                $notNull: true
+            }
+        }
+      });
       const statUpdatePromises = colllections.map(collection => {
         const timestamp = dayjs().unix()
         const collection_id = collection.id
@@ -15,17 +21,22 @@ const stats_1h_collection =  async ({ strapi }) => {
       
         return strapi.db.query("api::collection-stat-log.collection-stat-log").findOne({
             where: {
-              timestamp: {
-                $gte: timestamp - seconds_1m
-              },
-              collection: {
-                id: {
-                  $eq: collection_id
+              $and: [
+                {
+                  timestamp: {
+                    $gte: timestamp - seconds_1m
+                  },
                 },
-                publishedAt: {
-                  $notNull: true
+                {
+                  collection: {
+                    id: {
+                      $eq: collection_id
+                    },
+                  }
                 }
-              }
+              ]
+              
+              
             },
             populate: {
               collection: true

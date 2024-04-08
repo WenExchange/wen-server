@@ -54,4 +54,71 @@ module.exports = ({ env }) => ({
   //   enabled: true,
   //   resolve: "./src/plugins/strapi-content-type-explorer",
   // },
+
+  // Step 1: Configure the redis connection
+        // @see https://github.com/strapi-community/strapi-plugin-redis
+      //   redis: {
+      //     config: {
+      //         connections: {
+      //             default: {
+      //                 connection: {
+      //                     host: '127.0.0.1',
+      //                     port: 6379,
+      //                     db: 0,
+      //                 },
+      //                 settings: {
+      //                     debug: true,
+      //                 },
+      //             },
+      //         },
+      //     },
+      // },
+      // Step 2: Configure the redis cache plugin
+      "rest-cache": {
+          config: {
+            provider: {
+              name: 'memory',
+              getTimeout: 500,
+              options: {
+                // The maximum size of the cache
+                max: 32767,
+                // Update to the current time whenever it is retrieved from cache, causing it to not expire
+                updateAgeOnGet: false,
+                // ...
+              },
+            },
+              strategy: {
+                debug: true,
+                  enableEtagSupport: false,
+                  logs: true,
+                  clearRelatedCache: true,
+                  resetOnStartup: false,
+                  maxAge:  60 * 60 * 1000,
+                  contentTypes: [
+                      // list of Content-Types UID to cache
+                      {
+                        contentType:"api::collection.collection",
+                        maxAge: 10 * 60 * 1000,
+                    },
+
+                    "api::featured-item.featured-item",
+
+                      // {
+                      //     contentType:  "api::nft.nft",
+                      //     routes: /* @type {CacheRouteConfig[]} */ [
+                      //       {
+                      //         path: '/api/nfts/getNFTs', // note that we set the /api prefix here
+                      //         method: 'GET', // can be omitted, defaults to GET
+                      //       },
+                      //     ],
+                      // },
+                      {
+                          contentType:  "api::coin-price.coin-price",
+                          maxAge: 15 * 60 * 1000,
+                      },
+                  ],
+              },
+          },
+      },
+
 });

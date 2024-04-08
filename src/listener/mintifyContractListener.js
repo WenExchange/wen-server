@@ -87,7 +87,7 @@ const mintifyContractListener = async ({ event, strapi }) => {
           });
           if (typeof checkedInfo === "boolean") return;
           const { nftData, existedTradeLog } = checkedInfo;
-          buyOrderSaleProcessInElement({ data, strapi, nftData }).catch((e) =>
+          await buyOrderSaleProcessInElement({ data, strapi, nftData }).catch((e) =>
             console.error(e.message)
           );
         }
@@ -481,7 +481,7 @@ const extractData = (data) => {
     };
   } else {
     return {
-      error: `UNKNOWN DATA : ${data}`,
+      error: `UNKNOWN DATA : `,data,
     };
   }
 };

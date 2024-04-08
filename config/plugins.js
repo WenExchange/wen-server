@@ -103,15 +103,15 @@ module.exports = ({ env }) => ({
 
                     "api::featured-item.featured-item",
 
-                      // {
-                      //     contentType:  "api::nft.nft",
-                      //     routes: /* @type {CacheRouteConfig[]} */ [
-                      //       {
-                      //         path: '/api/nfts/getNFTs', // note that we set the /api prefix here
-                      //         method: 'GET', // can be omitted, defaults to GET
-                      //       },
-                      //     ],
-                      // },
+                      {
+                          contentType:  "api::airdrop-stat-log.airdrop-stat-log",
+                          routes:[
+                            {
+                              path: '/api/airdrop-stat-log/leaderboard', // note that we set the /api prefix here
+                              method: 'GET', // can be omitted, defaults to GET
+                            },
+                          ],
+                      },
                       {
                           contentType:  "api::coin-price.coin-price",
                           maxAge: 15 * 60 * 1000,

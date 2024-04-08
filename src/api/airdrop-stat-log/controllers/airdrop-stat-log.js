@@ -43,6 +43,8 @@ module.exports = createCoreController('api::airdrop-stat-log.airdrop-stat-log',
             }
           });
 
+          // if (!airdropStatLog) throw new Error("Not fount - airdropStatLog")
+
 
           return (ctx.body = {
             success: true,
@@ -50,7 +52,7 @@ module.exports = createCoreController('api::airdrop-stat-log.airdrop-stat-log',
             airdropStatLog
           });
         } catch (error) {
-          console.error(error.message);
+          strapi.log.error(error.message);
         }
       }
     },
@@ -59,6 +61,9 @@ module.exports = createCoreController('api::airdrop-stat-log.airdrop-stat-log',
       {
         try {
           const { offset,limit } = ctx.request.query;
+          if (limit > 100) {
+            ctx.badRequest()
+          }
 
           const currentDistributionStatLog  = await strapi.db
             .query("api::airdrop-distribution-stat.airdrop-distribution-stat")

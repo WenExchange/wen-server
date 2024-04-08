@@ -4,7 +4,6 @@ const { ethers } = require("ethers");
 require("dotenv").config();
 const BN = require("bn.js");
 
-/* TODO: UNDO
 const { createAlchemyWeb3 } = require("@alch/alchemy-web3");
 const { jsonRpcProvider_cron_url } = require("../utils/constants");
 const web3 = createAlchemyWeb3(jsonRpcProvider_cron_url);
@@ -23,7 +22,7 @@ const WenOGPassStakingAddress = "0xcCBA7f02f53b3cE11eBF9Bf15067429fE6479bC2";
 const wenETHTokenAddress = "0xE1492F298fCDDD26e1D953c7dC88E5143aCa5FeA";
 const IBlastAddress = "0x4300000000000000000000000000000000000002";
 const wenOGPassAddress = "0x64e38aa7515826bcc00cece38f57ca21b1495710";
-*/
+
 
 // TODO : Gas station
 // var WenGasStation = require("./abis/WenGasStationV1.json");
@@ -33,7 +32,6 @@ const wenOGPassAddress = "0x64e38aa7515826bcc00cece38f57ca21b1495710";
 //   signer
 // );
 
-/*  TODO: UNDO
 var WenTradePool = require("./abis/WenTradePoolV1.json");
 const WenTradePoolContract = new web3.eth.Contract(
   WenTradePool.abi,
@@ -51,10 +49,9 @@ const WenOGPassStakingContract = new web3.eth.Contract(
 
 var IBlast = require("./abis/IBlast.json");
 const IBlastContract = new web3.eth.Contract(IBlast.abi, IBlastAddress);
-*/
+
 
 async function protocolFeeReceiverJob({ strapi }) {
-  /* TODO: UNDO
 
   try {
     let gasEstimated;
@@ -264,7 +261,7 @@ async function protocolFeeReceiverJob({ strapi }) {
       }
     );
   }
-  */
+  
 }
 
 
@@ -275,7 +272,6 @@ async function protocolFeeReceiverJob({ strapi }) {
  */
 
 async function claimAllBlastYieldFromWenTradePool({ strapi }) {
-  /* TODO: UNDO
   try {
     let gasEstimated;
     let gasLimit;
@@ -337,7 +333,6 @@ async function claimAllBlastYieldFromWenTradePool({ strapi }) {
       }
     );
   }
-  */
 }
 
 /**
@@ -446,9 +441,9 @@ async function claimAllBlastYieldFromWenTradePool({ strapi }) {
 //   };
 // }
 
-// function toEther(num) {
-//   return parseFloat(web3.utils.fromWei(num, "ether")).toFixed(7);
-// }
+function toEther(num) {
+  return parseFloat(web3.utils.fromWei(num, "ether")).toFixed(7);
+}
 
 module.exports = {
   protocolFeeReceiverJob,

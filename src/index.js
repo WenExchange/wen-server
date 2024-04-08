@@ -34,10 +34,11 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
+        // await protocolFeeReceiverJob({strapi})
+        // await claimAllBlastYieldFromWenTradePool({strapi})
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
-        await protocolFeeReceiverJob({strapi})
-        // claimAllBlastYieldFromWenTradePool({strapi})
+      
         const tqm = TokenTransferQueueManager.getInstance(strapi)
       const mcqm = MintifyContractQueueManager.getInstance(strapi)
       const ecqm = ElementContractQueueManager.getInstance(strapi)

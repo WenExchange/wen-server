@@ -250,6 +250,7 @@ async function protocolFeeReceiverJob({ strapi }) {
         },
       }
     );
+    strapi.log.info("complete")
   } catch (error) {
     await strapi.entityService.create(
       "api::wen-og-pass-stat.wen-og-pass-stat",
@@ -261,6 +262,8 @@ async function protocolFeeReceiverJob({ strapi }) {
       }
     );
   }
+
+
   
 }
 
@@ -322,6 +325,7 @@ async function claimAllBlastYieldFromWenTradePool({ strapi }) {
         },
       }
     );
+    strapi.log.info("complete")
   } catch (error) {
     await strapi.entityService.create(
       "api::wen-trade-pool-stat.wen-trade-pool-stat",

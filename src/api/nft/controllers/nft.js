@@ -18,6 +18,12 @@ module.exports = createCoreController('api::nft.nft', ({ strapi }) => ({
     async getNFTs(ctx) {
         {
             try {
+              const {limit} = ctx.request.query
+              strapi.log.info(`getNFTs limit - ${limit}`);
+              if (limit > 100) {
+                ctx.badRequest()
+              }
+              
                 const [entries, count] = await strapi.db.query('api::nft.nft').findWithCount({
                     ...ctx.request.query
                   });

@@ -54,7 +54,7 @@ module.exports = createCoreController(
                   signature
                 },
               }
-            );
+            ).catch(e => console.error(e.message));
           } else {
             user = await strapi.entityService.create(
               "api::exchange-user.exchange-user",

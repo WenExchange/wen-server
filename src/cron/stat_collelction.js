@@ -101,7 +101,13 @@ const stats_1h_collection =  async ({ strapi }) => {
   
       })
       const collectionStatDatas = await Promise.all(statUpdatePromises)
-      const filteredCollectionStateDatas = collectionStatDatas.filter(_ => _ !== null)
+      const filteredCollectionStateDatas = collectionStatDatas.filter(_ => _ !== null).filter(_collectionStatData => {
+        const {floor_price_1h,
+          volume_1h,
+          sale_1h} = _collectionStatData
+          
+          return Number(floor_price_1h) !== 0 || volume_1h !== 0 ||  sale_1h !== 0
+      })
 
            /** Create */ 
       for (let i = 0; i < filteredCollectionStateDatas.length; i++) {
@@ -125,23 +131,22 @@ const stats_1h_collection =  async ({ strapi }) => {
             collection: true
           }
         })
-        if (existingStatLog)  {
-          return
-        }
+        if (existingStatLog) continue
+
+
         await strapi.entityService.create("api::collection-stat-log.collection-stat-log", {
           data: {
             ...collectionStatData,
             collection: collectionStatData.collection_id
           }
         })
-        
-        
+
       }
 
 
 
       /** Update Volume Stats */
-      await updateCollectionsStats({strapi,filteredCollectionStateDatas }).catch(error=> console.error)
+      await updateCollectionsStats({strapi,filteredCollectionStateDatas })
 
       strapi.log.info("[CRON TASK] - COMPLETE | 1H COLLECTION STATS");
     }

@@ -51,7 +51,7 @@ module.exports = {
   update_ether_price: {
     task: update_ether_price,
     options: {
-      rule: `*/15 * * * * *`,
+      rule: `*/5 * * * *`,
     },
   },
 

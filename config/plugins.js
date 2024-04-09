@@ -116,6 +116,16 @@ module.exports = ({ env }) => ({
                           contentType:  "api::coin-price.coin-price",
                           maxAge: 15 * 60 * 1000,
                       },
+                      {
+                        contentType:  "api::nft.nft",
+                        routes:[
+                          {
+                            path: '/api/nfts/getNFTs', // note that we set the /api prefix here
+                            method: 'GET', // can be omitted, defaults to GET
+                          },
+                        ],
+                    },
+
                   ],
               },
           },

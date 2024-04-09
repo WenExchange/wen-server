@@ -1,10 +1,11 @@
+const DiscordManager = require("../discord/DiscordManager");
 const { NFT_LOG_TYPE }  = require("../utils/constants") 
 
 const dayjs = require("dayjs");
 const seconds_1m = 60
 const seconds_1h = 60 * 60
 const stats_1h_collection =  async ({ strapi }) => {
-    console.log("[CRON TASK] 1H COLLECTION STATS");
+  strapi.log.info("[CRON TASK] - START | 1H COLLECTION STATS");
     try {
       const colllections = await strapi.db.query("api::collection.collection").findMany({
         where: {
@@ -140,18 +141,19 @@ const stats_1h_collection =  async ({ strapi }) => {
 
 
       /** Update Volume Stats */
-      updateCollectionsStats({strapi,filteredCollectionStateDatas }).catch(error=> console.error)
+      await updateCollectionsStats({strapi,filteredCollectionStateDatas }).catch(error=> console.error)
 
+      strapi.log.info("[CRON TASK] - COMPLETE | 1H COLLECTION STATS");
     }
       
       catch (error) {
-      console.error(error.message);
+      const dm = DiscordManager.getInstance()
+      dm.logError({error, identifier: "Cron - stats_1h_collection"})
+      strapi.log.error(error.message);
     }
   }
 
   const updateCollectionsStats = async ({strapi, filteredCollectionStateDatas}) => {
-
-      try {
         const seconds_1h = 60 * 60
         const seconds_24h = seconds_1h * 24
         const seconds_7d = seconds_24h * 7
@@ -237,10 +239,7 @@ const stats_1h_collection =  async ({ strapi }) => {
               })
             
         }
-      } catch (error) {
-        
-          console.error(`stats_1h_collection error - ${error.message}` )
-      }
+    
    
       
 

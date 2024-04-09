@@ -88,7 +88,7 @@ module.exports = ({ env }) => ({
               },
             },
               strategy: {
-                debug: true,
+                debug: false,
                   enableEtagSupport: false,
                   logs: true,
                   clearRelatedCache: true,

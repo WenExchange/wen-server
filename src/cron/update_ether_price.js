@@ -1,8 +1,9 @@
 
-const axios = require("axios")
+const axios = require("axios");
+const DiscordManager = require("../discord/DiscordManager");
 
 const update_ether_price =  async ({ strapi }) => {
-    console.log("[CRON TASK] UPDATE ETHER PRICE");
+    strapi.log.info("[CRON TASK] - START | UPDATE ETHER PRICE");
     try {
       const priceInfo = await axios
         .get(`https://api.api-ninjas.com/v1/cryptoprice?symbol=ETHUSDT`, {
@@ -15,8 +16,13 @@ const update_ether_price =  async ({ strapi }) => {
           ...priceInfo
         }
       })
+
+      strapi.log.info("[CRON TASK] - COMPLETE | UPDATE ETHER PRICE");
+
     } catch (error) {
-      console.error(error.message);
+      const dm = DiscordManager.getInstance()
+      dm.logError({error, identifier: "Cron - update_ether_price"})
+      strapi.log.error(`update_ether_price error- ${error.message}`);
     }
   }
   

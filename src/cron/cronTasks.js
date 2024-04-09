@@ -15,7 +15,7 @@ const { airdropStatCombined } = require("./airdrop_jobs");
 module.exports = {
   cacheCollection: {
     task: async ({ strapi }) => {
-      console.log("[CRON TASK] cache collection address");
+      strapi.log.info("[CRON TASK] cache collection address");
       try {
         const ccm = CollectionCacheManager.getInstance(strapi);
         await ccm.fetchAndUpdateCollections({ strapi });
@@ -31,20 +31,6 @@ module.exports = {
     task: stats_1h_collection,
     options: {
       rule: `00 * * * *`,
-      tz: "Asia/Seoul",
-    },
-  },
-
-  stats_24h_Collection: {
-    task: async ({ strapi }) => {
-      console.log("[CRON TASK] 24H COLLECTION STATS");
-      try {
-      } catch (error) {
-        console.error(error.message);
-      }
-    },
-    options: {
-      rule: `00 00 * * *`,
       tz: "Asia/Seoul",
     },
   },
@@ -65,7 +51,7 @@ module.exports = {
   update_ether_price: {
     task: update_ether_price,
     options: {
-      rule: `*/15 * * * * *`,
+      rule: `*/5 * * * *`,
     },
   },
 

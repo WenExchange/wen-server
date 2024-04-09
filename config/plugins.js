@@ -88,7 +88,7 @@ module.exports = ({ env }) => ({
               },
             },
               strategy: {
-                debug: true,
+                debug: false,
                   enableEtagSupport: false,
                   logs: true,
                   clearRelatedCache: true,
@@ -96,10 +96,7 @@ module.exports = ({ env }) => ({
                   maxAge:  60 * 60 * 1000,
                   contentTypes: [
                       // list of Content-Types UID to cache
-                      {
-                        contentType:"api::collection.collection",
-                        maxAge: 10 * 60 * 1000,
-                    },
+                    "api::collection.collection",
 
                     "api::featured-item.featured-item",
 
@@ -112,10 +109,17 @@ module.exports = ({ env }) => ({
                             },
                           ],
                       },
+                      "api::coin-price.coin-price",
                       {
-                          contentType:  "api::coin-price.coin-price",
-                          maxAge: 15 * 60 * 1000,
-                      },
+                        contentType:  "api::nft.nft",
+                        routes:[
+                          {
+                            path: '/api/nfts/getNFTs', // note that we set the /api prefix here
+                            method: 'GET', // can be omitted, defaults to GET
+                          },
+                        ],
+                    },
+
                   ],
               },
           },

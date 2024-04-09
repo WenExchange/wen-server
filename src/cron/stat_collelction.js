@@ -101,10 +101,10 @@ const stats_1h_collection =  async ({ strapi }) => {
   
       })
       const collectionStatDatas = await Promise.all(statUpdatePromises)
-      const filteredCollectionStateDatas = collectionStatDatas.filter(_ => _ !== null).filter(_ => {
+      const filteredCollectionStateDatas = collectionStatDatas.filter(_ => _ !== null).filter(_collectionStatData => {
         const {floor_price_1h,
           volume_1h,
-          sale_1h} = _
+          sale_1h} = _collectionStatData
           
           return Number(floor_price_1h) !== 0 || volume_1h !== 0 ||  sale_1h !== 0
       })

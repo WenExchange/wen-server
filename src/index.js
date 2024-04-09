@@ -15,6 +15,7 @@ const WenContractQueueManager = require("./queue-manager/WenContractQueueManager
 const dayjs = require("dayjs");
 var utc = require("dayjs/plugin/utc");
 var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
+const DiscordManager = require("./discord/DiscordManager");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -35,18 +36,30 @@ module.exports = {
     try {
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
-        const tqm = TokenTransferQueueManager.getInstance(strapi)
+  
+      const tqm = TokenTransferQueueManager.getInstance(strapi)
       const mcqm = MintifyContractQueueManager.getInstance(strapi)
       const ecqm = ElementContractQueueManager.getInstance(strapi)
       const wcqm = WenContractQueueManager.getInstance(strapi)
       const ccm = CollectionCacheManager.getInstance(strapi);
 
         createTransferListener({ strapi }).catch((e) => {
-          console.error(`createTransferListener error - ${e.message}`);
+          strapi.log.error(`createTransferListener error - ${e.message}`);
         });
       }
     } catch (error) {
-      console.log(`bootstrap error - ${error.message}`);
+      strapi.log.error(`bootstrap error - ${error.message}`);
     }
   },
+
+  async destroy() {
+    const dm = DiscordManager.getInstance()
+    const error = new Error("Server is closed")
+    try {
+      dm.logError({error, identifier: "LifeCycle - Destory"})
+    } catch (error) {
+      
+    }
+    
+  }
 };

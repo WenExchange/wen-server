@@ -231,7 +231,8 @@ module.exports = class DiscordManager {
   }
 
   async logError({ error, identifier }) {
-    const guild = await this.getGuild(DISCORD_INFO.GUILD_ID);
+    try {
+      const guild = await this.getGuild(DISCORD_INFO.GUILD_ID);
     const channelId = DISCORD_INFO.CHANNEL.ERROR_LOG;
     
     const embed = new EmbedBuilder()
@@ -246,6 +247,11 @@ module.exports = class DiscordManager {
       channelId
     });
     trackerChannel.send({ embeds: [embed] });
+
+    } catch (error) {
+      console.error(error.message)
+    }
+    
   }
 
 

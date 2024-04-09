@@ -16,8 +16,9 @@ const dayjs = require("dayjs");
 const IERC721 = require("../api/sdk/controllers/IERC721");
 const { updateListingPoint } = require("../utils/airdropPrePointHelper");
 const { getISOString } = require("../utils/helpers");
+const DiscordManager = require("../discord/DiscordManager");
 const listing_cancel_detector_expiration = async ({ strapi }) => {
-  console.log("[CRON TASK] LISTING CANCEL DETECTOR - Expirtation");
+  strapi.log.info("[CRON TASK] - START | LISTING CANCEL DETECTOR - Expirtation");
   try {
     const current = dayjs().unix();
     const willDeleteOrders = await strapi.db
@@ -91,13 +92,16 @@ const listing_cancel_detector_expiration = async ({ strapi }) => {
     });
 
     await Promise.all(willDeletePromise);
+    strapi.log.info("[CRON TASK] - COMPLETE | LISTING CANCEL DETECTOR - Expirtation");
   } catch (error) {
-    console.error(`listing_cancel_detector_expiration error- ${error.message}`);
+    const dm = DiscordManager.getInstance()
+    dm.logError({error, identifier: "Cron - listing_cancel_detector_expiration"})
+    strapi.log.error(`listing_cancel_detector_expiration error- ${error.message}`);
   }
 };
 
 const listing_cancel_detector_approve = async ({ strapi }) => {
-  console.log("[CRON TASK] LISTING CANCEL DETECTOR - isApprovedForAll");
+  strapi.log.info("[CRON TASK] - START | LISTING CANCEL DETECTOR - isApprovedForAll");
   try {
     const orders = await strapi.db.query("api::order.order").findMany({
       populate: {
@@ -110,14 +114,13 @@ const listing_cancel_detector_approve = async ({ strapi }) => {
         }
       }
     });
-    console.log(
-      `listing_cancel_detector_approve - start check ${orders.length} orders`
-    );
 
     await checkIsApprovedForAllAndDelete({ strapi, orders });
-
+    strapi.log.info("[CRON TASK] - COMPLETE | LISTING CANCEL DETECTOR - isApprovedForAll");
   } catch (error) {
-    console.error(`listing_cancel_detector_approve error- ${error.message}`);
+    const dm = DiscordManager.getInstance()
+    dm.logError({error, identifier: "Cron - listing_cancel_detector_approve"})
+    strapi.log.error(`listing_cancel_detector_approve error- ${error.message}`);
   }
 };
 

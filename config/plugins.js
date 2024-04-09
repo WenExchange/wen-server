@@ -96,10 +96,7 @@ module.exports = ({ env }) => ({
                   maxAge:  60 * 60 * 1000,
                   contentTypes: [
                       // list of Content-Types UID to cache
-                      {
-                        contentType:"api::collection.collection",
-                        maxAge: 10 * 60 * 1000,
-                    },
+                    "api::collection.collection",
 
                     "api::featured-item.featured-item",
 
@@ -112,10 +109,7 @@ module.exports = ({ env }) => ({
                             },
                           ],
                       },
-                      {
-                          contentType:  "api::coin-price.coin-price",
-                          maxAge: 15 * 60 * 1000,
-                      },
+                      "api::coin-price.coin-price",
                       {
                         contentType:  "api::nft.nft",
                         routes:[

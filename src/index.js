@@ -16,6 +16,7 @@ const dayjs = require("dayjs");
 var utc = require("dayjs/plugin/utc");
 var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
 const DiscordManager = require("./discord/DiscordManager");
+const { listingCollectionScript } = require("./utils/listing-script");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -34,8 +35,12 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
+
+      listingCollectionScript({strapi, address: "0xf32d983f481e404abb993af76f1ee6fb77298793"})
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
+
+        
   
       const tqm = TokenTransferQueueManager.getInstance(strapi)
       const mcqm = MintifyContractQueueManager.getInstance(strapi)

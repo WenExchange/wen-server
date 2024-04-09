@@ -54,7 +54,7 @@ const listingCollectionScript = async ({address, strapi}) => {
   }
 
   const token_id_list = Array.from(
-    { length: collection.total_supply },
+    { length: 5000 },
     (_, i) => i + start_token_id
   );
 

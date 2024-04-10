@@ -41,12 +41,6 @@ module.exports = {
       rule: `*/1 * * * *`,
     },
   },
-  listing_cancel_detector_approve: {
-    task: listing_cancel_detector_approve,
-    options: {
-      rule: `*/15 * * * *`,
-    },
-  },
 
   update_ether_price: {
     task: update_ether_price,

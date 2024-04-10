@@ -31,16 +31,15 @@ const listing_cancel_detector_expiration = async ({ strapi }) => {
         },
         populate: {
           nft: true,
+          collection: true
         },
       });
 
+
     
-
-
-
-      
-    const willDeletePromise = willDeleteOrders.map((order) => {
-      return strapi.db
+      for (let i = 0; i < willDeleteOrders.length; i++) {
+        const order = willDeleteOrders[i];
+        await strapi.db
         .query("api::order.order")
         .delete({
           where: {
@@ -89,9 +88,8 @@ const listing_cancel_detector_expiration = async ({ strapi }) => {
               });
             });
         });
-    });
-
-    await Promise.all(willDeletePromise);
+        
+      }
     strapi.log.info("[CRON TASK] - COMPLETE | LISTING CANCEL DETECTOR - Expirtation");
   } catch (error) {
     const dm = DiscordManager.getInstance()

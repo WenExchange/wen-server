@@ -1,4 +1,3 @@
-const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
 const {
   getContractMetadata,
   createCollection

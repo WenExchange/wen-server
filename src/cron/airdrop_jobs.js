@@ -4,6 +4,7 @@ const EXCHANGE_VOLUME_MULTIPLIER = 0;
 
 const { ethers } = require("ethers");
 const { jsonRpcProvider_cron, AIRDROP_TYPE } = require("../utils/constants");
+const DiscordManager = require("../discord/DiscordManager");
 const updateCollectionAirdrop = async ({ strapi }) => {
   //  TOP 11-20 : 1.5x
   //  TOP 4-10 : 2x
@@ -561,11 +562,15 @@ async function getWenOGPassCount(address) {
 }
 const airdropStatCombined = async ({ strapi }) => {
   try {
+    strapi.log.info("[CRON TASK] - START | AIRDROP STAT");
     await createAirdropStat({ strapi });
     await updateUserMultiplier({ strapi });
-    await updateCollectionAirdrop;
+    await updateCollectionAirdrop({strapi});
+    strapi.log.info("[CRON TASK] - COMPLETE | AIRDROP STAT");
   } catch (error) {
-    console.error(error);
+    const dm = DiscordManager.getInstance()
+    dm.logError({error, identifier: "Cron - airdropStatCombined"})
+    strapi.log.error(`airdropStatCombined error- ${error.message}`);
   }
 };
 

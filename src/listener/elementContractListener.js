@@ -73,7 +73,7 @@ const elementContractListener = async ({ event, strapi }) => {
         });
         if (typeof checkedInfo === "boolean") return;
         const { nftData, existedTradeLog } = checkedInfo;
-        sellOrderSaleProcessInElement({ data, strapi, nftData }).catch((e) =>
+        await sellOrderSaleProcessInElement({ data, strapi, nftData }).catch((e) =>
           console.error(e.message)
         );
         break;
@@ -121,7 +121,7 @@ const elementContractListener = async ({ event, strapi }) => {
         });
         if (typeof checkedInfo === "boolean") return;
         const { nftData, existedTradeLog } = checkedInfo;
-        buyOrderSaleProcessInElement({ data, strapi, nftData }).catch((e) =>
+        await buyOrderSaleProcessInElement({ data, strapi, nftData }).catch((e) =>
           console.error(e.message)
         );
         break;

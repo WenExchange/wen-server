@@ -7,7 +7,8 @@ const DISCORD_INFO = {
     LISTING_COLLECTION: "1219606689918222336",
     DETECTING_COLLECTION: "1220181262409535519",
     LISTING_NFT: "1220172329309573202",
-    YIELD: "1212042486785245214"
+    YIELD: "1212042486785245214",
+    ERROR_LOG: "1227126471462490112"
   }
 };
 module.exports = class DiscordManager {
@@ -227,6 +228,30 @@ module.exports = class DiscordManager {
       channelId
     });
     trackerChannel.send({ embeds: [embed] });
+  }
+
+  async logError({ error, identifier }) {
+    try {
+      const guild = await this.getGuild(DISCORD_INFO.GUILD_ID);
+    const channelId = DISCORD_INFO.CHANNEL.ERROR_LOG;
+    
+    const embed = new EmbedBuilder()
+      .setColor(0xff0000)
+      .setTimestamp()
+      .addFields(
+        { name: "Identifier", value: `${identifier}` },
+        { name: "Details", value: `${error?.message}` }
+      );
+    const trackerChannel = await this.getChannel({
+      guild,
+      channelId
+    });
+    trackerChannel.send({ embeds: [embed] });
+
+    } catch (error) {
+      console.error(error.message)
+    }
+    
   }
 
 

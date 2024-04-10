@@ -1,12 +1,19 @@
+const DiscordManager = require("../discord/DiscordManager");
 const { NFT_LOG_TYPE }  = require("../utils/constants") 
 
 const dayjs = require("dayjs");
 const seconds_1m = 60
 const seconds_1h = 60 * 60
 const stats_1h_collection =  async ({ strapi }) => {
-    console.log("[CRON TASK] 1H COLLECTION STATS");
+  strapi.log.info("[CRON TASK] - START | 1H COLLECTION STATS");
     try {
-      const colllections = await strapi.db.query("api::collection.collection").findMany();
+      const colllections = await strapi.db.query("api::collection.collection").findMany({
+        where: {
+          publishedAt: {
+                $notNull: true
+            }
+        }
+      });
       const statUpdatePromises = colllections.map(collection => {
         const timestamp = dayjs().unix()
         const collection_id = collection.id
@@ -15,17 +22,22 @@ const stats_1h_collection =  async ({ strapi }) => {
       
         return strapi.db.query("api::collection-stat-log.collection-stat-log").findOne({
             where: {
-              timestamp: {
-                $gte: timestamp - seconds_1m
-              },
-              collection: {
-                id: {
-                  $eq: collection_id
+              $and: [
+                {
+                  timestamp: {
+                    $gte: timestamp - seconds_1m
+                  },
                 },
-                publishedAt: {
-                  $notNull: true
+                {
+                  collection: {
+                    id: {
+                      $eq: collection_id
+                    },
+                  }
                 }
-              }
+              ]
+              
+              
             },
             populate: {
               collection: true
@@ -89,7 +101,13 @@ const stats_1h_collection =  async ({ strapi }) => {
   
       })
       const collectionStatDatas = await Promise.all(statUpdatePromises)
-      const filteredCollectionStateDatas = collectionStatDatas.filter(_ => _ !== null)
+      const filteredCollectionStateDatas = collectionStatDatas.filter(_ => _ !== null).filter(_collectionStatData => {
+        const {floor_price_1h,
+          volume_1h,
+          sale_1h} = _collectionStatData
+          
+          return Number(floor_price_1h) !== 0 || volume_1h !== 0 ||  sale_1h !== 0
+      })
 
            /** Create */ 
       for (let i = 0; i < filteredCollectionStateDatas.length; i++) {
@@ -113,34 +131,34 @@ const stats_1h_collection =  async ({ strapi }) => {
             collection: true
           }
         })
-        if (existingStatLog)  {
-          return
-        }
+        if (existingStatLog) continue
+
+
         await strapi.entityService.create("api::collection-stat-log.collection-stat-log", {
           data: {
             ...collectionStatData,
             collection: collectionStatData.collection_id
           }
         })
-        
-        
+
       }
 
 
 
       /** Update Volume Stats */
-      updateCollectionsStats({strapi,filteredCollectionStateDatas }).catch(error=> console.error)
+      await updateCollectionsStats({strapi,filteredCollectionStateDatas })
 
+      strapi.log.info("[CRON TASK] - COMPLETE | 1H COLLECTION STATS");
     }
       
       catch (error) {
-      console.error(error.message);
+      const dm = DiscordManager.getInstance()
+      dm.logError({error, identifier: "Cron - stats_1h_collection"})
+      strapi.log.error(error.message);
     }
   }
 
   const updateCollectionsStats = async ({strapi, filteredCollectionStateDatas}) => {
-
-      try {
         const seconds_1h = 60 * 60
         const seconds_24h = seconds_1h * 24
         const seconds_7d = seconds_24h * 7
@@ -226,10 +244,7 @@ const stats_1h_collection =  async ({ strapi }) => {
               })
             
         }
-      } catch (error) {
-        
-          console.error(`stats_1h_collection error - ${error.message}` )
-      }
+    
    
       
 

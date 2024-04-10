@@ -10,7 +10,7 @@ discordClient.once("ready", (readyClient) => {
   console.log(`Logged in as ${readyClient.user.tag}!`);
 });
 
-discordClient.login(process.env.DISCORD_BOT_TOKEN_4);
+discordClient.login(process.env.DISCORD_BOT_TOKEN_2);
 
 module.exports = {
   discordClient,

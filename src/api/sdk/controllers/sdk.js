@@ -58,6 +58,13 @@ function createUuidv4() {
 }
 
 module.exports = {
+  postOrder: async (ctx, next) => {
+    try {
+      const data = ctx.request.body.data;
+      console.log("post order ", data);
+    } catch (error) {}
+  },
+
   getOrdersNonce: async (ctx, next) => {
     try {
       const { maker, schema, count } = ctx.request.query;

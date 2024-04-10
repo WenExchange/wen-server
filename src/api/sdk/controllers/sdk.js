@@ -638,6 +638,7 @@ module.exports = {
 
     for (let result of results) {
       orderList.push({
+        id: result.id,
         contractAddress: result.contract_address,
         // Asset token id
         tokenId: result.token_id,

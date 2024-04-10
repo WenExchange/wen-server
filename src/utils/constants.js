@@ -10,6 +10,7 @@ module.exports = {
     WEN_EX: "0x5958dC6cdc5df14b92699eABf17c7a19A1B22712",
     EL_EX: "0x4196b39157659bf0de9ebf6e505648b7889a39ce",
     MIN_EX: "0x00000000000000adc04c56bf30ac9d3c0aaf14dc",
+    OPENSEA_EX: "0x0000000000000068f116a894984e2db1123eb395"
   },
   EVENT_TYPE: {
     ERC721SellOrderFilled:
@@ -29,6 +30,7 @@ module.exports = {
     WEN: "WEN",
     ELEMENT: "ELEMENT",
     MINTIFY: "MINTIFY",
+    OPENSEA: "OPENSEA"
   },
 
   SALE_TYPE: {

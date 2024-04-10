@@ -61,7 +61,7 @@ module.exports = {
   getOrdersNonce: async (ctx, next) => {
     try {
       const { maker, schema, count } = ctx.request.query;
-      // console.log("getOrderNonce : ", maker, schema, count);
+      console.log("getOrderNonce : ", maker, schema, count);
 
       let makerNonce;
       const uuid = createUuidv4();
@@ -102,6 +102,7 @@ module.exports = {
           {}
         );
       } else {
+        console.log("t", "no");
         ctx.body = {
           code: ERROR_RESPONSE,
           msg: `${maker} doesn't exist on db`,

@@ -913,6 +913,107 @@ export interface ApiAirdropStatLogAirdropStatLog extends Schema.CollectionType {
   };
 }
 
+export interface ApiBatchBuyOrderBatchBuyOrder extends Schema.CollectionType {
+  collectionName: 'batch_buy_orders';
+  info: {
+    singularName: 'batch-buy-order';
+    pluralName: 'batch-buy-orders';
+    displayName: 'Batch Buy Order';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    buy_orders: Attribute.Relation<
+      'api::batch-buy-order.batch-buy-order',
+      'oneToMany',
+      'api::buy-order.buy-order'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::batch-buy-order.batch-buy-order',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::batch-buy-order.batch-buy-order',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiBuyOrderBuyOrder extends Schema.CollectionType {
+  collectionName: 'buy_orders';
+  info: {
+    singularName: 'buy-order';
+    pluralName: 'buy-orders';
+    displayName: 'Buy Order';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    order_id: Attribute.Text;
+    schema: Attribute.String;
+    token_id: Attribute.BigInteger;
+    quantity: Attribute.BigInteger;
+    order_hash: Attribute.Text;
+    collection: Attribute.Relation<
+      'api::buy-order.buy-order',
+      'oneToOne',
+      'api::collection.collection'
+    >;
+    is_hidden: Attribute.Boolean & Attribute.DefaultTo<false>;
+    is_sold: Attribute.Boolean & Attribute.DefaultTo<false>;
+    sale_kind: Attribute.Integer;
+    side: Attribute.Integer;
+    maker: Attribute.String;
+    taker: Attribute.String;
+    price: Attribute.String;
+    expiration_time: Attribute.BigInteger;
+    listing_time: Attribute.BigInteger;
+    standard: Attribute.String;
+    nft: Attribute.Relation<
+      'api::buy-order.buy-order',
+      'manyToOne',
+      'api::nft.nft'
+    >;
+    nonce: Attribute.BigInteger;
+    price_eth: Attribute.Float;
+    exchange_data: Attribute.Text;
+    token: Attribute.Relation<
+      'api::buy-order.buy-order',
+      'oneToOne',
+      'api::token.token'
+    >;
+    protocol_fee_receiver: Attribute.String;
+    royalty_fee_receiver: Attribute.String;
+    protocol_fee_point: Attribute.Integer;
+    royalty_fee_point: Attribute.Integer;
+    contract_address: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::buy-order.buy-order',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::buy-order.buy-order',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiCoinPriceCoinPrice extends Schema.CollectionType {
   collectionName: 'coin_prices';
   info: {
@@ -1242,6 +1343,11 @@ export interface ApiNftNft extends Schema.CollectionType {
       'api::order.order'
     >;
     last_sale_price: Attribute.Float;
+    buy_orders: Attribute.Relation<
+      'api::nft.nft',
+      'oneToMany',
+      'api::buy-order.buy-order'
+    >;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<'api::nft.nft', 'oneToOne', 'admin::user'> &
@@ -1526,6 +1632,8 @@ declare module '@strapi/types' {
       'api::airdrop-distribution-stat.airdrop-distribution-stat': ApiAirdropDistributionStatAirdropDistributionStat;
       'api::airdrop-history-log.airdrop-history-log': ApiAirdropHistoryLogAirdropHistoryLog;
       'api::airdrop-stat-log.airdrop-stat-log': ApiAirdropStatLogAirdropStatLog;
+      'api::batch-buy-order.batch-buy-order': ApiBatchBuyOrderBatchBuyOrder;
+      'api::buy-order.buy-order': ApiBuyOrderBuyOrder;
       'api::coin-price.coin-price': ApiCoinPriceCoinPrice;
       'api::collection.collection': ApiCollectionCollection;
       'api::collection-stat-log.collection-stat-log': ApiCollectionStatLogCollectionStatLog;

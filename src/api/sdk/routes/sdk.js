@@ -63,5 +63,14 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: "POST", // But If you query nonce, order nonces goes up.
+      path: "/sdk/orders/post",
+      handler: "sdk.postBuyOrder",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

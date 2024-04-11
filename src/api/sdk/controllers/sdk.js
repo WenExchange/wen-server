@@ -58,10 +58,140 @@ function createUuidv4() {
 }
 
 module.exports = {
+  postBuyOrder: async (ctx, next) => {
+    try {
+      const data = ctx.request.body.data;
+      console.log("post order ", data);
+      // 1. check if the user exist.
+      // contractAddress 로 값을 찾아온다.
+      const user = await strapi.entityService.findMany(
+        "api::exchange-user.exchange-user",
+        {
+          filters: {
+            address: {
+              $eqi: data.maker,
+            },
+          },
+        }
+      );
+      if (user.length != 1) {
+        ctx.body = {
+          code: ERROR_RESPONSE,
+          msg: `address ${data.maker} doesn't exist on db`,
+        };
+        return;
+      }
+
+      // 2. Check if the collection exist.
+      const collection = await strapi.db
+        .query("api::collection.collection")
+        .findOne({
+          where: {
+            contract_address: data.metadata.asset.address,
+          },
+        });
+
+      if (collection == null) {
+        ctx.body = {
+          code: ERROR_RESPONSE,
+          msg: `contract ${data.metadata.asset.address} doesn't exist on collection table`,
+        };
+        return;
+      }
+
+      // 3. Check if the user has more wenETH than the base price.
+      const basePrice = BigInt(data.basePrice);
+      // const userWenETHBalance =
+      /**
+       * post order  {
+  exchange: '0xd75104c9c2aec1594944c8f3a2858c62deeae91b',
+  maker: '0xe0c78c90e25165cf8707ece8664916d1ea0b7994',
+  taker: '0x0000000000000000000000000000000000000000',
+  side: 0,
+  saleKind: 8,
+  paymentToken: '0x289da9de60f270c743848d287ddaba807c2c4722',
+  quantity: '2',
+  basePrice: '20000000000000000',
+  extra: '2',
+  listingTime: 1712853721,
+  expirationTime: 1713458581,
+  metadata: {
+    asset: { id: '0', address: '0x0bf4a65d89ed719827e825fa7a130095da9fd68c' },
+    schema: 'ERC721'
+  },
+  fees: [
+    {
+      recipient: '0x02d50300dad0b3f35540e593e508fad312786292',
+      amount: '1000000000000000',
+      feeData: '0x'
+    },
+    {
+      recipient: '0xfb6fb1c53943d6797add7e4228c44c909e993023',
+      amount: '600000000000000',
+      feeData: '0x'
+    }
+  ],
+  nonce: '15',
+  hashNonce: '0',
+  hash: '0xd4469d6b9b0681046617e251e355e3870ebb7a7c2b33a0272af0135455dd75f6',
+  signatureType: 0,
+  v: 27,
+  r: '0xeb579f755c893af271c640631d993686c6003261d2044099e8cc7f98a63935bb',
+  s: '0x77256d27ad58f235c5b4f0c6f28b1b80664cab755b8f131838cf87fca695ad14',
+  chain: 'wen',
+  properties: [
+    {
+      propertyValidator: '0x0000000000000000000000000000000000000000',
+      propertyData: '0x'
+    }
+  ]
+       */
+
+      // { ExchangeData
+      //   order: {
+      //     maker: '0xb4752134bfacf63a918df8fabe65abf00cffff00',
+      //     taker: '0x0000000000000000000000000000000000000000',
+      //     expiry: '0x8000000000000000000000000000000000000000000000036614d7c3661e127a',
+      //     nonce: '6',
+      //     erc20Token: '0x4300000000000000000000000000000000000004',
+      //     erc20TokenAmount: '1116000000000000',
+      //     fees: [ [Object], [Object] ],
+      //     nft: '0x41951c1a94d068e1da124f63d5e99ee2a0acdaac',
+      //     nftId: '0',
+      //     nftProperties: [ [Object] ],
+      //     hashNonce: '0'
+      //   },
+      //   signature: {
+      //     signatureType: 0,
+      //     v: 27,
+      //     r: '0x9f69c62cf8cdc75b31564bcf89349405011d399931187652f2833ae01320a55f',
+      //     s: '0x66168f958fb95c48e5383e220cb9bea3e0030c78bc4d45caff7c4940c25e6405'
+      //   },
+      //   extraData: ''
+      // }
+      // const exchangeDataObject = {
+      //   basicCollections: data.basicCollections,
+      //   collections: data.collections,
+      //   startNonce: data.startNonce,
+      //   hashNonce: data.hashNonce,
+      //   platformFeeRecipient: data.platformFeeRecipient,
+      //   v: data.v,
+      //   r: data.r,
+      //   s: data.s,
+      //   listingTime: data.listingTime,
+      //   expirationTime: data.expirationTime,
+      //   maker: data.maker,
+      //   hash: data.hash,
+      //   paymentToken: data.paymentToken,
+      //   signatureType: SIGNATURE_TYPE_EIP712,
+      // };
+    } catch (error) {}
+  },
+
   getOrdersNonce: async (ctx, next) => {
     try {
       const { maker, schema, count } = ctx.request.query;
-      // console.log("getOrderNonce : ", maker, schema, count);
+      console.log("getOrderNonce : ", maker, schema, count);
 
       let makerNonce;
       const uuid = createUuidv4();
@@ -102,6 +232,7 @@ module.exports = {
           {}
         );
       } else {
+        console.log("t", "no");
         ctx.body = {
           code: ERROR_RESPONSE,
           msg: `${maker} doesn't exist on db`,

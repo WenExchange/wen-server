@@ -1,0 +1,21 @@
+{
+  "kind": "collectionType",
+  "collectionName": "batch_buy_orders",
+  "info": {
+    "singularName": "batch-buy-order",
+    "pluralName": "batch-buy-orders",
+    "displayName": "Batch Buy Order",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "buy_orders": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::buy-order.buy-order"
+    }
+  }
+}

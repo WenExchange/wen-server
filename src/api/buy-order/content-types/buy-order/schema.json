@@ -12,9 +12,6 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "order_id": {
-      "type": "text"
-    },
     "schema": {
       "type": "string"
     },
@@ -53,9 +50,6 @@
     "taker": {
       "type": "string"
     },
-    "price": {
-      "type": "string"
-    },
     "expiration_time": {
       "type": "biginteger"
     },
@@ -74,7 +68,7 @@
     "nonce": {
       "type": "biginteger"
     },
-    "price_eth": {
+    "single_price_eth": {
       "type": "float"
     },
     "exchange_data": {
@@ -85,20 +79,29 @@
       "relation": "oneToOne",
       "target": "api::token.token"
     },
-    "protocol_fee_receiver": {
-      "type": "string"
-    },
-    "royalty_fee_receiver": {
-      "type": "string"
-    },
-    "protocol_fee_point": {
-      "type": "integer"
-    },
-    "royalty_fee_point": {
-      "type": "integer"
-    },
     "contract_address": {
       "type": "string"
+    },
+    "batch_buy_order": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::batch-buy-order.batch-buy-order",
+      "inversedBy": "buy_orders"
+    },
+    "total_price_in_eth": {
+      "type": "float"
+    },
+    "single_price": {
+      "type": "string"
+    },
+    "total_price": {
+      "type": "string"
+    },
+    "hash_nonce": {
+      "type": "biginteger"
+    },
+    "base_price": {
+      "type": "biginteger"
     }
   }
 }

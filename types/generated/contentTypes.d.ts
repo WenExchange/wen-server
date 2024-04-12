@@ -930,6 +930,24 @@ export interface ApiBatchBuyOrderBatchBuyOrder extends Schema.CollectionType {
       'oneToMany',
       'api::buy-order.buy-order'
     >;
+    is_cancelled: Attribute.Boolean & Attribute.DefaultTo<false>;
+    is_all_sold: Attribute.Boolean & Attribute.DefaultTo<false>;
+    is_expired: Attribute.Boolean & Attribute.DefaultTo<false>;
+    listing_time: Attribute.BigInteger;
+    expiration_time: Attribute.BigInteger;
+    maker: Attribute.String;
+    collection: Attribute.Relation<
+      'api::batch-buy-order.batch-buy-order',
+      'oneToOne',
+      'api::collection.collection'
+    >;
+    total_quantity: Attribute.BigInteger;
+    total_price: Attribute.BigInteger;
+    total_price_in_eth: Attribute.Float;
+    order_id: Attribute.Text;
+    single_price: Attribute.BigInteger;
+    single_price_in_eth: Attribute.Float;
+    taker: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -959,7 +977,6 @@ export interface ApiBuyOrderBuyOrder extends Schema.CollectionType {
     draftAndPublish: false;
   };
   attributes: {
-    order_id: Attribute.Text;
     schema: Attribute.String;
     token_id: Attribute.BigInteger;
     quantity: Attribute.BigInteger;
@@ -975,7 +992,6 @@ export interface ApiBuyOrderBuyOrder extends Schema.CollectionType {
     side: Attribute.Integer;
     maker: Attribute.String;
     taker: Attribute.String;
-    price: Attribute.String;
     expiration_time: Attribute.BigInteger;
     listing_time: Attribute.BigInteger;
     standard: Attribute.String;
@@ -985,18 +1001,24 @@ export interface ApiBuyOrderBuyOrder extends Schema.CollectionType {
       'api::nft.nft'
     >;
     nonce: Attribute.BigInteger;
-    price_eth: Attribute.Float;
+    single_price_eth: Attribute.Float;
     exchange_data: Attribute.Text;
     token: Attribute.Relation<
       'api::buy-order.buy-order',
       'oneToOne',
       'api::token.token'
     >;
-    protocol_fee_receiver: Attribute.String;
-    royalty_fee_receiver: Attribute.String;
-    protocol_fee_point: Attribute.Integer;
-    royalty_fee_point: Attribute.Integer;
     contract_address: Attribute.String;
+    batch_buy_order: Attribute.Relation<
+      'api::buy-order.buy-order',
+      'manyToOne',
+      'api::batch-buy-order.batch-buy-order'
+    >;
+    total_price_in_eth: Attribute.Float;
+    single_price: Attribute.String;
+    total_price: Attribute.String;
+    hash_nonce: Attribute.BigInteger;
+    base_price: Attribute.BigInteger;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

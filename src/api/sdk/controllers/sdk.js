@@ -1,7 +1,11 @@
 "use strict";
 
 const { createOrderData, createOrdersData } = require("./dataEncoder.js");
-const { getNFTOwner, weiToEther } = require("./blockchainHelper.js");
+const {
+  getNFTOwner,
+  weiToEther,
+  getERC20Balance,
+} = require("./blockchainHelper.js");
 const dayjs = require("dayjs");
 const {
   batchUpdateFloorPrice,
@@ -22,6 +26,11 @@ const ERROR_RESPONSE = 1234;
 
 const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
 const DEFAULT_PAGE_SIZE = 40;
+
+// TODO: TESTNET
+const WENETH_ADDRESS = "0x289Da9DE60f270c743848d287DDabA807C2c4722";
+// TODO: TESTNET
+const WENETH_TOKEN_ID = 6;
 
 //From SDK
 const SIGNATURE_TYPE_EIP712 = 0;
@@ -94,13 +103,129 @@ module.exports = {
       if (collection == null) {
         ctx.body = {
           code: ERROR_RESPONSE,
-          msg: `contract ${data.metadata.asset.address} doesn't exist on collection table`,
+          msg: `contract ${data.metadata.asset.address} doesn't basePrice on collection table`,
         };
         return;
       }
 
+      //
+
       // 3. Check if the user has more wenETH than the base price.
-      const basePrice = BigInt(data.basePrice);
+      // Base price 는 fee를 뺀 금액
+      // totalERC20Amount 는 fee를 더한 금액
+      const totalERC20Amount = BigInt(data.totalERC20Amount);
+      const wenETHBalance = await getERC20Balance(WENETH_ADDRESS, data.maker);
+      console.log(
+        totalERC20Amount,
+        wenETHBalance,
+        wenETHBalance - totalERC20Amount
+      );
+
+      if (wenETHBalance - totalERC20Amount < 0) {
+        ctx.body = {
+          code: ERROR_RESPONSE,
+          msg: `address ${data.maker} doesn't have enough wenETH to place a bid`,
+        };
+        return;
+      }
+
+      // 4. Create Batch Order
+      const single_price = (
+        totalERC20Amount / BigInt(data.quantity)
+      ).toString();
+      const single_price_in_eth = weiToEther(
+        totalERC20Amount / BigInt(data.quantity)
+      );
+      let orderUuid = createUuidv4();
+      let batchOrderObject = {
+        order_id: orderUuid,
+        maker: data.maker,
+        taker: data.taker,
+        listing_time: data.listingTime,
+        expiration_time: data.expirationTime,
+        collection: collection.id,
+        total_quantity: data.quantity,
+        total_price: totalERC20Amount.toString(),
+        total_price_in_eth: weiToEther(totalERC20Amount.toString()),
+        single_price,
+        single_price_in_eth,
+      };
+      const batchOrder = await strapi.entityService.create(
+        "api::batch-buy-order.batch-buy-order",
+        {
+          data: batchOrderObject,
+        }
+      );
+
+      console.log("batch order! ", batchOrder);
+
+      let createdOrderIds = [];
+      for (let i = 0; i < data.quantity; i++) {
+        const exchangeDataObject = {
+          order: {
+            maker: data.maker,
+            taker: data.taker,
+            expiry: data.expiry,
+            nonce: data.nonce,
+            erc20Token: data.paymentToken,
+            erc20TokenAmount: data.basePrice,
+            fees: data.fees,
+            nft: data.metadata.asset.address,
+            nftId: data.metadata.asset.id,
+            nftProperties: data.properties,
+            hashNonce: data.hashNonce,
+          },
+          signature: {
+            signatureType: 0,
+            v: data.v,
+            r: data.r,
+            s: data.s,
+          },
+          extraData: "",
+        };
+
+        //5. Create Orders by the quantity.
+        const order = await strapi.entityService.create(
+          "api::buy-order.buy-order",
+          {
+            data: {
+              schema: data.metadata.schema,
+              token_id: data.metadata.asset.id,
+              quantity: 1,
+              order_hash: data.hash,
+              collection: collection.id,
+              sale_kind: data.saleKind,
+              side: data.side,
+              maker: data.maker,
+              taker: data.taker,
+              base_price: data.basePrice.toString(),
+              total_price: totalERC20Amount.toString(),
+              total_price_in_eth: weiToEther(totalERC20Amount.toString()),
+              single_price,
+              single_price_in_eth,
+              expiration_time: data.expirationTime,
+              listing_time: data.listingTime,
+              batch_buy_order: batchOrder.id,
+              contract_address: data.metadata.asset.address,
+              token: WENETH_TOKEN_ID,
+              nonce: data.nonce,
+              hash_nonce: data.hashNonce,
+              standard: WEN_STANDARD,
+              exchange_data: JSON.stringify(exchangeDataObject),
+            },
+          }
+        );
+        createdOrderIds.push(order.id);
+      }
+
+      console.log("buy orders has created: ", createdOrderIds);
+
+      ctx.body = {
+        data: { batchOrderObject, createdOrderIds },
+        code: SUCCESS_RESPONSE,
+      };
+      return;
+
       // const userWenETHBalance =
       /**
        * post order  {
@@ -915,6 +1040,80 @@ module.exports = {
           saleKind: orderData.sale_kind,
           price: orderData.price,
           isValid: true,
+          errorDetail: "",
+          taker: "0x0000000000000000000000000000000000000000",
+          expirationTime: orderData.expiration_time,
+          quantity: orderData.quantity,
+          priceBase: orderData.price_eth,
+          schema: orderData.schema,
+          paymentTokenCoin: {
+            id: orderData.token.token_id,
+            name: orderData.token.symbol,
+            address: orderData.token.address,
+            icon: orderData.token.icon,
+            decimal: orderData.token.decimal,
+            accuracy: 4,
+          },
+          exchangeData: orderData.exchange_data,
+          orderHash: orderData.order_hash,
+          orderId: orderData.order_id,
+        });
+      }
+    }
+
+    ctx.body = {
+      data: {
+        orderExchangeList: orderList,
+      },
+      code: SUCCESS_RESPONSE,
+    };
+  },
+
+  fetchBatchBuyExchangeDataByHash: async (ctx, next) => {
+    const data = ctx.request.body.data;
+
+    const hashListWithNonce = [];
+    const orderList = [];
+
+    // 1. get order data with orderHash
+    for (let order of data.hashList) {
+      const orderData = await strapi.db
+        .query("api::buy-order.buy-order")
+        .findOne({
+          where: {
+            $and: [
+              { order_hash: order.orderHash },
+              { is_hidden: false },
+              { is_sold: false },
+            ],
+          },
+          populate: {
+            collection: true,
+            token: true,
+            batch_buy_order: true,
+          },
+        });
+
+      console.log("orderData   :   ", orderData);
+      if (orderData == null) {
+        ctx.body = {
+          code: ERROR_RESPONSE,
+          msg: `order hash ${order.orderHash} doesn't exist on db`,
+        };
+        return;
+      } else {
+        orderList.push({
+          contractAddress: orderData.contract_address,
+          tokenId: orderData.token_id,
+          standard: orderData.standard,
+          paymentToken: orderData.token.address,
+          maker: orderData.maker,
+          listingTime: orderData.listing_time,
+          side: orderData.side,
+          saleKind: orderData.sale_kind,
+          price: orderData.price,
+          is_hidden: orderData.is_hidden,
+          is_sold: orderData.is_sold,
           errorDetail: "",
           taker: "0x0000000000000000000000000000000000000000",
           expirationTime: orderData.expiration_time,

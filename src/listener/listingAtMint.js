@@ -57,10 +57,6 @@ const createNFTAtMint = async ({ log, strapi }) => {
       // if (!owner) throw new Error(`Invalid Owner`)
       let metadata = await fetchMetadata({ collectionContract, tokenId });
       if (!metadata) {
-        await wait(0.5);
-        metadata = await fetchMetadata({ collectionContract, tokenId });
-      }
-      if (!metadata) {
         metadata = {
           token_id: tokenId,
           name: `${existedCollection.name} #${tokenId}`,

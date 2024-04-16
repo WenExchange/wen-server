@@ -1,5 +1,6 @@
 "use strict";
 require("dotenv").config();
+const axios = require("axios");
 const {
   SERVER_TYPE,
   jsonRpcProvider,
@@ -16,8 +17,13 @@ const dayjs = require("dayjs");
 var utc = require("dayjs/plugin/utc");
 var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
 const DiscordManager = require("./discord/DiscordManager");
+const { listingCollectionScript } = require("./utils/listing-script");
+const { fetchMetadata } = require("./listener/listingAtMint");
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+const ERC721 = require("./cron/abis/ERC721.json");
+const { ethers } = require("ethers");
 
 module.exports = {
   /**
@@ -34,6 +40,8 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
+      // listingCollectionScript({address: "0xd72ee37f3e73f0d57df44cdaee7edc497c1489bd", strapi})
+      
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
   

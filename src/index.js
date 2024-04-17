@@ -40,7 +40,30 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
-      // listingCollectionScript({address: "0xd72ee37f3e73f0d57df44cdaee7edc497c1489bd", strapi})
+      // listingCollectionScript({address: "0xFD2D58039d6521Eec468Cad87c43725268B8f4ED", strapi})
+
+      // const nfts = await strapi.db.query("api::nft.nft").findMany({
+      //   where: {
+      //     collection: {
+      //       slug: "frogs-on-blast"
+      //     }
+      //   }
+      // })
+
+      // console.log(nfts.length);
+
+      // for (let i = 0; i < nfts.length; i++) {
+      //   console.log(i);
+      //   const nft = nfts[i];
+      //   await strapi.db.query("api::nft.nft").update({
+      //     where: {
+      //       id: nft.id
+      //     },
+      //     data: {
+      //       image_url: `https://wen-ex.myfilebase.com/ipfs/bafybeifjx5svcxnzjgkjng46wqcr2htpy7v6j4srisntd6fitjycxwub3m/${nft.token_id}.png`
+      //     }
+      //   })
+      // }
       
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {

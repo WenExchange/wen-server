@@ -45,7 +45,7 @@ module.exports = {
       // const nfts = await strapi.db.query("api::nft.nft").findMany({
       //   where: {
       //     collection: {
-      //       slug: "frogs-on-blast"
+      //       contract_address: "0xc027e840e39A826AF2a933bEd65F2FC80E86FaC5"
       //     }
       //   }
       // })
@@ -60,7 +60,7 @@ module.exports = {
       //       id: nft.id
       //     },
       //     data: {
-      //       image_url: `https://wen-ex.myfilebase.com/ipfs/bafybeifjx5svcxnzjgkjng46wqcr2htpy7v6j4srisntd6fitjycxwub3m/${nft.token_id}.png`
+      //       image_url: `https://lightcycle.city/OG-NFT/nft/images/Lightcycle_OG_NFT_v4.gif`
       //     }
       //   })
       // }

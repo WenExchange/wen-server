@@ -33,6 +33,19 @@ const getContractMetadata = async (address) => {
       } catch (error) {
         console.error(`getContractMetadata - ${error.message}`)
       }
+      if (Number.isNaN(total_supply) || total_supply <= 0) {
+        try {
+          total_supply = await contract
+        .maxSupply()
+        .then((res) => res.toNumber())
+        } catch (error) {
+          console.error(`getContractMetadata - ${error.message}`)
+        }
+      }
+
+      if (typeof total_supply !== "number") {
+        total_supply = 0
+      }
     
 
     const nameId = voucher_codes.generate({

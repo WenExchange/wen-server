@@ -10,6 +10,7 @@ const {
   EVENT_TYPE,
   EX_TYPE,
   SALE_TYPE,
+  DISCORD_INFO,
 } = require("../utils/constants");
 
 const {
@@ -18,7 +19,6 @@ const {
   updateOwnerCount,
 } = require("./collectionStats");
 const { decodedMintifyLogs } = require("./listenerhelpers");
-
 const { updateListingPoint } = require("../utils/airdropPrePointHelper");
 
 const {
@@ -33,81 +33,73 @@ const {
   LOG_TYPE_MINT,
 } = NFT_LOG_TYPE;
 
-const mintifyContractListener = async ({ event, strapi }) => {
-  try {
-    switch (event.topics[0]) {
-      case EVENT_TYPE.OrderFulfilled: {
-        const result = decodedMintifyLogs(event);
+const mintifyContractListener = async ({ event, strapi, ex_type }) => {
+  switch (event.topics[0]) {
+    case EVENT_TYPE.OrderFulfilled: {
+      const result = decodedMintifyLogs(event);
 
-        // [기존] Mintify 에서 왔다.
-        // [추가] SALE 인 경우에만 Buy Order (0) / Sell Order (1)
-        // [추가] SALE 인 경우에만 Payment Token 종류 - price외에 payment token 이라 추가.
+      // [기존] Mintify 에서 왔다.
+      // [추가] SALE 인 경우에만 Buy Order (0) / Sell Order (1)
+      // [추가] SALE 인 경우에만 Payment Token 종류 - price외에 payment token 이라 추가.
 
-        const _data = extractData(result);
+      const _data = extractData(result);
 
-        const data = {
-          ..._data,
-          ex_type: EX_TYPE.MINTIFY,
-          sale_type: _data.sale_type === 0 ? SALE_TYPE.BUY : SALE_TYPE.SELL,
-          payment_token: _data.paymentToken,
-          price: _data.price,
-          from: _data.from,
-          to: _data.to,
-          tx_hash: event.transactionHash,
-          timestamp: dayjs().unix(),
-          token_id: _data.tokenId,
-          contract_address: _data.contract,
-        };
+      const data = {
+        ..._data,
+        ex_type,
+        sale_type: _data.sale_type === 0 ? SALE_TYPE.BUY : SALE_TYPE.SELL,
+        payment_token: _data.paymentToken,
+        price: _data.price,
+        from: _data.from,
+        to: _data.to,
+        tx_hash: event.transactionHash,
+        timestamp: dayjs().unix(),
+        token_id: _data.tokenId,
+        contract_address: _data.contract,
+      };
 
-        // data 의 생김새
-        // {
-        //   from: data.offerer, // NFT 를 보내는 사람
-        //   to: data.recipient, // NFT 를 받는사람
-        //   price,  // 단위는 ETHER
-        //   paymentToken: 1, // 1: ETH , 2 : WETH, 5 : WENETH
-        //   sale_type: 1, // 0: BUY , 1: SELL
-        //   tokenId: data.offer[0].identifier, // NFT Token ID
-        //   contract: data.offer[0].token, // NFT CONTRACT
-        // }
+      // data 의 생김새
+      // {
+      //   from: data.offerer, // NFT 를 보내는 사람
+      //   to: data.recipient, // NFT 를 받는사람
+      //   price,  // 단위는 ETHER
+      //   paymentToken: 1, // 1: ETH , 2 : WETH, 5 : WENETH
+      //   sale_type: 1, // 0: BUY , 1: SELL
+      //   tokenId: data.offer[0].identifier, // NFT Token ID
+      //   contract: data.offer[0].token, // NFT CONTRACT
+      // }
 
-        if (data.sale_type === SALE_TYPE.SELL) {
-          const checkedInfo = await checkIsValidSellOrderSaleAndGetData({
-            strapi,
-            data,
-          });
-          if (typeof checkedInfo === "boolean") return;
-          const { nftData, existedTradeLog } = checkedInfo;
-          await sellOrderSaleProcessInMintify({ data, strapi, nftData }).catch(
-            (e) => console.error(e.message)
-          );
-        } else if (data.sale_type === SALE_TYPE.BUY) {
-          const checkedInfo = await checkIsValidBuyOrderSaleAndGetData({
-            strapi,
-            data,
-          });
-          if (typeof checkedInfo === "boolean") return;
-          const { nftData, existedTradeLog } = checkedInfo;
-          await buyOrderSaleProcessInElement({ data, strapi, nftData }).catch((e) =>
-            console.error(e.message)
-          );
-        }
+      if (data.sale_type === SALE_TYPE.SELL) {
+        const checkedInfo = await checkIsValidSellOrderSaleAndGetData({
+          strapi,
+          data,
+        });
+        if (typeof checkedInfo === "boolean") return;
+        const { nftData, existedTradeLog } = checkedInfo;
+        await sellOrderSaleProcessInMintify({ data, strapi, nftData })
 
-        break;
+      } else if (data.sale_type === SALE_TYPE.BUY) {
+        const checkedInfo = await checkIsValidBuyOrderSaleAndGetData({
+          strapi,
+          data,
+        });
+        if (typeof checkedInfo === "boolean") return;
+        const { nftData, existedTradeLog } = checkedInfo;
+        await buyOrderSaleProcessInElement({ data, strapi, nftData }).catch((e) =>
+          console.error(e.message)
+        );
       }
 
-      default:
-        break;
+      break;
     }
-  } catch (error) {
-    console.error(error.message);
+
+    default:
+      break;
   }
 };
 
 const checkIsValidSellOrderSaleAndGetData = async ({ strapi, data }) => {
-  console.log(
-    `[MIN] ${data.sale_type} - 1. checkIsValidSellOrderSaleAndGetData Start data:\n`,
-    data
-  );
+  const dm = DiscordManager.getInstance()
   /**
    * Validations
    * 1. DB 에 있는 NFT 인지 체크합니다.
@@ -118,26 +110,23 @@ const checkIsValidSellOrderSaleAndGetData = async ({ strapi, data }) => {
   try {
     const nftData = await strapi.db.query("api::nft.nft").findOne({
       where: {
-        token_id: data.token_id,
-        collection: { contract_address: data.contract_address },
+        $and: [
+          {
+            token_id: data.token_id,
+          },
+          {
+            collection: { contract_address: data.contract_address },
+          }
+        ]
       },
       populate: {
         sell_order: true,
-        collection: true,
       },
     });
 
     if (!nftData) {
-      console.log(
-        `[MIN] ${data.sale_type} - There is no nft data - contract_address: ${data.contract_address} | token_id: ${data.token_id}`
-      );
       return false;
     }
-    // if (!nftData.sell_order) return false
-
-    /**
-     * 하나의 NFT token id 당 하나의 hash
-     */
     const existedTradeLog = await strapi.db
       .query("api::nft-trade-log.nft-trade-log")
       .findOne({
@@ -165,25 +154,29 @@ const checkIsValidSellOrderSaleAndGetData = async ({ strapi, data }) => {
       });
 
     if (existedTradeLog) {
-      console.log(
-        `[MIN] ${data.sale_type} - existedTradeLog - ${existedTradeLog}`
-      );
+      dm.logError({ error: new Error(`contract_address: ${data.contract_address} | token_id: ${data.token_id}`), identifier: `${data?.ex_type} | ${data.sale_type} | checkIsValidSellOrderSaleAndGetData | existedTradeLog`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG })
+
       return false;
     }
 
+    // 외부 거래소에서 일어난 거래는 sell_order 가 없을 수 있다.
+    // if (!nftData.sell_order) {
+    //   console.log(
+    //     `[MIN] ${data.sale_type} - Already deleted sell_order - contract_address: ${data.contract_address} | token_id: ${data.token_id}`
+    //   );
+    //   dm.logError({error: new Error(`${data.sale_type} - Already deleted sell_order - contract_address: ${data.contract_address} | token_id: ${data.token_id}`), identifier: "[MIN] checkIsValidSellOrderSaleAndGetData", channelId:DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG })
+    //   return false
+    // }
+
     return { nftData, existedTradeLog };
   } catch (error) {
-    console.error(`[MIN] ${data.sale_type} - error - ${error.message}`);
+    dm.logError({ error, identifier: `${data?.ex_type} | ${data.sale_type} | checkIsValidSellOrderSaleAndGetData`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG })
     return false;
   }
 };
 
 const checkIsValidBuyOrderSaleAndGetData = async ({ strapi, data }) => {
-  console.log(
-    `[MIN] ${data.sale_type} - 1. checkIsValidBuyOrderSaleAndGetData Start data:\n`,
-    data
-  );
-
+  const dm = DiscordManager.getInstance()
   /**
    * Validations
    * 1. DB 에 있는 NFT 인지 체크합니다.
@@ -195,19 +188,21 @@ const checkIsValidBuyOrderSaleAndGetData = async ({ strapi, data }) => {
   try {
     const nftData = await strapi.db.query("api::nft.nft").findOne({
       where: {
-        token_id: data.token_id,
-        collection: { contract_address: data.contract_address },
+        $and: [
+          {
+            token_id: data.token_id,
+          },
+          {
+            collection: { contract_address: data.contract_address },
+          }
+        ]
       },
       populate: {
         sell_order: true,
-        collection: true,
       },
     });
 
     if (!nftData) {
-      console.log(
-        `[MIN] ${data.sale_type} - There is no nft data - contract_address: ${data.contract_address} | token_id: ${data.token_id}`
-      );
       return false;
     }
 
@@ -241,23 +236,19 @@ const checkIsValidBuyOrderSaleAndGetData = async ({ strapi, data }) => {
       });
 
     if (existedTradeLog) {
-      console.log(
-        `[MIN] ${data.sale_type} - existedTradeLog - ${existedTradeLog}`
-      );
+      dm.logError({ error: new Error(`contract_address: ${data.contract_address} | token_id: ${data.token_id}`), identifier: `${data?.ex_type} | ${data.sale_type} | checkIsValidBuyOrderSaleAndGetData | existedTradeLog`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG })
       return false;
     }
 
     return { nftData, existedTradeLog };
   } catch (error) {
-    console.error(`[MIN] ${data.sale_type} - error - ${error.message}`);
+    dm.logError({ error, identifier: `${data?.ex_type} | ${data.sale_type} | checkIsValidBuyOrderSaleAndGetData`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG })
     return false;
   }
 };
 
 const sellOrderSaleProcessInMintify = async ({ data, strapi, nftData }) => {
-  console.log(
-    `[MIN] ${data.sale_type} - 2. sellOrderSaleProcessInElement Start`
-  );
+  const dm = DiscordManager.getInstance()
   /**
    * Wen DB 에 존재하는 NFT 임이 가정입니다. (Validation 완료)
    * Sell Order 가 존재하는 상태에서만 이 이벤트가 일어날 수 있습니다.
@@ -268,94 +259,58 @@ const sellOrderSaleProcessInMintify = async ({ data, strapi, nftData }) => {
    * 5. sale 로그 찍습니다.
    *
    */
-  // order 지우고 로그 찍어주긔
+  // order 있다면 지우고 로그 찍어주긔
   if (nftData.sell_order) {
-    console.log(
-      `[MIN] ${data.sale_type} (optional) delete sell order id - ${nftData.sell_order.id} `
-    );
-    await strapi.entityService
-      .delete("api::order.order", nftData.sell_order.id, {
-        populate: { nft: true },
-      })
-      .then((deletedOrder) => {
-        return strapi.entityService
-          .create("api::nft-trade-log.nft-trade-log", {
-            data: {
-              ex_type: data.ex_type,
-              type: LOG_TYPE_AUTO_CANCEL_LISTING,
-              from: data.from,
-              nft: nftData.id,
-              tx_hash: data.tx_hash,
-              timestamp: dayjs().unix(),
-            },
-          })
-          .then((_) => {
-            // CANCEL LISTING HISTORY LOG IF ANY
-            return updateListingPoint(
-              true,
-              data.from,
-              data.contract_address,
-              nftData.token_id,
-              0,
-              0,
-              { strapi }
-            ).then((_) => {
-              return updateFloorPrice({ strapi }, data.contract_address)
-                .then((_) => {
-                  return updateOrdersCount({ strapi }, data.contract_address);
-                })
-                .catch((e) => console.error(e.message));
-            });
-          });
-      })
-      .catch((e) => console.error(e.message));
+    await deleteSellOrderProcess({ data, strapi, nftData, dm })
   }
 
   // update NFT
-  await strapi.entityService
-    .update("api::nft.nft", nftData.id, {
-      data: {
-        last_sale_price: data.price,
-        owner: data.to,
-      },
-    })
-    .then((_) => {
-      // update owner count after nft owner update
-      console.log(
-        `[MIN] ${data.sale_type} - 3. nft id: ${nftData.id} updated owner ${nftData.owner} -> ${data.to}`
-      );
+  try {
+    await strapi.entityService
+      .update("api::nft.nft", nftData.id, {
+        data: {
+          last_sale_price: data.price,
+          owner: data.to,
+        },
+      })
+  } catch (error) {
+    dm.logError({ error, identifier: `${data?.ex_type} | ${data?.sale_type} | sellOrderSaleProcessInMintify | updateNFT`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG })
+    throw new Error(error)
+  }
 
-      return updateOwnerCount({ strapi }, data.contract_address);
-    })
-    .catch((e) => console.error(e.message));
+  try {
+    await updateOwnerCount({ strapi }, data.contract_address);
+  } catch (error) {
+    dm.logError({ error, identifier: `${data?.ex_type} | ${data?.sale_type} | sellOrderSaleProcessInMintify | updateOwnerCount`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG })
+  }
 
   // SALE log
-  const createdLog = await strapi.entityService
-    .create("api::nft-trade-log.nft-trade-log", {
-      data: {
-        ex_type: data.ex_type,
-        sale_type: data.sale_type,
-        payment_token: data.payment_token,
-        type: LOG_TYPE_SALE,
-        price: data.price,
-        from: data.from,
-        to: data.to,
-        nft: nftData.id,
-        tx_hash: data.tx_hash,
-        timestamp: dayjs().unix(),
-      },
-    })
-    .catch((e) => console.error(e.message));
+  try {
+    await strapi.entityService
+      .create("api::nft-trade-log.nft-trade-log", {
+        data: {
+          ex_type: data.ex_type,
+          sale_type: data.sale_type,
+          payment_token: data.payment_token,
+          type: LOG_TYPE_SALE,
+          price: data.price,
+          from: data.from,
+          to: data.to,
+          nft: nftData.id,
+          tx_hash: data.tx_hash,
+          timestamp: dayjs().unix(),
+        },
+      })
+  } catch (error) {
+    dm.logError({ error, identifier: `${data?.ex_type} | ${data?.sale_type} | sellOrderSaleProcessInMintify | Create Sale Log`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG })
+    throw new Error(error)
+  }
 
-  console.log(
-    `[MIN] ${data.sale_type} - 4. nft id: ${nftData.id} created SALE log id ${createdLog.id}`
-  );
 };
 
+
+
 const buyOrderSaleProcessInElement = async ({ data, strapi, nftData }) => {
-  console.log(
-    `[MIN] ${data.sale_type} - 2. buyOrderSaleProcessInElement Start`
-  );
   /**
    * Wen DB 에 존재하는 NFT 임이 가정입니다. (Validation 완료)
    * 1. [TODO] offer, bid table 의 데이터 지우기
@@ -366,90 +321,94 @@ const buyOrderSaleProcessInElement = async ({ data, strapi, nftData }) => {
    *
    */
 
-  // TODO offer 테이블 지워주기
+  const dm = DiscordManager.getInstance()
 
+  // TODO offer 테이블 지워주기
   if (nftData.sell_order) {
-    console.log(
-      `[MIN] ${data.sale_type} (optional) delete sell order id - ${nftData.sell_order.id} `
-    );
-    await strapi.entityService
-      .delete("api::order.order", nftData.sell_order.id, {
-        populate: { nft: true },
-      })
-      .then((deletedOrder) => {
-        return strapi.entityService
-          .create("api::nft-trade-log.nft-trade-log", {
-            data: {
-              ex_type: data.ex_type,
-              type: LOG_TYPE_AUTO_CANCEL_LISTING,
-              from: data.from,
-              nft: nftData.id,
-              tx_hash: data.tx_hash,
-              timestamp: dayjs().unix(),
-            },
-          })
-          .then((_) => {
-            // CANCEL LISTING HISTORY LOG IF ANY
-            return updateListingPoint(
-              true,
-              data.from,
-              data.contract_address,
-              nftData.token_id,
-              0,
-              0,
-              { strapi }
-            ).then((_) => {
-              return updateFloorPrice({ strapi }, data.contract_address)
-                .then((_) => {
-                  return updateOrdersCount({ strapi }, data.contract_address);
-                })
-                .catch((e) => console.error(e.message));
-            });
-          });
-      })
-      .catch((e) => console.error(e.message));
+    await deleteSellOrderProcess({ data, strapi, nftData, dm })
   }
 
   // update NFT
-  await strapi.entityService
-    .update("api::nft.nft", nftData.id, {
-      data: {
-        last_sale_price: data.price,
-        owner: data.to,
-      },
-    })
-    .then((_) => {
-      // update owner count after nft owner update
-      console.log(
-        `[MIN] ${data.sale_type} - 3. nft id: ${nftData.id} updated owner ${nftData.owner} -> ${data.to}`
-      );
-
-      return updateOwnerCount({ strapi }, data.contract_address);
-    })
-    .catch((e) => console.error(e.message));
+  try {
+    await strapi.entityService
+      .update("api::nft.nft", nftData.id, {
+        data: {
+          last_sale_price: data.price,
+          owner: data.to,
+        },
+      })
+  } catch (error) {
+    dm.logError({ error, identifier: `${data?.ex_type} | ${data?.sale_type} | buyOrderSaleProcessInElement | updateNFT`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG })
+    throw new Error(error)
+  }
+  try {
+    await updateOwnerCount({ strapi }, data.contract_address);
+  } catch (error) {
+    dm.logError({ error, identifier: `${data?.ex_type} | ${data?.sale_type} | buyOrderSaleProcessInElement | updateOwnerCount`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG })
+  }
 
   // SALE log
-  const createdLog = await strapi.entityService
-    .create("api::nft-trade-log.nft-trade-log", {
-      data: {
-        ex_type: data.ex_type,
-        sale_type: data.sale_type,
-        payment_token: data.payment_token,
-        type: LOG_TYPE_SALE,
-        price: data.price,
-        from: data.from,
-        to: data.to,
-        nft: nftData.id,
-        tx_hash: data.tx_hash,
-        timestamp: dayjs().unix(),
-      },
-    })
-    .catch((e) => console.error(e.message));
+  try {
+    await strapi.entityService
+      .create("api::nft-trade-log.nft-trade-log", {
+        data: {
+          ex_type: data.ex_type,
+          sale_type: data.sale_type,
+          payment_token: data.payment_token,
+          type: LOG_TYPE_SALE,
+          price: data.price,
+          from: data.from,
+          to: data.to,
+          nft: nftData.id,
+          tx_hash: data.tx_hash,
+          timestamp: dayjs().unix(),
+        },
+      })
+  } catch (error) {
+    dm.logError({ error, identifier: `${data?.ex_type} | ${data?.sale_type} | buyOrderSaleProcessInElement | Create Sale Log`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG })
+    throw new Error(error)
+  }
 
-  console.log(
-    `[MIN] ${data.sale_type} - 4. nft id: ${nftData.id} created SALE log id ${createdLog.id}`
-  );
 };
+
+const deleteSellOrderProcess = async ({ nftData, data, strapi, dm }) => {
+  try {
+    const deletedOrder = await strapi.entityService
+      .delete("api::order.order", nftData.sell_order.id, {
+        populate: { nft: true },
+      })
+
+    if (deletedOrder) {
+      await strapi.entityService
+        .create("api::nft-trade-log.nft-trade-log", {
+          data: {
+            ex_type: data.ex_type,
+            type: LOG_TYPE_AUTO_CANCEL_LISTING,
+            from: data.from,
+            nft: nftData.id,
+            tx_hash: data.tx_hash,
+            timestamp: dayjs().unix(),
+          },
+        })
+      await updateListingPoint(
+        true,
+        data.from,
+        data.contract_address,
+        nftData.token_id,
+        0,
+        0,
+        { strapi }
+      )
+      await updateFloorPrice({ strapi }, data.contract_address)
+      await updateOrdersCount({ strapi }, data.contract_address);
+
+    }
+
+  } catch (error) {
+    console.error(`${data?.ex_type} ${data.sale_type} - error - ${error.message}`);
+    dm.logError({ error, identifier: `${data?.ex_type} | ${data.sale_type} | deleteSellOrderProcess`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG })
+  }
+}
 
 const extractData = (data) => {
   if (data.offer[0].itemType == "2") {
@@ -481,7 +440,7 @@ const extractData = (data) => {
     };
   } else {
     return {
-      error: `UNKNOWN DATA : `,data,
+      error: `UNKNOWN DATA : `, data,
     };
   }
 };

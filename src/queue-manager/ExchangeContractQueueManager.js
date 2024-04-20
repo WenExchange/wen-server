@@ -38,24 +38,22 @@ module.exports = class ExchangeContractQueueManager {
     console.log(`[ExchangeContractQueueManager] processQueue`);
     this.isProcessing = true
     while (this.LOG_QUEUE.length > 0) {
-        switch (ex_type) {
-        case EX_TYPE.MINTIFY:
-          
-          break;
-  
-        case EX_TYPE.OPENSEA:
-          break
       
-        default:
-          break;
-      }
 
-      console.log(`[MINTIFY] Processing Queue Start - ${this.LOG_QUEUE.length} -> ${this.LOG_QUEUE.length - 1}`);
-      const log = this.LOG_QUEUE.shift();
+      console.log(`[ExchangeContractQueueManager] Processing Queue Start - ${this.LOG_QUEUE.length} -> ${this.LOG_QUEUE.length - 1}`);
+      const {ex_type, log} = this.LOG_QUEUE.shift();
       try {
-        await mintifyContractListener({strapi: this.strapi,event: log })
+        switch (ex_type) {
+          case EX_TYPE.MINTIFY:
+          case EX_TYPE.OPENSEA:
+            await mintifyContractListener({strapi: this.strapi,event: log, ex_type })
+            break
+        
+          default:
+            break;
+        }
       } catch (error) {
-        console.error(`[MINTIFY] Processing Queue error - ${error.message}`);
+        console.error(`[ExchangeContractQueueManager] Processing Queue error - ${error.message}`);
       }
     }
     this.isProcessing = false;

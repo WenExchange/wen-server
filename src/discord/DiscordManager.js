@@ -8,7 +8,8 @@ const DISCORD_INFO = {
     DETECTING_COLLECTION: "1220181262409535519",
     LISTING_NFT: "1220172329309573202",
     YIELD: "1212042486785245214",
-    ERROR_LOG: "1227126471462490112"
+    ERROR_LOG: "1227126471462490112",
+    LISTENER_ERROR_LOG: "1231133791108595783"
   }
 };
 module.exports = class DiscordManager {
@@ -230,10 +231,9 @@ module.exports = class DiscordManager {
     trackerChannel.send({ embeds: [embed] });
   }
 
-  async logError({ error, identifier }) {
+  async logError({ error, identifier, channelId = DISCORD_INFO.CHANNEL.ERROR_LOG  }) {
     try {
       const guild = await this.getGuild(DISCORD_INFO.GUILD_ID);
-    const channelId = DISCORD_INFO.CHANNEL.ERROR_LOG;
     
     const embed = new EmbedBuilder()
       .setColor(0xff0000)

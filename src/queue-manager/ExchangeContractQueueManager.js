@@ -1,7 +1,8 @@
 const { mintifyContractListener } = require("../listener/mintifyContractListener");
+const {EX_TYPE} = require("../utils/constants")
 
 let instance = null;
-module.exports = class MintifyContractQueueManager {
+module.exports = class ExchangeContractQueueManager {
   LOG_QUEUE = [];
   isProcessing = false
   constructor(strapi) {
@@ -10,7 +11,7 @@ module.exports = class MintifyContractQueueManager {
 
   static getInstance(strapi) {
     if (!instance) {
-      instance = new MintifyContractQueueManager(strapi);
+      instance = new ExchangeContractQueueManager(strapi);
     }
     return instance;
   }
@@ -18,12 +19,15 @@ module.exports = class MintifyContractQueueManager {
 
   /** Handlers */
 
-  addQueue = (log) => {
-    this.LOG_QUEUE.push(log)
-    console.log(`[MINTIFY] addQueue - ${this.LOG_QUEUE.length -1} -> ${this.LOG_QUEUE.length}`);
+  addQueue = ({ex_type, log}) => {
+    this.LOG_QUEUE.push({
+      ex_type,
+      log
+    })
+    
+    console.log(`[ExchangeContractQueueManager] addQueue - ${this.LOG_QUEUE.length -1} -> ${this.LOG_QUEUE.length}`);
     this.executeQueue()
   }
-
   executeQueue = () => {
     if (!this.isProcessing) {
       this.processQueue();
@@ -31,10 +35,21 @@ module.exports = class MintifyContractQueueManager {
   }
 
   processQueue = async () => {
-    console.log(`[MINTIFY] processQueue`);
+    console.log(`[ExchangeContractQueueManager] processQueue`);
     this.isProcessing = true
-
     while (this.LOG_QUEUE.length > 0) {
+        switch (ex_type) {
+        case EX_TYPE.MINTIFY:
+          
+          break;
+  
+        case EX_TYPE.OPENSEA:
+          break
+      
+        default:
+          break;
+      }
+
       console.log(`[MINTIFY] Processing Queue Start - ${this.LOG_QUEUE.length} -> ${this.LOG_QUEUE.length - 1}`);
       const log = this.LOG_QUEUE.shift();
       try {

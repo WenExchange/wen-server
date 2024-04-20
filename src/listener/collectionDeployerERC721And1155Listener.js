@@ -15,7 +15,8 @@ const getContractMetadata = async (address) => {
     "function name() view returns (string)",
     "function symbol() view returns (string)",
     "function supportsInterface(bytes4 interfaceId) view returns (bool)",
-    "function totalSupply() view returns (uint256)"
+    "function totalSupply() view returns (uint256)",
+    "function maxSupply() view returns (uint256)"
   ];
   const contract = new ethers.Contract(address, abi, jsonRpcProvider_cron);
   try {

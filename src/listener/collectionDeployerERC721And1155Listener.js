@@ -129,8 +129,7 @@ const createCollection = async ({
         publishedAt: null
       }
     })
-
-    const ccm = CollectionCacheManager.getInstance(strapi)
+    
     ccm.fetchAndUpdateCollections({strapi}).catch()
 
     dm.logDetectingCollection(createdCollection).catch((err) =>

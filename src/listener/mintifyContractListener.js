@@ -42,7 +42,13 @@ const mintifyContractListener = async ({ event, strapi, ex_type }) => {
       // [추가] SALE 인 경우에만 Buy Order (0) / Sell Order (1)
       // [추가] SALE 인 경우에만 Payment Token 종류 - price외에 payment token 이라 추가.
 
-      const _data = extractData(result);
+      let _data
+      try {
+        _data = extractData(result);
+      } catch (error) {
+        console.error(error.message)
+        return 
+      }
 
       const data = {
         ..._data,
@@ -463,9 +469,7 @@ const extractData = (data) => {
       contract,
     };
   } else {
-    return {
-      error: `UNKNOWN DATA : `, data,
-    };
+    throw new Error("UNKNOWN DATA")
   }
 };
 const sumAmountsInEther = (consideration) => {

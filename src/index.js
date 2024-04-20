@@ -39,8 +39,7 @@ module.exports = {
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
   
-      const tqm = TokenTransferQueueManager.getInstance(strapi)
-      const nmqm =  NFTMintingQueueManager.getInstance(strapi)
+
       // const mcqm = MintifyContractQueueManager.getInstance(strapi)
       const excqm = ExchangeContractQueueManager.getInstance(strapi)
       const ecqm = ElementContractQueueManager.getInstance(strapi)

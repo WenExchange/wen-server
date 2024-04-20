@@ -40,40 +40,6 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
-      // listingCollectionScript({address: "0xFD2D58039d6521Eec468Cad87c43725268B8f4ED", strapi})
-
-      // const nfts = await strapi.db.query("api::nft.nft").findMany({
-      //   where: {
-      //     $and: [
-      //       {
-      //         collection: {
-      //           contract_address: "0xfd2d58039d6521eec468cad87c43725268b8f4ed"
-      //         }
-      //       },
-      //       {
-      //         name: {
-      //           $containsi: "Unrevealed"
-      //         }
-      //       }
-      //     ]
-          
-      //   }
-      // })
-
-      // console.log(nfts);
-
-      // for (let i = 0; i < nfts.length; i++) {
-      //   console.log(i);
-      //   const nft = nfts[i];
-      //   await strapi.db.query("api::nft.nft").update({
-      //     where: {
-      //       id: nft.id
-      //     },
-      //     data: {
-      //       name: `Frogs On Blast #${nft.token_id}`
-      //     }
-      //   })
-      // }
       
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {

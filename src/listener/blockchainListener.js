@@ -2,8 +2,6 @@ const {ethers} = require("ethers");
 const ExchangeContractABI = require("../web3/abis/ExchangeContractABI.json")
 const SeportABI = require("../web3/abis/Seaport.json");
 const { transferListener } = require("./transferListener");
-// const TokenTransferQueueManager = require("../queue-manager/TokenTransferQueueManager")
-const MintifyContractQueueManager = require("../queue-manager/MintifyContractQueueManager")
 const ElementContractQueueManager = require("../queue-manager/ElementContractQueueManager");
 const WenContractQueueManager = require("../queue-manager/WenContractQueueManager");
 const ExchangeContractQueueManager = require("../queue-manager/ExchangeContractQueueManager");
@@ -19,8 +17,6 @@ const {
 } = require("../utils/constants");
 
 const { collectionDeployerERC721And1155Listener } = require("./collectionDeployerERC721And1155Listener");
-const TokenTransferQueueManager = require("../queue-manager/TokenTransferQueueManager");
-const NFTMintingQueueManager = require("../queue-manager/NFTMintingQueueManager");
 
 
 
@@ -35,9 +31,6 @@ async function createTransferListener({ strapi }) {
   let filter = {
     topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId
   };
-
-  const tqm = TokenTransferQueueManager.getInstance(strapi)
-  const nmqm =  NFTMintingQueueManager.getInstance(strapi)
 
   jsonRpcProvider.on(filter, async (log, _) => {
     await transferListener({log, strapi})

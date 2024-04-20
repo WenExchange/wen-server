@@ -16,6 +16,8 @@ const dayjs = require("dayjs");
 var utc = require("dayjs/plugin/utc");
 var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
 const DiscordManager = require("./discord/DiscordManager");
+const ExchangeContractQueueManager = require("./queue-manager/ExchangeContractQueueManager");
+const NFTMintingQueueManager = require("./queue-manager/NFTMintingQueueManager");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -38,7 +40,9 @@ module.exports = {
       if (isBOTServer) {
   
       const tqm = TokenTransferQueueManager.getInstance(strapi)
-      const mcqm = MintifyContractQueueManager.getInstance(strapi)
+      const nmqm =  NFTMintingQueueManager.getInstance(strapi)
+      // const mcqm = MintifyContractQueueManager.getInstance(strapi)
+      const excqm = ExchangeContractQueueManager.getInstance(strapi)
       const ecqm = ElementContractQueueManager.getInstance(strapi)
       const wcqm = WenContractQueueManager.getInstance(strapi)
       const ccm = CollectionCacheManager.getInstance(strapi);

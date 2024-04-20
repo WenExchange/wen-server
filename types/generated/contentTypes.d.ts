@@ -1370,6 +1370,8 @@ export interface ApiNftNft extends Schema.CollectionType {
       'oneToMany',
       'api::buy-order.buy-order'
     >;
+    is_valid_metadata: Attribute.Boolean & Attribute.DefaultTo<true>;
+    try_count: Attribute.Integer & Attribute.DefaultTo<1>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<'api::nft.nft', 'oneToOne', 'admin::user'> &

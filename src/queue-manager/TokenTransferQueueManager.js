@@ -21,7 +21,7 @@ module.exports = class TokenTransferQueueManager {
 
   addQueue = (log) => {
     this.LOG_QUEUE.push(log)
-    console.log(`addQueue - ${this.LOG_QUEUE.length -1} -> ${this.LOG_QUEUE.length}`);
+    console.log(`[TokenTransferQueueManager] addQueue - ${this.LOG_QUEUE.length -1} -> ${this.LOG_QUEUE.length}`);
     this.executeQueue()
   }
 
@@ -35,12 +35,12 @@ module.exports = class TokenTransferQueueManager {
     this.isProcessing = true
 
     while (this.LOG_QUEUE.length > 0) {
-      console.log(`Processing Queue Start - ${this.LOG_QUEUE.length} -> ${this.LOG_QUEUE.length - 1}`);
+      console.log(`[TokenTransferQueueManager] Processing Queue Start - ${this.LOG_QUEUE.length} -> ${this.LOG_QUEUE.length - 1}`);
       const log = this.LOG_QUEUE.shift();
       try {
         await checkValidationAndConnectWithDB({strapi: this.strapi,log })
       } catch (error) {
-        console.error(`checkValidationAndConnectWithDB error - ${error}`);
+        console.error(`[TokenTransferQueueManager] checkValidationAndConnectWithDB error - ${error}`);
       }
     }
     this.isProcessing = false;

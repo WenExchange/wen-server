@@ -18,6 +18,7 @@ const {
 } = require("../utils/constants");
 const { transferListener } = require("./transferListener");
 const { collectionDeployerERC721And1155Listener } = require("./collectionDeployerERC721And1155Listener");
+const NFTMintingQueueManager = require("../queue-manager/NFTMintingQueueManager");
 
 
 
@@ -25,22 +26,21 @@ const { collectionDeployerERC721And1155Listener } = require("./collectionDeploye
 async function createTransferListener({ strapi }) {
   console.log("[TRANSFER EVENT LISTENING ON]");
   
-  // await jsonRpcProvider.removeAllListeners();
+  await jsonRpcProvider.removeAllListeners();
 
   /** Transfer */
 
-  // let filter = {
-  //   topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId
-  // };
-  // const tqm = TokenTransferQueueManager.getInstance(strapi)
-  // jsonRpcProvider.on(filter, async (log, _) => {
-  //   try {
-  //     await transferListener({log, strapi, tqm})
-  //   } catch (error) {
-  //     console.error(`transferListener error - ${error}`)
-  //   }
+  let filter = {
+    topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId
+  };
+  jsonRpcProvider.on(filter, async (log, _) => {
+    try {
+      await transferListener({log, strapi})
+    } catch (error) {
+      console.error(`transferListener error - ${error}`)
+    }
     
-  // });
+  });
 
 
   
@@ -73,36 +73,37 @@ async function createTransferListener({ strapi }) {
   });
 
   /** Element Listener */
-  // const elementContract = new ethers.Contract(
-  //   CONTRACT_ADDRESSES.EL_EX,
-  //   ExchangeContractABI.abi,
-  //   jsonRpcProvider
-  // );
-  // const ecqm = ElementContractQueueManager.getInstance(strapi)
-  // elementContract.on("*", async event => {
-  //   ecqm.addQueue(event)
-  // });
+  const elementContract = new ethers.Contract(
+    CONTRACT_ADDRESSES.EL_EX,
+    ExchangeContractABI.abi,
+    jsonRpcProvider
+  );
+  const ecqm = ElementContractQueueManager.getInstance(strapi)
+  elementContract.on("*", async event => {
+    ecqm.addQueue(event)
+  });
 
 
   /** Wen Contract Listener */
-  // const wenContract = new ethers.Contract(
-  //   CONTRACT_ADDRESSES.WEN_EX,
-  //   ExchangeContractABI.abi,
-  //   jsonRpcProvider
-  // );
-  // const wcqm = WenContractQueueManager.getInstance(strapi)
-  // wenContract.on("*", async event => {
-  //   wcqm.addQueue(event)
-  // });
+  const wenContract = new ethers.Contract(
+    CONTRACT_ADDRESSES.WEN_EX,
+    ExchangeContractABI.abi,
+    jsonRpcProvider
+  );
+  const wcqm = WenContractQueueManager.getInstance(strapi)
+  wenContract.on("*", async event => {
+    wcqm.addQueue(event)
+  });
   
-  // jsonRpcProvider_cron.on("block", async blockNumber => {
-  //   try {
-  //     await collectionDeployerERC721And1155Listener({strapi, blockNumber})
-  //   } catch (error) {
-  //     console.error(`collectionDeployerERC721And1155Listener errir - ${error}`)
-  //   }
+  /** Collection Deploy Listener */
+  jsonRpcProvider_cron.on("block", async blockNumber => {
+    try {
+      await collectionDeployerERC721And1155Listener({strapi, blockNumber})
+    } catch (error) {
+      console.error(`collectionDeployerERC721And1155Listener errir - ${error}`)
+    }
     
-  // });
+  });
 
 
   

@@ -12,16 +12,22 @@ module.exports = createCoreController("api::collection.collection",
     async getFindOneCollection(ctx) {
       {
         try {
-          const { slug } = ctx.request.query;
+          const { slug, contract_address } = ctx.request.query;
+          
+          const filters = []
+          if (slug) filters.push({
+            slug
+          })
+          if (contract_address) filters.push({
+            contract_address
+          })
 
           const collection  = await strapi.db
             .query("api::collection.collection")
             .findOne({
               where: {
                 $and: [
-                    {
-                        slug
-                    },
+                    ...filters,
                     {
                         publishedAt: {
                             $notNull: true

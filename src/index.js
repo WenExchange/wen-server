@@ -44,13 +44,23 @@ module.exports = {
 
       // const nfts = await strapi.db.query("api::nft.nft").findMany({
       //   where: {
-      //     collection: {
-      //       contract_address: "0xc027e840e39A826AF2a933bEd65F2FC80E86FaC5"
-      //     }
+      //     $and: [
+      //       {
+      //         collection: {
+      //           contract_address: "0xfd2d58039d6521eec468cad87c43725268b8f4ed"
+      //         }
+      //       },
+      //       {
+      //         name: {
+      //           $containsi: "Unrevealed"
+      //         }
+      //       }
+      //     ]
+          
       //   }
       // })
 
-      // console.log(nfts.length);
+      // console.log(nfts);
 
       // for (let i = 0; i < nfts.length; i++) {
       //   console.log(i);
@@ -60,7 +70,7 @@ module.exports = {
       //       id: nft.id
       //     },
       //     data: {
-      //       image_url: `https://lightcycle.city/OG-NFT/nft/images/Lightcycle_OG_NFT_v4.gif`
+      //       name: `Frogs On Blast #${nft.token_id}`
       //     }
       //   })
       // }

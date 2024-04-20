@@ -19,12 +19,6 @@ const createNFTAtMint = async ({ log, strapi }) => {
     const transferFrom = `0x${log.topics[1].slice(-40)}`;
     const transferTo = `0x${log.topics[2].slice(-40)}`;
     let bigIntTokenId = BigInt(log.topics[3]);
-    
-    if (transferFrom !== "0x0000000000000000000000000000000000000000") return;
-    const isValidTokenId = validInteger(bigIntTokenId)
-    if (!isValidTokenId) {
-      throw new Error(`Token id is overflow - ${bigIntTokenId.toString()}`)
-    }
     const tokenId = Number(bigIntTokenId)
 
     const contract_address = log.address;
@@ -39,7 +33,6 @@ const createNFTAtMint = async ({ log, strapi }) => {
           id: collection.id
         }
       })
-      .catch((e) => null);
 
     if (!existedCollection) return;
     console.log(`Start Create NFT at Mint`);
@@ -52,23 +45,6 @@ const createNFTAtMint = async ({ log, strapi }) => {
         jsonRpcProvider
       );
 
-   
-      // const owner = await collectionContract.ownerOf(tokenId).catch(err => null);
-      // if (!owner) throw new Error(`Invalid Owner`)
-      let metadata = await fetchMetadata({ collectionContract, tokenId });
-      if (!metadata) {
-        metadata = {
-          token_id: tokenId,
-          name: `${existedCollection.name} #${tokenId}`,
-          image_url: "",
-          traits: null
-        }
-        console.log(`${metadata.name} NFT at Mint (invalid metadata)`);
-      } else {
-        console.log(`${metadata.name} NFT at Mint (valid metadata)`);
-      }
-     
-
       // 1.1 check exist nft
       const existNFT = await strapi.db.query("api::nft.nft").findOne({
         populate: {
@@ -80,30 +56,57 @@ const createNFTAtMint = async ({ log, strapi }) => {
               collection: existedCollection.id,
             },
             {
-              token_id: metadata.token_id,
+              token_id: tokenId,
             }
           ]
-          
-       
+
+
         }
       })
       if (existNFT) {
-        dm.logListingNFTError({ collection: existedCollection, tokenId:existNFT.token_id, error: new Error(`${existNFT.name} NFT already exist`)  }).catch(
-          (err) => console.error(err.message)
-        );
-        return 
-      }
-      // 2. create NFT
-      const createdNFT = await strapi.db.query("api::nft.nft")
-      .create({
-        data: {
-          collection: existedCollection.id,
-          ...metadata,
-          owner: transferTo
+        // Update NFT
+        if (existNFT.owner.toLowerCase() !== transferTo.toLowerCase()) {
+          const updatedNFT =  await strapi.db.query("api::nft.nft")
+            .update({
+              where: {
+                id: existNFT.id
+              },
+              data: {
+                owner: transferTo
+              }
+            })
+            dm.logNFTMinting({ collection: existedCollection, createdNFT: {
+              ...existNFT,
+              owner: transferTo
+            } }).catch();
         }
-      })
 
-      strapi.db.query("api::nft-trade-log.nft-trade-log")
+      } else {
+        // Create NFT
+        let metadata = await fetchMetadata({ collectionContract, tokenId });
+        if (!metadata) {
+          metadata = {
+            token_id: tokenId,
+            name: `${existedCollection.name} #${tokenId}`,
+            image_url: "",
+            traits: null,
+            is_valid_metadata: false
+          }
+          console.log(`${metadata.name} NFT at Mint (invalid metadata)`);
+        }
+
+        const createdNFT = await strapi.db.query("api::nft.nft")
+          .create({
+            data: {
+              collection: existedCollection.id,
+              ...metadata,
+              owner: transferTo
+            }
+          })
+
+        dm.logNFTMinting({ collection: existedCollection, createdNFT }).catch();
+
+        strapi.db.query("api::nft-trade-log.nft-trade-log")
           .create({
             data: {
               type: LOG_TYPE_MINT,
@@ -115,61 +118,55 @@ const createNFTAtMint = async ({ log, strapi }) => {
             }
           }).catch()
 
+      
 
+        // publish
+        if (
+          !existedCollection.publishedAt
+        ) {
+          const updatedCollection = await strapi.db.query("api::collection.collection")
+            .update({
+              where: {
+                id: existedCollection.id,
+              },
+              data: {
+                publishedAt: new Date(),
+                logo_url: createdNFT?.image_url || ""
+              }
+            })
+
+
+          dm.logListingCollectionPublish(updatedCollection).catch((err) =>
+            console.error(err.message)
+          );
+        }
+
+      }
+
+      // Update total supply
       try {
-        await collectionContract
+        const _total_supply = await collectionContract
           .totalSupply()
-          .then((_total_supply) => {
-            const total_supply = _total_supply.toNumber();
-            if (
-              !Number.isNaN(total_supply) &&
-              total_supply > 0 &&
-              existedCollection.total_supply !== total_supply
-            ) {
-              return strapi.db.query("api::collection.collection")
-              .update({
-                where: {
-                  id: existedCollection.id,
-                },
-                data: {
-                  total_supply
-                }
-              })
-            }
-          })
-          .catch();
+        const total_supply = _total_supply.toNumber();
+        if (
+          !Number.isNaN(total_supply) &&
+          total_supply > 0 &&
+          existedCollection.total_supply !== total_supply
+        ) {
+          return strapi.db.query("api::collection.collection")
+            .update({
+              where: {
+                id: existedCollection.id,
+              },
+              data: {
+                total_supply
+              }
+            })
+        }
       } catch (error) {
         console.error(`${existedCollection.name} don't have totalSupply() - ${error.message}`)
       }
 
-      
-
-
-      dm.logListingNFT({ collection: existedCollection, createdNFT }).catch(
-        (err) => console.error(err.message)
-      );
-
-      // publish
-      if (
-        !existedCollection.publishedAt &&
-        existedCollection.token_type === "ERC721"
-      ) {
-        const updatedCollection = await strapi.db.query("api::collection.collection")
-        .update({
-          where: {
-            id: existedCollection.id,
-          },
-          data: {
-            publishedAt: new Date(),
-            logo_url: createdNFT?.image_url || ""
-          }
-        })
-        
-
-        dm.logListingCollectionPublish(updatedCollection).catch((err) =>
-          console.error(err.message)
-        );
-      }
     } catch (error) {
       console.error(`Create NFT Error - ${error.message}`);
       dm.logListingNFTError({
@@ -189,7 +186,9 @@ const fetchMetadata = async ({ collectionContract, tokenId }) => {
     if (tokenURI.startsWith("ipfs://"))
       tokenURI = tokenURI.replace("ipfs://", IPFS.GATEWAY_URL);
 
-    let metadata = await axios.get(tokenURI).then((res) => res.data);
+    let metadata = await axios.get(tokenURI, {
+      timeout: 3 * 1000
+    }).then((res) => res.data);
     if (Buffer.isBuffer(metadata)) {
       // Read Buffer Data
       const dataString = metadata.toString("utf-8");

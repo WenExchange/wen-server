@@ -63,6 +63,20 @@
     },
     "last_sale_price": {
       "type": "float"
+    },
+    "buy_orders": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::buy-order.buy-order",
+      "mappedBy": "nft"
+    },
+    "is_valid_metadata": {
+      "type": "boolean",
+      "default": true
+    },
+    "try_count": {
+      "type": "integer",
+      "default": 1
     }
   }
 }

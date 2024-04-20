@@ -154,7 +154,7 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id }) =
       }
 
 
-      dm.logListingNFT({ collection, createdNFT }).catch(
+      dm.logNFTMinting({ collection, createdNFT }).catch(
         (err) => console.error(err.message)
       );
 

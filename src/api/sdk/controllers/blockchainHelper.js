@@ -1,12 +1,24 @@
 const { jsonRpcProvider } = require("../../../utils/constants");
-const {ethers} = require("ethers");
+const { ethers } = require("ethers");
 const IERC721 = require("./IERC721.js");
+const IERC20 = require("./IERC20");
 
 async function getNFTOwner(nftContract, tokenId) {
   const nft = new ethers.Contract(nftContract, IERC721.abi, jsonRpcProvider);
 
   const owner = await nft.ownerOf(tokenId);
   return owner.toLowerCase();
+}
+
+// TODO: TESTNET : json RPC Provider 바꿔라
+async function getERC20Balance(ERC20Address, userAddress) {
+  const provider = new ethers.providers.JsonRpcProvider(
+    "https://blast-sepolia.blockpi.network/v1/rpc/public"
+  );
+  const nft = new ethers.Contract(ERC20Address, IERC20.abi, provider);
+
+  const balance = await nft.balanceOf(userAddress);
+  return BigInt(balance);
 }
 
 async function updateAllNftOwner({ strapi }) {
@@ -48,4 +60,9 @@ function weiToEther(wei) {
   return etherFloat;
 }
 
-module.exports = { updateAllNftOwner, getNFTOwner, weiToEther };
+module.exports = {
+  updateAllNftOwner,
+  getNFTOwner,
+  weiToEther,
+  getERC20Balance,
+};

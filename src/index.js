@@ -1,5 +1,6 @@
 "use strict";
 require("dotenv").config();
+const axios = require("axios");
 const {
   SERVER_TYPE,
   jsonRpcProvider,
@@ -8,7 +9,6 @@ const {
 const { createTransferListener } = require("./listener/blockchainListener");
 const CollectionCacheManager = require("./cache-managers/CollectionCacheManager");
 const TokenTransferQueueManager = require("./queue-manager/TokenTransferQueueManager")
-const MintifyContractQueueManager = require("./queue-manager/MintifyContractQueueManager")
 const ElementContractQueueManager = require("./queue-manager/ElementContractQueueManager")
 const WenContractQueueManager = require("./queue-manager/WenContractQueueManager")
 
@@ -17,8 +17,11 @@ var utc = require("dayjs/plugin/utc");
 var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
 const { protocolFeeReceiverJob, claimAllBlastYieldFromWenTradePool } = require("./cron/stats_24h_contract");
 const DiscordManager = require("./discord/DiscordManager");
+const ExchangeContractQueueManager = require("./queue-manager/ExchangeContractQueueManager");
+const NFTMintingQueueManager = require("./queue-manager/NFTMintingQueueManager");
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
 
 module.exports = {
   /**
@@ -37,10 +40,14 @@ module.exports = {
     try {
         // await protocolFeeReceiverJob({strapi})
         // await claimAllBlastYieldFromWenTradePool({strapi})
+      
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
+  
+
+      const nmqm = NFTMintingQueueManager.getInstance(strapi)
       const tqm = TokenTransferQueueManager.getInstance(strapi)
-      const mcqm = MintifyContractQueueManager.getInstance(strapi)
+      const excqm = ExchangeContractQueueManager.getInstance(strapi)
       const ecqm = ElementContractQueueManager.getInstance(strapi)
       const wcqm = WenContractQueueManager.getInstance(strapi)
       const ccm = CollectionCacheManager.getInstance(strapi);

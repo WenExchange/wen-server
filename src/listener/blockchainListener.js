@@ -24,7 +24,7 @@ const { collectionDeployerERC721And1155Listener } = require("./collectionDeploye
 async function createTransferListener({ strapi }) {
   console.log("[TRANSFER EVENT LISTENING ON]");
   
-  // await jsonRpcProvider.removeAllListeners();
+  await jsonRpcProvider.removeAllListeners();
 
   /** Transfer */
 

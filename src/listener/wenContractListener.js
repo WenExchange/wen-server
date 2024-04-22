@@ -91,6 +91,8 @@ const wenContractListener = async ({ event, strapi }) => {
 
         // ERC721BuyOrderFilled (bytes32 orderHash, address maker, address taker, uint256 nonce, address erc20Token, uint256 erc20TokenAmount, tuple[] fees, address erc721Token, uint256 erc721TokenId)  s
 
+        // buy order hash
+        const buyOrderHash = eventData["0"].toString();
         // 2. ERC 20 토큰의 양(낸 가격)
         const price = eventData["5"].toString();
         // 3. ERC 721 컨트랙트 어드레스
@@ -115,7 +117,15 @@ const wenContractListener = async ({ event, strapi }) => {
           timestamp: dayjs().unix(),
           token_id: ERC721TokenId,
           contract_address: ERC721ContractAddress,
+          buy_order_hash: buyOrderHash,
         };
+
+        console.log(
+          "FIRED : ERC721BuyOrderFilled",
+          eventData["0"].toString(),
+          "\n\n\n",
+          data
+        );
 
         const checkedInfo = await checkIsValidBuyOrderSaleAndGetData({
           strapi,
@@ -301,15 +311,17 @@ const checkIsValidBuyOrderSaleAndGetData = async ({ strapi, data }) => {
         collection: { contract_address: data.contract_address },
       },
       populate: {
-        sell_order: true,
         collection: true,
       },
     });
 
-    if (!nftData) return false;
+    if (!nftData) {
+      console.log(`[WEN] no nft data`);
+      return false;
+    }
 
     /**
-     * 하나의 NFT token id 당 하나의 hash
+     * 하나의 NFT token id, orderHash, token_id 까지 같아야함.
      */
     const existedTradeLog = await strapi.db
       .query("api::nft-trade-log.nft-trade-log")
@@ -333,6 +345,7 @@ const checkIsValidBuyOrderSaleAndGetData = async ({ strapi, data }) => {
                 id: nftData.id,
               },
             },
+            { buy_order_hash: data.buy_order_hash },
           ],
         },
       });
@@ -441,9 +454,9 @@ const sellOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
     })
     .catch((e) => console.error(e.message));
 
-    console.log(
-      `[WEN] ERC721SellOrderFilled - 4. nft id: ${nftData.id} created SALE log id ${createdLog.id} `
-    );
+  console.log(
+    `[WEN] ERC721SellOrderFilled - 4. nft id: ${nftData.id} created SALE log id ${createdLog.id} `
+  );
 
   await updateSalePoint(
     data.payment_token,
@@ -458,49 +471,45 @@ const sellOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
   console.log(
     `[WEN] ERC721SellOrderFilled - 5. nft id: ${nftData.id} update sale point `
   );
- 
 };
 
 const buyOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
   /**
    * Wen DB 에 존재하는 NFT 임이 가정입니다. (Validation 완료)
-   * 1. offer, bid table 의 데이터 지우기
+   * 1. offer, bid table 의 데이터 업데이트
    * 2. 리스팅이 되어있는 시점에서 Offer 를 받을때 기존 리스팅 삭제.
    * 2. nft 의 last_sale_price 와 Owner 를 업데이트 해줍니다.
    * 3. 그 이후에 collection 의 owner count, floor price 를 순서대로 업데이트 해줍니다.
    * 4. sale 로그 찍습니다.
-   *
    */
 
-  // TODO offer 테이블 지워주기
+  // buy order 상태 업데이트
+  const buyOrder = await strapi.db.query("api::buy-order.buy-order").findOne({
+    where: {
+      $and: [
+        { order_hash: data.buy_order_hash },
+        { is_hidden: false },
+        { is_sold: false },
+        { collection: { contract_address: data.contract_address } },
+      ],
+    },
+    populate: {
+      collection: true,
+      token: true,
+      batch_buy_order: true,
+    },
+  });
+  console.log("buyOrder  !!! ", buyOrder);
+  await strapi.entityService.update("api::buy-order.buy-order", buyOrder.id, {
+    data: {
+      is_hidden: true,
+      is_sold: true,
+      token_id: data.token_id,
+    },
+  });
 
-  if (nftData.sell_order) {
-    await strapi.entityService
-      .delete("api::order.order", nftData.sell_order.id, {
-        populate: { nft: true },
-      })
-      .then((deletedOrder) => {
-        return strapi.entityService
-          .create("api::nft-trade-log.nft-trade-log", {
-            data: {
-              ex_type: data.ex_type,
-              type: LOG_TYPE_AUTO_CANCEL_LISTING,
-              from: data.from,
-              nft: nftData.id,
-              tx_hash: data.tx_hash,
-              timestamp: dayjs().unix(),
-            },
-          })
-          .then((_) => {
-            return updateFloorPrice({ strapi }, data.contract_address)
-              .then((_) => {
-                return updateOrdersCount({ strapi }, data.contract_address);
-              })
-              .catch((e) => console.error(e.message));
-          });
-      })
-      .catch((e) => console.error(e.message));
-  }
+  // batch buy order 상태 업데이트 해주기
+
   // update NFT
   await strapi.entityService
     .update("api::nft.nft", nftData.id, {
@@ -522,13 +531,14 @@ const buyOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
         ex_type: data.ex_type,
         sale_type: data.sale_type,
         payment_token: data.payment_token,
-        type: LOG_TYPE_SALE,
+        type: LOG_TYPE_COLLECTION_OFFER,
         price: data.price,
         from: data.from,
         to: data.to,
         nft: nftData.id,
         tx_hash: data.tx_hash,
         timestamp: dayjs().unix(),
+        buy_order_hash: data.buy_order_hash,
       },
     })
     .catch((e) => console.error(e.message));

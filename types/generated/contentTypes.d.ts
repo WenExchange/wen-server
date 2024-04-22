@@ -1412,6 +1412,7 @@ export interface ApiNftTradeLogNftTradeLog extends Schema.CollectionType {
       'oneToOne',
       'api::token.token'
     >;
+    buy_order_hash: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

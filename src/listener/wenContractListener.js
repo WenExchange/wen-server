@@ -323,6 +323,7 @@ const checkIsValidBuyOrderSaleAndGetData = async ({ strapi, data }) => {
     /**
      * 하나의 NFT token id, orderHash, token_id 까지 같아야함.
      */
+    console.log("nft id", nftData.id);
     const existedTradeLog = await strapi.db
       .query("api::nft-trade-log.nft-trade-log")
       .findOne({
@@ -496,7 +497,11 @@ const buyOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
     populate: {
       collection: true,
       token: true,
-      batch_buy_order: true,
+      batch_buy_order: {
+        populate: {
+          buy_orders: true,
+        },
+      },
     },
   });
   console.log("buyOrder  !!! ", buyOrder);

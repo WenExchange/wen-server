@@ -15,7 +15,6 @@ const WenContractQueueManager = require("./queue-manager/WenContractQueueManager
 const dayjs = require("dayjs");
 var utc = require("dayjs/plugin/utc");
 var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
-const { protocolFeeReceiverJob, claimAllBlastYieldFromWenTradePool } = require("./cron/stats_24h_contract");
 const DiscordManager = require("./discord/DiscordManager");
 const ExchangeContractQueueManager = require("./queue-manager/ExchangeContractQueueManager");
 const NFTMintingQueueManager = require("./queue-manager/NFTMintingQueueManager");
@@ -38,8 +37,6 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
-        // await protocolFeeReceiverJob({strapi})
-        // await claimAllBlastYieldFromWenTradePool({strapi})
       
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {

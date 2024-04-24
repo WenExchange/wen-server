@@ -102,6 +102,9 @@
     },
     "base_price": {
       "type": "biginteger"
+    },
+    "order_id": {
+      "type": "string"
     }
   }
 }

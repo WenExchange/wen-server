@@ -133,8 +133,20 @@ const wenContractListener = async ({ event, strapi }) => {
         });
         if (typeof checkedInfo === "boolean") return;
         const { nftData, existedTradeLog } = checkedInfo;
-        await buyOrderSaleProcessInWen({ data, strapi, nftData }).catch((e) =>
-          console.error(e.message)
+        await buyOrderSaleProcessInWen({ data, strapi, nftData }).catch(
+          async (e) => {
+            const errorDetail =
+              "[Error] wenContractListener - EVENT_TYPE.ERC721BuyOrderFilled \n" +
+              "data : " +
+              data.toString() +
+              "error message" +
+              e.message;
+            await strapi.entityService.create("api::error-log.error-log", {
+              data: {
+                error_detail: errorDetail,
+              },
+            });
+          }
         );
         break;
       }
@@ -504,7 +516,7 @@ const buyOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
       },
     },
   });
-  console.log("buyOrder  !!! ", buyOrder);
+
   await strapi.entityService.update("api::buy-order.buy-order", buyOrder.id, {
     data: {
       is_hidden: true,
@@ -512,8 +524,6 @@ const buyOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
       token_id: data.token_id,
     },
   });
-
-  // batch buy order 상태 업데이트 해주기
 
   // update NFT
   await strapi.entityService
@@ -526,27 +536,46 @@ const buyOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
     .then((_) => {
       // update owner count after nft owner update
       return updateOwnerCount({ strapi }, data.contract_address);
-    })
-    .catch((e) => console.error(e.message));
+    });
+
+  // batch buy order 상태 업데이트 해주기  - All Sold 인가?
+
+  let isSoldFalseCount = 0;
+  for (let order of buyOrder.batch_buy_order.buy_orders) {
+    if (!order.is_sold) {
+      isSoldFalseCount++;
+    }
+  }
+
+  // 만약 buyOrder가 존재하고 isSold = false 가 하나인 경우(마지막 남은 order)인 경우 is_all_sold를 true 로 바꿔준다.
+  if (buyOrder && isSoldFalseCount == 1) {
+    await strapi.entityService.update(
+      "api::batch-buy-order.batch-buy-order",
+      buyOrder.batch_buy_order.id,
+      {
+        data: {
+          is_all_sold: true,
+        },
+      }
+    );
+  }
 
   // SALE log
-  await strapi.entityService
-    .create("api::nft-trade-log.nft-trade-log", {
-      data: {
-        ex_type: data.ex_type,
-        sale_type: data.sale_type,
-        payment_token: data.payment_token,
-        type: LOG_TYPE_COLLECTION_OFFER,
-        price: data.price,
-        from: data.from,
-        to: data.to,
-        nft: nftData.id,
-        tx_hash: data.tx_hash,
-        timestamp: dayjs().unix(),
-        buy_order_hash: data.buy_order_hash,
-      },
-    })
-    .catch((e) => console.error(e.message));
+  await strapi.entityService.create("api::nft-trade-log.nft-trade-log", {
+    data: {
+      ex_type: data.ex_type,
+      sale_type: data.sale_type,
+      payment_token: data.payment_token,
+      type: LOG_TYPE_COLLECTION_OFFER,
+      price: data.price,
+      from: data.from,
+      to: data.to,
+      nft: nftData.id,
+      tx_hash: data.tx_hash,
+      timestamp: dayjs().unix(),
+      buy_order_hash: data.buy_order_hash,
+    },
+  });
 };
 
 const cancelProcessInWen = async ({ data, strapi }) => {

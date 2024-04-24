@@ -64,6 +64,9 @@
     },
     "taker": {
       "type": "string"
+    },
+    "sale_kind": {
+      "type": "integer"
     }
   }
 }

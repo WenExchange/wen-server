@@ -948,6 +948,7 @@ export interface ApiBatchBuyOrderBatchBuyOrder extends Schema.CollectionType {
     single_price: Attribute.BigInteger;
     single_price_in_eth: Attribute.Float;
     taker: Attribute.String;
+    sale_kind: Attribute.Integer;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1019,6 +1020,7 @@ export interface ApiBuyOrderBuyOrder extends Schema.CollectionType {
     total_price: Attribute.String;
     hash_nonce: Attribute.BigInteger;
     base_price: Attribute.BigInteger;
+    order_id: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1228,6 +1230,36 @@ export interface ApiEarlyUserEarlyUser extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::early-user.early-user',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiErrorLogErrorLog extends Schema.CollectionType {
+  collectionName: 'error_logs';
+  info: {
+    singularName: 'error-log';
+    pluralName: 'error-logs';
+    displayName: 'ErrorLog';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    error_detail: Attribute.Text;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::error-log.error-log',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::error-log.error-log',
       'oneToOne',
       'admin::user'
     > &
@@ -1663,6 +1695,7 @@ declare module '@strapi/types' {
       'api::collection.collection': ApiCollectionCollection;
       'api::collection-stat-log.collection-stat-log': ApiCollectionStatLogCollectionStatLog;
       'api::early-user.early-user': ApiEarlyUserEarlyUser;
+      'api::error-log.error-log': ApiErrorLogErrorLog;
       'api::exchange-user.exchange-user': ApiExchangeUserExchangeUser;
       'api::featured-item.featured-item': ApiFeaturedItemFeaturedItem;
       'api::nft.nft': ApiNftNft;

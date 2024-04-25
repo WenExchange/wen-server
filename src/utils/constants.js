@@ -92,4 +92,12 @@ module.exports = {
   IPFS: {
     GATEWAY_URL: "https://wen-ex.myfilebase.com/ipfs/",
   },
+
+  SDK: {
+    SIGNATURE_TYPE_EIP712: 0,
+    SIGNATURE_TYPE_PRESIGNED: 1,
+    SALEKIND_BatchSignedERC721Order: 3,
+    SALEKIND_ContractOffer: 7,
+    SALEKIND_KIND_BATCH_OFFER_ERC721S: 8,
+  }
 };

@@ -1,3 +1,6 @@
+const {SDK} = require("../utils/constants")
+const { SALEKIND_KIND_BATCH_OFFER_ERC721S } = SDK
+
 async function batchUpdateFloorPrice({ strapi, addressList }) {
   for (let address of addressList) {
     // don't use await. just send it to server.
@@ -63,6 +66,71 @@ async function updateFloorPrice({ strapi }, contractAddress) {
     
     console.log("no order data", contractAddress);
   }
+}
+
+async function updateBestOffer({ strapi, contractAddress }) {
+  try {
+    const orderData = await strapi.db.query("api::batch-buy-order.batch-buy-order").findOne({
+      where: {
+        $and: [
+          {
+            collection: {
+              contract_address: contractAddress,
+            },
+          },
+          {
+            collection: {
+              publishedAt: {
+                $notNull: true
+              }
+            }
+          },
+          { is_cancelled: false },
+          { is_all_sold: false },
+          { is_expired: false },
+          { sale_kind: SALEKIND_KIND_BATCH_OFFER_ERC721S },
+        ]
+      },
+      orderBy: {
+        single_price_in_eth: "desc",
+      },
+      populate: {
+        collection: true,
+      },
+    });
+  
+
+    if (orderData) {
+  
+      let prevBestOffer = Number(orderData?.collection.best_offer)
+      if (Number.isNaN(prevBestOffer)) prevBestOffer = 0
+
+      let currentBestOffer = Number(orderData?.single_price_in_eth)
+      if (Number.isNaN(currentBestOffer)) currentBestOffer = 0
+
+
+      if (prevBestOffer !== currentBestOffer) {
+        await strapi.db.query('api::collection.collection').update({
+        where: { id: orderData.collection.id },
+        data: {
+          best_offer: currentBestOffer,
+        },
+      })
+      }
+    } else {
+      // If there is no Order data, set the floor_price to 0
+      await strapi.db.query('api::collection.collection').update({
+        where: { contract_address: contractAddress },
+        data: {
+          best_offer: 0,
+        },
+      })
+    }
+
+  } catch (error) {
+    console.error(error.message)
+  }
+  
 }
 
 async function updateOwnerCount({ strapi }, collection_address) {
@@ -193,6 +261,7 @@ async function update1hourStat({ strapi }, collection_address) {
 module.exports = {
   batchUpdateFloorPrice,
   updateFloorPrice,
+  updateBestOffer,
   updateOwnerCount,
   updateOrdersCount,
   update1hourStat,

@@ -9,11 +9,14 @@ const {
 const dayjs = require("dayjs");
 const {
   batchUpdateFloorPrice,
+  updateBestOffer,
 } = require("../../../listener/collectionStats.js");
 
 const {
   updateListingPoint,
 } = require("../../../utils/airdropPrePointHelper.js");
+const {SDK} = require("../../../utils/constants")
+
 /**
  * A set of functions called "actions" for `sdk`
  */
@@ -32,11 +35,7 @@ const WENETH_ADDRESS = "0x289Da9DE60f270c743848d287DDabA807C2c4722";
 const WENETH_TOKEN_ID = 6;
 
 //From SDK
-const SIGNATURE_TYPE_EIP712 = 0;
-const SIGNATURE_TYPE_PRESIGNED = 1;
-const SALEKIND_BatchSignedERC721Order = 3;
-const SALEKIND_ContractOffer = 7;
-const SALEKIND_KIND_BATCH_OFFER_ERC721S = 8;
+const {SIGNATURE_TYPE_EIP712,SIGNATURE_TYPE_PRESIGNED, SALEKIND_BatchSignedERC721Order, SALEKIND_ContractOffer, SALEKIND_KIND_BATCH_OFFER_ERC721S } = SDK
 
 const ORDERSIDE_BUY = 0;
 const ORDERSIDE_SELL = 1;
@@ -126,11 +125,11 @@ module.exports = {
       );
 
       if (wenETHBalance - totalERC20Amount < 0) {
-        ctx.body = {
+        return ctx.body = {
           code: ERROR_RESPONSE,
           msg: `address ${data.maker} doesn't have enough wenETH to place a bid`,
         };
-        return;
+        
       }
 
       // 4. Create Batch Order
@@ -227,19 +226,20 @@ module.exports = {
 
       console.log("buy orders has created: ", createdOrderIds);
 
-      // TODO: BEST OFFER 여기서 OFFER UPDATE
-
-      ctx.body = {
+      await updateBestOffer({strapi, contractAddress: data.metadata.asset.address})
+      return ctx.body = {
         data: { batchOrderObject, createdOrderIds },
         code: SUCCESS_RESPONSE,
       };
-      return;
-    } catch (error) {}
+      
+    } catch (error) {
+      console.error(error.message)
+    }
   },
 
   getCollectionOfferWall: async (ctx, next) => {
     try {
-      const { slug, offset, limit } = ctx.request.body.data;
+      const {slug, offset, limit} = ctx.request.body.data;
 
       // 2. Check if the collection exist.
       const collection = await strapi.db
@@ -1588,7 +1588,7 @@ async function getValidOrdersUpdateBatchOrder({
       where: {
         $and: andList,
       },
-      orderBy: { single_price_in_eth: "DESC" },
+      orderBy: { single_price_in_eth: "desc" },
       populate: {
         collection: true,
         buy_orders: true,

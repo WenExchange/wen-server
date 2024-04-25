@@ -1308,6 +1308,7 @@ export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
     total_sale_point: Attribute.Float;
     total_bidding_point: Attribute.Float;
     total_listing_point: Attribute.Float;
+    weneth_balance: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1598,6 +1599,40 @@ export interface ApiTokenToken extends Schema.CollectionType {
   };
 }
 
+export interface ApiWenEthBalanceChangeLogWenEthBalanceChangeLog
+  extends Schema.CollectionType {
+  collectionName: 'wen_eth_balance_change_logs';
+  info: {
+    singularName: 'wen-eth-balance-change-log';
+    pluralName: 'wen-eth-balance-change-logs';
+    displayName: 'WenETH Balance Change Log';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    from: Attribute.String;
+    to: Attribute.String;
+    amount: Attribute.String;
+    type: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::wen-eth-balance-change-log.wen-eth-balance-change-log',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::wen-eth-balance-change-log.wen-eth-balance-change-log',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiWenOgPassStatWenOgPassStat extends Schema.CollectionType {
   collectionName: 'wen_og_pass_stats';
   info: {
@@ -1703,6 +1738,7 @@ declare module '@strapi/types' {
       'api::order.order': ApiOrderOrder;
       'api::request-log.request-log': ApiRequestLogRequestLog;
       'api::token.token': ApiTokenToken;
+      'api::wen-eth-balance-change-log.wen-eth-balance-change-log': ApiWenEthBalanceChangeLogWenEthBalanceChangeLog;
       'api::wen-og-pass-stat.wen-og-pass-stat': ApiWenOgPassStatWenOgPassStat;
       'api::wen-trade-pool-stat.wen-trade-pool-stat': ApiWenTradePoolStatWenTradePoolStat;
     }

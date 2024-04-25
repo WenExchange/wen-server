@@ -118,9 +118,12 @@ module.exports = {
       const totalERC20Amount = BigInt(data.totalERC20Amount);
       const wenETHBalance = await getERC20Balance(WENETH_ADDRESS, data.maker);
       console.log(
-        totalERC20Amount,
-        wenETHBalance,
-        wenETHBalance - totalERC20Amount
+        "totalERC20Amount",
+        totalERC20Amount.toString(),
+        "wenETHBalance",
+        wenETHBalance.toString(),
+        wenETHBalance - totalERC20Amount,
+        data.maker
       );
 
       if (wenETHBalance - totalERC20Amount < 0) {
@@ -223,6 +226,8 @@ module.exports = {
 
       console.log("buy orders has created: ", createdOrderIds);
 
+      // TODO: BEST OFFER 여기서 OFFER UPDATE
+
       ctx.body = {
         data: { batchOrderObject, createdOrderIds },
         code: SUCCESS_RESPONSE,
@@ -315,8 +320,6 @@ module.exports = {
             buy_orders: true,
           },
         });
-
-      console.log(batchBuyOrders[0]);
 
       // 2. Update if any batch buy were expired.
 

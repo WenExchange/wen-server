@@ -24,6 +24,8 @@ module.exports = {
       "0xa015ad2dc32f266993958a0fd9884c746b971b254206f3478bc43e2f125c7b9e",
     OrderFulfilled:
       "0x9d9af8e38d66c62e2c12f0225249fd9d721c54b83f48d9352c97c6cacdcb6f31",
+    ERC20Transfer:
+      "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
   },
   EX_TYPE: {
     WEN: "WEN",

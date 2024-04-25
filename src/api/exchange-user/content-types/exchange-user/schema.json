@@ -90,6 +90,9 @@
     },
     "total_listing_point": {
       "type": "float"
+    },
+    "weneth_balance": {
+      "type": "string"
     }
   }
 }

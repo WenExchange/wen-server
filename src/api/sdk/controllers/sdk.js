@@ -238,9 +238,7 @@ module.exports = {
 
   getCollectionOfferWall: async (ctx, next) => {
     try {
-      const {slug, offset, limit} = ctx.request.body.data;
-
-
+      const { slug, offset, limit } = ctx.request.body.data;
 
       // 2. Check if the collection exist.
       const collection = await strapi.db
@@ -249,16 +247,15 @@ module.exports = {
           where: {
             $and: [
               {
-                slug
+                slug,
               },
               {
                 publishedAt: {
-                  $notNull: true
-                }
-              }
-            ]
+                  $notNull: true,
+                },
+              },
+            ],
           },
-          
         });
 
       if (collection == null) {
@@ -269,10 +266,11 @@ module.exports = {
         return;
       }
 
-      const validOrderList = await getValidOrdersUpdateBatchOrder(
-        {contractAddress: collection.contract_address,
-          offset,limit}
-      );
+      const validOrderList = await getValidOrdersUpdateBatchOrder({
+        contractAddress: collection.contract_address,
+        offset,
+        limit,
+      });
 
       // 3. Return
       ctx.body = {
@@ -444,7 +442,10 @@ module.exports = {
       for (const key in assetListByContract) {
         if (Object.hasOwnProperty.call(assetListByContract, key)) {
           const contractItems = assetListByContract[key];
-          const validOrderList = await getValidOrdersUpdateBatchOrder(key);
+          const validOrderList = await getValidOrders({
+            contractAddress: key,
+            userAddress: data.maker,
+          });
           if (validOrderList.length < contractItems.length) {
             throw Error(`There is no enough order for ${key}`);
           }
@@ -1560,23 +1561,31 @@ function processCollections(
   return { promise: Promise.all(operations), totalCount: itemCount };
 }
 
-async function getValidOrdersUpdateBatchOrder({contractAddress, offset, limit}) {
+async function getValidOrdersUpdateBatchOrder({
+  contractAddress,
+  offset,
+  limit,
+}) {
   // 1. Get All Batch Buy Orders
+
+  let andList = [
+    {
+      collection: {
+        contract_address: contractAddress,
+      },
+    },
+    { is_cancelled: false },
+    { is_all_sold: false },
+    { is_expired: false },
+    { sale_kind: SALEKIND_KIND_BATCH_OFFER_ERC721S },
+  ];
+  // exclude if the user is the maker of the batch buy order
+
   const batchBuyOrders = await strapi.db
     .query("api::batch-buy-order.batch-buy-order")
     .findMany({
       where: {
-        $and: [
-          {
-            collection: {
-              contract_address: contractAddress,
-            },
-          },
-          { is_cancelled: false },
-          { is_all_sold: false },
-          { is_expired: false },
-          { sale_kind: SALEKIND_KIND_BATCH_OFFER_ERC721S },
-        ],
+        $and: andList,
       },
       orderBy: { single_price_in_eth: "DESC" },
       populate: {
@@ -1584,7 +1593,68 @@ async function getValidOrdersUpdateBatchOrder({contractAddress, offset, limit}) 
         buy_orders: true,
       },
       offset,
-      limit
+      limit,
+    });
+
+  // 2. Update if any batch buy were expired.
+
+  const currentTs = dayjs().unix();
+
+  const validOrderList = [];
+  for (let i = 0; i < batchBuyOrders.length; i++) {
+    const batchBuyOrder = batchBuyOrders[i];
+    if (batchBuyOrder.expiration_time < currentTs) {
+      await strapi.entityService.update(
+        "api::batch-buy-order.batch-buy-order",
+        batchBuyOrder.id,
+        {
+          data: {
+            is_expired: true,
+          },
+        }
+      );
+    } else {
+      for (let i = 0; i < batchBuyOrder.buy_orders.length; i++) {
+        const buyOrder = batchBuyOrder.buy_orders[i];
+        if (!buyOrder.is_hidden && !buyOrder.is_sold) {
+          validOrderList.push(buyOrder);
+        }
+      }
+    }
+  }
+  return validOrderList;
+}
+async function getValidOrders({ contractAddress, userAddress }) {
+  // 1. Get All Batch Buy Orders
+
+  let andList = [
+    {
+      collection: {
+        contract_address: contractAddress,
+      },
+    },
+    { is_cancelled: false },
+    { is_all_sold: false },
+    { is_expired: false },
+    { sale_kind: SALEKIND_KIND_BATCH_OFFER_ERC721S },
+    {
+      $not: {
+        maker: userAddress,
+      },
+    },
+  ];
+
+  const batchBuyOrders = await strapi.db
+    .query("api::batch-buy-order.batch-buy-order")
+    .findMany({
+      where: {
+        $and: andList,
+      },
+      orderBy: { single_price_in_eth: "DESC" },
+      populate: {
+        collection: true,
+        buy_orders: true,
+      },
     });
 
   // 2. Update if any batch buy were expired.

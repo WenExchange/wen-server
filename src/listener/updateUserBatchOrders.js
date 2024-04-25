@@ -144,6 +144,8 @@ const updateUserBatchOrderStatus = async ({ strapi, user }) => {
       );
     }
   }
+
+  // TODO: BEST OFFER 여기서 OFFER UPDATE
 };
 
 module.exports = { updateUserBatchOrderStatus };

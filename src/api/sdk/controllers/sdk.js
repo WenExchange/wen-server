@@ -238,17 +238,27 @@ module.exports = {
 
   getCollectionOfferWall: async (ctx, next) => {
     try {
-      const data = ctx.request.body.data;
+      const {slug, offset, limit} = ctx.request.body.data;
 
-      console.log("get collection offer ", data.contractAddress);
+
 
       // 2. Check if the collection exist.
       const collection = await strapi.db
         .query("api::collection.collection")
         .findOne({
           where: {
-            contract_address: data.contractAddress,
+            $and: [
+              {
+                slug
+              },
+              {
+                publishedAt: {
+                  $notNull: true
+                }
+              }
+            ]
           },
+          
         });
 
       if (collection == null) {
@@ -260,7 +270,8 @@ module.exports = {
       }
 
       const validOrderList = await getValidOrdersUpdateBatchOrder(
-        data.contractAddress
+        {contractAddress: collection.contract_address,
+          offset,limit}
       );
 
       // 3. Return
@@ -1549,7 +1560,7 @@ function processCollections(
   return { promise: Promise.all(operations), totalCount: itemCount };
 }
 
-async function getValidOrdersUpdateBatchOrder(contractAddress) {
+async function getValidOrdersUpdateBatchOrder({contractAddress, offset, limit}) {
   // 1. Get All Batch Buy Orders
   const batchBuyOrders = await strapi.db
     .query("api::batch-buy-order.batch-buy-order")
@@ -1572,6 +1583,8 @@ async function getValidOrdersUpdateBatchOrder(contractAddress) {
         collection: true,
         buy_orders: true,
       },
+      offset,
+      limit
     });
 
   // 2. Update if any batch buy were expired.
@@ -1592,11 +1605,12 @@ async function getValidOrdersUpdateBatchOrder(contractAddress) {
         }
       );
     } else {
-      batchBuyOrder.buy_orders.forEach((buyOrder) => {
+      for (let i = 0; i < batchBuyOrder.buy_orders.length; i++) {
+        const buyOrder = batchBuyOrder.buy_orders[i];
         if (!buyOrder.is_hidden && !buyOrder.is_sold) {
           validOrderList.push(buyOrder);
         }
-      });
+      }
     }
   }
   return validOrderList;

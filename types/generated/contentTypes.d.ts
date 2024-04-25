@@ -1118,6 +1118,8 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     airdrop_multiplier: Attribute.Decimal & Attribute.DefaultTo<1>;
     change_7d: Attribute.Float;
     creator_address: Attribute.String;
+    best_offer: Attribute.Float & Attribute.DefaultTo<0>;
+    is_launchpad: Attribute.Boolean & Attribute.DefaultTo<false>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

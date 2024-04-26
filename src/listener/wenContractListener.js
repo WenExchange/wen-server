@@ -194,6 +194,7 @@ const wenContractListener = async ({ event, strapi }) => {
         // HashNonceIncremented (address maker, uint256 newHashNonce)
         const maker = eventData["0"];
         const newHashNonce = eventData["1"];
+        console.log("HashNonceIncremented : ", maker, newHashNonce);
 
         const data = {
           ex_type: EX_TYPE.WEN,
@@ -206,6 +207,17 @@ const wenContractListener = async ({ event, strapi }) => {
         await cancelAllOrdersInWen({ data, strapi }).catch((e) =>
           console.error(e.message)
         );
+
+        // update user hash_nonce
+        const updated = await strapi.db
+          .query("api::exchange-user.exchange-user")
+          .update({
+            where: { address: data.maker },
+            data: {
+              hash_nonce: newHashNonce,
+            },
+          });
+        console.log("updated", updated);
 
         break;
       }
@@ -619,13 +631,12 @@ const cancelAllOrdersInWen = async ({ data, strapi }) => {
 
   // 1. Order 중 hash Nonce가 data.newHashNonce 가 아닌 것을 모두 찾습니다.
 
-  let sellOrderList = await strapi.entityService.findMany("api::order.order", {
+  let sellOrderList = await strapi.db.query("api::order.order").findMany({
     where: {
       $and: [
         {
           maker: data.maker,
         },
-
         {
           $not: {
             hash_nonce: data.newHashNonce,

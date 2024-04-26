@@ -1482,6 +1482,7 @@ async function processItem(
       royalty_fee_point: collection.royaltyFee,
       protocol_fee_receiver: exchangeDataObject.platformFeeRecipient,
       protocol_fee_point: collection.platformFee,
+      hash_nonce: data.hashNonce,
     },
   });
 

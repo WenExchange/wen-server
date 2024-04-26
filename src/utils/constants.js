@@ -26,6 +26,8 @@ module.exports = {
       "0x9d9af8e38d66c62e2c12f0225249fd9d721c54b83f48d9352c97c6cacdcb6f31",
     ERC20Transfer:
       "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+    IncrementHashNonce:
+      "0x4cf3e8a83c6bf8a510613208458629675b4ae99b8029e3ab6cb6a86e5f01fd31",
   },
   EX_TYPE: {
     WEN: "WEN",

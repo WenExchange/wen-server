@@ -1512,6 +1512,7 @@ export interface ApiOrderOrder extends Schema.CollectionType {
     royalty_fee_receiver: Attribute.String;
     protocol_fee_point: Attribute.Integer;
     royalty_fee_point: Attribute.Integer;
+    hash_nonce: Attribute.BigInteger;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

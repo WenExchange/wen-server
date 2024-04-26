@@ -14,7 +14,6 @@ const {
 const {
   updateListingPoint,
 } = require("../../../utils/airdropPrePointHelper.js");
-
 /**
  * A set of functions called "actions" for `sdk`
  */
@@ -155,6 +154,8 @@ module.exports = {
         single_price,
         single_price_in_eth: single_price_in_eth,
         sale_kind: data.saleKind,
+        nonce: data.nonce,
+        hash_nonce: data.hashNonce,
       };
       const batchOrder = await strapi.entityService.create(
         "api::batch-buy-order.batch-buy-order",

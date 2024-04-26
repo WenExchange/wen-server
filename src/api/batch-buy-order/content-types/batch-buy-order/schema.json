@@ -67,6 +67,12 @@
     },
     "sale_kind": {
       "type": "integer"
+    },
+    "hash_nonce": {
+      "type": "biginteger"
+    },
+    "nonce": {
+      "type": "biginteger"
     }
   }
 }

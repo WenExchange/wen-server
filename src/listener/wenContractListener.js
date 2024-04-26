@@ -21,6 +21,7 @@ const {
 } = require("./collectionStats");
 const { wait } = require("../utils/helpers");
 const { updateListingPoint } = require("../utils/airdropPrePointHelper");
+const { updateUserBatchOrderStatus } = require("./updateUserBatchOrders");
 
 const {
   LOG_TYPE_SALE,
@@ -148,6 +149,10 @@ const wenContractListener = async ({ event, strapi }) => {
             });
           }
         );
+
+        await updateUserBatchOrderStatus({ strapi, user: maker });
+        await updateUserBatchOrderStatus({ strapi, user: taker });
+
         break;
       }
 
@@ -581,10 +586,12 @@ const buyOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
 const cancelProcessInWen = async ({ data, strapi }) => {
   /**
    * 1. Order 가 있다면 지웁니다.
-   * 2. 오더가 지워진 경우 nft trade log 를 생성합니다.
-   * 3. collection floor price, orderscount 를 순서대로 업데이트 합니다.
+   * 1-1. 오더가 지워진 경우 nft trade log 를 생성합니다.
+   * 1-2. collection floor price, orderscount 를 순서대로 업데이트 합니다.
+   *
+   * 2. order에서 없다면, batch-buy-order에서 확인하고 지웁니다.
    */
-  const result = await strapi.db.query("api::order.order").delete({
+  let result = await strapi.db.query("api::order.order").delete({
     where: {
       $and: [
         {
@@ -634,6 +641,51 @@ const cancelProcessInWen = async ({ data, strapi }) => {
         return updateOrdersCount({ strapi }, result.contract_address);
       })
       .catch((e) => console.error(e.message));
+  } else {
+    result = await strapi.db
+      .query("api::batch-buy-order.batch-buy-order")
+      .findOne({
+        where: {
+          $and: [
+            {
+              maker: data.maker,
+            },
+            {
+              nonce: data.nonce,
+            },
+          ],
+        },
+      });
+
+    if (result && result.id) {
+      await strapi.entityService.update(
+        "api::batch-buy-order.batch-buy-order",
+        result.id,
+        {
+          data: {
+            is_cancelled: true,
+          },
+        }
+      );
+
+      await strapi.entityService
+        .create("api::nft-trade-log.nft-trade-log", {
+          data: {
+            ex_type: data.ex_type,
+            type: LOG_TYPE_CANCEL_OFFER,
+            from: data.maker,
+            tx_hash: data.tx_hash,
+            timestamp: dayjs().unix(),
+          },
+        })
+        .catch((e) =>
+          console.error(
+            `cancelProcessInWen (batch-buy-order) - create nft-trade-log - ${e.message}`
+          )
+        );
+
+      // TODO: BEST OFFER 여기서 OFFER UPDATE
+    }
   }
 };
 

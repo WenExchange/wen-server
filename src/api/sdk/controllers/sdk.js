@@ -1654,7 +1654,11 @@ async function getValidOrders({ contractAddress, userAddress }) {
       orderBy: { single_price_in_eth: "DESC" },
       populate: {
         collection: true,
-        buy_orders: true,
+        buy_orders: {
+          populate: {
+            token: true
+          }
+        },
       },
     });
 

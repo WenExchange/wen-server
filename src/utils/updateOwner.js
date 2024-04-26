@@ -4,33 +4,61 @@ const IERC721 = require("../api/sdk/controllers/IERC721");
 const { getISOString } = require("./helpers");
 const dayjs = require("dayjs");
 
-const getNFTsAndUpdateOwnerOfNFTs = async ({ strapi }) => {
-  const seconds_1h = 60 * 60;
-  const seconds_1d = seconds_1h * 24;
-  const nfts = await strapi.db.query("api::nft.nft").findMany({
-    populate: {
-      collection: true,
-    },
-    where: {
-      $and: [
-        {
-          collection: {
-            publishedAt: {
-              $notNull: true,
-            },
-          },
-        },
-        {
-          createdAt: {
-            $gt: getISOString(dayjs().unix() - seconds_1d),
-          },
-        },
-      ],
-    },
-  });
+const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
+  const seconds_1h = 60 * 60
+  const seconds_1d = seconds_1h * 24
+  const unit = 20
 
-  return nfts;
-};
+  let totalUpdatedCount = 0
+  for (let i = 0; i < 150000 / 20; i++) {
+      console.log(`${i} start`);
+      const start = i * unit
+      const end = unit * (i+1)
+      const batchNFTs =  await strapi.db.query("api::nft.nft").findMany({
+          populate: {
+              collection: true,
+              sell_order: true
+          },
+          where: {
+              $and: [
+                  {
+                      collection: {
+                          publishedAt: {
+                              $notNull: true
+                          }
+                      },
+                  },
+                  {
+                      collection: {
+                          airdrop_multiplier: {
+                              $gt: 1
+                          }
+                      }
+                  },
+                  // {
+                  //     collection: {
+                  //         slug: "plutocats"
+                  //     }
+                  // }
+              ]
+          },
+          offset: start,
+          limit: unit
+      })
+      try {
+          const updatedCount = await updateOwnerOfNFTs({strapi,nfts: batchNFTs})
+          totalUpdatedCount += updatedCount
+      } catch (error) {
+          console.error(`333 error - ${error.message}`)
+      }
+      
+
+      
+  }
+
+  console.log(333, "totalUpdatedCount",totalUpdatedCount);
+}
+
 
 const updateOwnerOfNFTs = async ({ strapi, nfts }) => {
   console.log(`Start owner check`);

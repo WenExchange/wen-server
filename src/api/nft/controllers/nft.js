@@ -19,7 +19,7 @@ module.exports = createCoreController('api::nft.nft', ({ strapi }) => ({
         {
             try {
               const {limit} = ctx.request.query
-              if (limit > 100) {
+              if (limit > 1000) {
                 ctx.badRequest()
               }
               
@@ -40,6 +40,7 @@ module.exports = createCoreController('api::nft.nft', ({ strapi }) => ({
 
         
     }, 
+    
     async getNFT(ctx) {
         {
             try {
@@ -57,6 +58,8 @@ module.exports = createCoreController('api::nft.nft', ({ strapi }) => ({
 
         
     },
+
+
 
     async getNFTCount(ctx) {
         {

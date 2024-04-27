@@ -9,6 +9,7 @@ const {
   weiToEther,
   getERC20Balance,
 } = require("../api/sdk/controllers/blockchainHelper");
+const { updateBestOffer } = require("./collectionStats");
 
 const updateUserBatchOrderStatus = async ({ strapi, user }) => {
   // 1. Check if the user is wen exchange user

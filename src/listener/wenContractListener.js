@@ -18,6 +18,7 @@ const {
   updateFloorPrice,
   updateOrdersCount,
   updateOwnerCount,
+  updateBestOffer,
 } = require("./collectionStats");
 const { wait } = require("../utils/helpers");
 const { updateListingPoint } = require("../utils/airdropPrePointHelper");
@@ -142,11 +143,11 @@ const wenContractListener = async ({ event, strapi }) => {
               data.toString() +
               "error message" +
               e.message;
-            await strapi.entityService.create("api::error-log.error-log", {
+            strapi.entityService.create("api::error-log.error-log", {
               data: {
                 error_detail: errorDetail,
               },
-            });
+            }).catch();
           }
         );
 

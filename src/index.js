@@ -26,6 +26,7 @@ dayjs.extend(timezone);
 const { ethers } = require("ethers");
 const ExchangeContractABI = require("./web3/abis/ExchangeContractABI.json");
 const wenETH = require("./web3/abis/wenETH.json");
+const { getNFTsAndUpdateOwnerOfNFTs } = require("./utils/updateOwner");
 
 module.exports = {
   /**
@@ -36,23 +37,6 @@ module.exports = {
    */
   register({ strapi }) {
     // Test
-    const testnetjsonRpcProvider = new ethers.providers.JsonRpcProvider(
-      "https://rpc.ankr.com/blast_testnet_sepolia/d347c8e224d87a27991df14f8963b6b858f52617aec0cc0d1278bca0fcb0178c"
-    );
-    // /** Wen Contract Listener */
-    const wenContract = new ethers.Contract(
-      "0xD75104c9C2aeC1594944c8F3a2858C62DEeaE91b",
-      ExchangeContractABI.abi,
-      testnetjsonRpcProvider
-    );
-
-    console.log("hihihi");
-    const wcqm = WenContractQueueManager.getInstance(strapi);
-    wenContract.on("*", async (event) => {
-      console.log("here!", event);
-      wcqm.addQueue(event);
-    });
-    
     const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
     if (isBOTServer) {
     }
@@ -60,6 +44,7 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
+      await getNFTsAndUpdateOwnerOfNFTs({strapi})
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
         const nmqm = NFTMintingQueueManager.getInstance(strapi);

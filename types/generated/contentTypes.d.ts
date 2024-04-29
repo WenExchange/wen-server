@@ -913,6 +913,129 @@ export interface ApiAirdropStatLogAirdropStatLog extends Schema.CollectionType {
   };
 }
 
+export interface ApiBatchBuyOrderBatchBuyOrder extends Schema.CollectionType {
+  collectionName: 'batch_buy_orders';
+  info: {
+    singularName: 'batch-buy-order';
+    pluralName: 'batch-buy-orders';
+    displayName: 'Batch Buy Order';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    buy_orders: Attribute.Relation<
+      'api::batch-buy-order.batch-buy-order',
+      'oneToMany',
+      'api::buy-order.buy-order'
+    >;
+    is_cancelled: Attribute.Boolean & Attribute.DefaultTo<false>;
+    is_all_sold: Attribute.Boolean & Attribute.DefaultTo<false>;
+    is_expired: Attribute.Boolean & Attribute.DefaultTo<false>;
+    listing_time: Attribute.BigInteger;
+    expiration_time: Attribute.BigInteger;
+    maker: Attribute.String;
+    collection: Attribute.Relation<
+      'api::batch-buy-order.batch-buy-order',
+      'oneToOne',
+      'api::collection.collection'
+    >;
+    total_quantity: Attribute.BigInteger;
+    total_price: Attribute.BigInteger;
+    total_price_in_eth: Attribute.Float;
+    order_id: Attribute.Text;
+    single_price: Attribute.BigInteger;
+    single_price_in_eth: Attribute.Float;
+    taker: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::batch-buy-order.batch-buy-order',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::batch-buy-order.batch-buy-order',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiBuyOrderBuyOrder extends Schema.CollectionType {
+  collectionName: 'buy_orders';
+  info: {
+    singularName: 'buy-order';
+    pluralName: 'buy-orders';
+    displayName: 'Buy Order';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    schema: Attribute.String;
+    token_id: Attribute.BigInteger;
+    quantity: Attribute.BigInteger;
+    order_hash: Attribute.Text;
+    collection: Attribute.Relation<
+      'api::buy-order.buy-order',
+      'oneToOne',
+      'api::collection.collection'
+    >;
+    is_hidden: Attribute.Boolean & Attribute.DefaultTo<false>;
+    is_sold: Attribute.Boolean & Attribute.DefaultTo<false>;
+    sale_kind: Attribute.Integer;
+    side: Attribute.Integer;
+    maker: Attribute.String;
+    taker: Attribute.String;
+    expiration_time: Attribute.BigInteger;
+    listing_time: Attribute.BigInteger;
+    standard: Attribute.String;
+    nft: Attribute.Relation<
+      'api::buy-order.buy-order',
+      'manyToOne',
+      'api::nft.nft'
+    >;
+    nonce: Attribute.BigInteger;
+    single_price_eth: Attribute.Float;
+    exchange_data: Attribute.Text;
+    token: Attribute.Relation<
+      'api::buy-order.buy-order',
+      'oneToOne',
+      'api::token.token'
+    >;
+    contract_address: Attribute.String;
+    batch_buy_order: Attribute.Relation<
+      'api::buy-order.buy-order',
+      'manyToOne',
+      'api::batch-buy-order.batch-buy-order'
+    >;
+    total_price_in_eth: Attribute.Float;
+    single_price: Attribute.String;
+    total_price: Attribute.String;
+    hash_nonce: Attribute.BigInteger;
+    base_price: Attribute.BigInteger;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::buy-order.buy-order',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::buy-order.buy-order',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiCoinPriceCoinPrice extends Schema.CollectionType {
   collectionName: 'coin_prices';
   info: {
@@ -1242,6 +1365,13 @@ export interface ApiNftNft extends Schema.CollectionType {
       'api::order.order'
     >;
     last_sale_price: Attribute.Float;
+    buy_orders: Attribute.Relation<
+      'api::nft.nft',
+      'oneToMany',
+      'api::buy-order.buy-order'
+    >;
+    is_valid_metadata: Attribute.Boolean & Attribute.DefaultTo<true>;
+    try_count: Attribute.Integer & Attribute.DefaultTo<1>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<'api::nft.nft', 'oneToOne', 'admin::user'> &
@@ -1526,6 +1656,8 @@ declare module '@strapi/types' {
       'api::airdrop-distribution-stat.airdrop-distribution-stat': ApiAirdropDistributionStatAirdropDistributionStat;
       'api::airdrop-history-log.airdrop-history-log': ApiAirdropHistoryLogAirdropHistoryLog;
       'api::airdrop-stat-log.airdrop-stat-log': ApiAirdropStatLogAirdropStatLog;
+      'api::batch-buy-order.batch-buy-order': ApiBatchBuyOrderBatchBuyOrder;
+      'api::buy-order.buy-order': ApiBuyOrderBuyOrder;
       'api::coin-price.coin-price': ApiCoinPriceCoinPrice;
       'api::collection.collection': ApiCollectionCollection;
       'api::collection-stat-log.collection-stat-log': ApiCollectionStatLogCollectionStatLog;

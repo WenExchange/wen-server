@@ -20,5 +20,12 @@ module.exports = {
         path: '/exchange-user/rank',
         handler: 'exchange-user.getEarlyAccessRank',
       },
+
+      { // Path defined with an URL parameter
+        method: 'POST',
+        path: '/exchange-user/tinfun',
+        handler: 'exchange-user.tinfunEvent',
+      },
+
     ]
   }

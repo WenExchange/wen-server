@@ -143,7 +143,10 @@ const updateListingPoint = async (
           isValidCollection = true;
         }
       } else {
-        if (collection.volume_24h > VALID_COLLECTION_THRESHOLD) {
+        if (
+          collection.volume_24h > VALID_COLLECTION_THRESHOLD ||
+          collection.airdrop_multiplier >= 2
+        ) {
           isValidCollection = true;
         }
       }
@@ -259,7 +262,10 @@ const updateSalePoint = async (
         isValidCollection = true;
       }
     } else {
-      if (collection.volume_24h > VALID_COLLECTION_THRESHOLD) {
+      if (
+        collection.volume_24h > VALID_COLLECTION_THRESHOLD ||
+        collection.airdrop_multiplier >= 2
+      ) {
         // pre-point 계산
         prePoint = baseValue * Math.log(scaleFactor * _price + 1);
         isValidCollection = true;

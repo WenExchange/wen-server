@@ -6,6 +6,7 @@ const {
   AIRDROP_TYPE,
 } = require("../../../utils/constants");
 const ERC721 = require("../../../web3/abis/ERC721.json");
+const tinfunHolders = require("../../../tinfun.json")
 /**
  * exchange-user controller
  */
@@ -388,5 +389,72 @@ module.exports = createCoreController(
         }
       }
     },
+
+    async tinfunEvent(ctx) {
+      {
+        try {
+
+          const { signature, address, message } = ctx.request.body.data;
+          const recoveredAddress = ethers.utils.verifyMessage(
+            message,
+            signature
+          );
+
+          if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
+            return (ctx.body = {
+              success: false,
+              message: "Signature verification failed.",
+            });
+          }
+
+          let user = await strapi.db
+            .query("api::exchange-user.exchange-user")
+            .findOne({
+              where: { address },
+              
+            });
+
+          if (!user) {
+            return (ctx.body = {
+              success: false,
+              message: "Not found - user",
+            });
+          }
+
+          if (user.box_unrevealed > 0) {
+            return (ctx.body = {
+              success: true,
+              message: "You have already received the box.",
+            });
+          }
+
+          if (tinfunHolders.includes(user.address.toLowerCase())) {
+            const updatedUser = await strapi.db
+            .query("api::exchange-user.exchange-user")
+            .update({
+              where: { address },
+              data: {
+                box_unrevealed: 1
+              }
+            });
+
+            return (ctx.body = {
+              success: true,
+            });
+
+          }
+
+          return (ctx.body = {
+            success: false,
+            message: "Your address was not included in the holder snapshot by TinFun team.",
+          });
+          
+          
+        } catch (error) {
+          console.error(error.message);
+        }
+      }
+    },
+
   })
 );

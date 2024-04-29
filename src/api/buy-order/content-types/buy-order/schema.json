@@ -1,0 +1,107 @@
+{
+  "kind": "collectionType",
+  "collectionName": "buy_orders",
+  "info": {
+    "singularName": "buy-order",
+    "pluralName": "buy-orders",
+    "displayName": "Buy Order",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "schema": {
+      "type": "string"
+    },
+    "token_id": {
+      "type": "biginteger"
+    },
+    "quantity": {
+      "type": "biginteger"
+    },
+    "order_hash": {
+      "type": "text"
+    },
+    "collection": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::collection.collection"
+    },
+    "is_hidden": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_sold": {
+      "type": "boolean",
+      "default": false,
+      "required": false
+    },
+    "sale_kind": {
+      "type": "integer"
+    },
+    "side": {
+      "type": "integer"
+    },
+    "maker": {
+      "type": "string"
+    },
+    "taker": {
+      "type": "string"
+    },
+    "expiration_time": {
+      "type": "biginteger"
+    },
+    "listing_time": {
+      "type": "biginteger"
+    },
+    "standard": {
+      "type": "string"
+    },
+    "nft": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::nft.nft",
+      "inversedBy": "buy_orders"
+    },
+    "nonce": {
+      "type": "biginteger"
+    },
+    "single_price_eth": {
+      "type": "float"
+    },
+    "exchange_data": {
+      "type": "text"
+    },
+    "token": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::token.token"
+    },
+    "contract_address": {
+      "type": "string"
+    },
+    "batch_buy_order": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::batch-buy-order.batch-buy-order",
+      "inversedBy": "buy_orders"
+    },
+    "total_price_in_eth": {
+      "type": "float"
+    },
+    "single_price": {
+      "type": "string"
+    },
+    "total_price": {
+      "type": "string"
+    },
+    "hash_nonce": {
+      "type": "biginteger"
+    },
+    "base_price": {
+      "type": "biginteger"
+    }
+  }
+}

@@ -1,7 +1,11 @@
 "use strict";
 
 const { createOrderData, createOrdersData } = require("./dataEncoder.js");
-const { getNFTOwner, weiToEther } = require("./blockchainHelper.js");
+const {
+  getNFTOwner,
+  weiToEther,
+  getERC20Balance,
+} = require("./blockchainHelper.js");
 const dayjs = require("dayjs");
 const {
   batchUpdateFloorPrice,
@@ -22,6 +26,11 @@ const ERROR_RESPONSE = 1234;
 
 const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
 const DEFAULT_PAGE_SIZE = 40;
+
+// TODO: TESTNET
+const WENETH_ADDRESS = "0x289Da9DE60f270c743848d287DDabA807C2c4722";
+// TODO: TESTNET
+const WENETH_TOKEN_ID = 6;
 
 //From SDK
 const SIGNATURE_TYPE_EIP712 = 0;
@@ -58,10 +67,256 @@ function createUuidv4() {
 }
 
 module.exports = {
+  postBuyOrder: async (ctx, next) => {
+    try {
+      const data = ctx.request.body.data;
+      console.log("post order ", data);
+      // 1. check if the user exist.
+      // contractAddress 로 값을 찾아온다.
+      const user = await strapi.entityService.findMany(
+        "api::exchange-user.exchange-user",
+        {
+          filters: {
+            address: {
+              $eqi: data.maker,
+            },
+          },
+        }
+      );
+      if (user.length != 1) {
+        ctx.body = {
+          code: ERROR_RESPONSE,
+          msg: `address ${data.maker} doesn't exist on db`,
+        };
+        return;
+      }
+
+      // 2. Check if the collection exist.
+      const collection = await strapi.db
+        .query("api::collection.collection")
+        .findOne({
+          where: {
+            contract_address: data.metadata.asset.address,
+          },
+        });
+
+      if (collection == null) {
+        ctx.body = {
+          code: ERROR_RESPONSE,
+          msg: `contract ${data.metadata.asset.address} doesn't basePrice on collection table`,
+        };
+        return;
+      }
+
+      //
+
+      // 3. Check if the user has more wenETH than the base price.
+      // Base price 는 fee를 뺀 금액
+      // totalERC20Amount 는 fee를 더한 금액
+      const totalERC20Amount = BigInt(data.totalERC20Amount);
+      const wenETHBalance = await getERC20Balance(WENETH_ADDRESS, data.maker);
+      console.log(
+        totalERC20Amount,
+        wenETHBalance,
+        wenETHBalance - totalERC20Amount
+      );
+
+      if (wenETHBalance - totalERC20Amount < 0) {
+        ctx.body = {
+          code: ERROR_RESPONSE,
+          msg: `address ${data.maker} doesn't have enough wenETH to place a bid`,
+        };
+        return;
+      }
+
+      // 4. Create Batch Order
+      const single_price = (
+        totalERC20Amount / BigInt(data.quantity)
+      ).toString();
+      const single_price_in_eth = weiToEther(
+        totalERC20Amount / BigInt(data.quantity)
+      );
+      let orderUuid = createUuidv4();
+      let batchOrderObject = {
+        order_id: orderUuid,
+        maker: data.maker,
+        taker: data.taker,
+        listing_time: data.listingTime,
+        expiration_time: data.expirationTime,
+        collection: collection.id,
+        total_quantity: data.quantity,
+        total_price: totalERC20Amount.toString(),
+        total_price_in_eth: weiToEther(totalERC20Amount.toString()),
+        single_price,
+        single_price_in_eth,
+      };
+      const batchOrder = await strapi.entityService.create(
+        "api::batch-buy-order.batch-buy-order",
+        {
+          data: batchOrderObject,
+        }
+      );
+
+      console.log("batch order! ", batchOrder);
+
+      let createdOrderIds = [];
+      for (let i = 0; i < data.quantity; i++) {
+        const exchangeDataObject = {
+          order: {
+            maker: data.maker,
+            taker: data.taker,
+            expiry: data.expiry,
+            nonce: data.nonce,
+            erc20Token: data.paymentToken,
+            erc20TokenAmount: data.basePrice,
+            fees: data.fees,
+            nft: data.metadata.asset.address,
+            nftId: data.metadata.asset.id,
+            nftProperties: data.properties,
+            hashNonce: data.hashNonce,
+          },
+          signature: {
+            signatureType: 0,
+            v: data.v,
+            r: data.r,
+            s: data.s,
+          },
+          extraData: "",
+        };
+
+        //5. Create Orders by the quantity.
+        const order = await strapi.entityService.create(
+          "api::buy-order.buy-order",
+          {
+            data: {
+              schema: data.metadata.schema,
+              token_id: data.metadata.asset.id,
+              quantity: 1,
+              order_hash: data.hash,
+              collection: collection.id,
+              sale_kind: data.saleKind,
+              side: data.side,
+              maker: data.maker,
+              taker: data.taker,
+              base_price: data.basePrice.toString(),
+              total_price: totalERC20Amount.toString(),
+              total_price_in_eth: weiToEther(totalERC20Amount.toString()),
+              single_price,
+              single_price_in_eth,
+              expiration_time: data.expirationTime,
+              listing_time: data.listingTime,
+              batch_buy_order: batchOrder.id,
+              contract_address: data.metadata.asset.address,
+              token: WENETH_TOKEN_ID,
+              nonce: data.nonce,
+              hash_nonce: data.hashNonce,
+              standard: WEN_STANDARD,
+              exchange_data: JSON.stringify(exchangeDataObject),
+            },
+          }
+        );
+        createdOrderIds.push(order.id);
+      }
+
+      console.log("buy orders has created: ", createdOrderIds);
+
+      ctx.body = {
+        data: { batchOrderObject, createdOrderIds },
+        code: SUCCESS_RESPONSE,
+      };
+      return;
+
+      // const userWenETHBalance =
+      /**
+       * post order  {
+  exchange: '0xd75104c9c2aec1594944c8f3a2858c62deeae91b',
+  maker: '0xe0c78c90e25165cf8707ece8664916d1ea0b7994',
+  taker: '0x0000000000000000000000000000000000000000',
+  side: 0,
+  saleKind: 8,
+  paymentToken: '0x289da9de60f270c743848d287ddaba807c2c4722',
+  quantity: '2',
+  basePrice: '20000000000000000',
+  extra: '2',
+  listingTime: 1712853721,
+  expirationTime: 1713458581,
+  metadata: {
+    asset: { id: '0', address: '0x0bf4a65d89ed719827e825fa7a130095da9fd68c' },
+    schema: 'ERC721'
+  },
+  fees: [
+    {
+      recipient: '0x02d50300dad0b3f35540e593e508fad312786292',
+      amount: '1000000000000000',
+      feeData: '0x'
+    },
+    {
+      recipient: '0xfb6fb1c53943d6797add7e4228c44c909e993023',
+      amount: '600000000000000',
+      feeData: '0x'
+    }
+  ],
+  nonce: '15',
+  hashNonce: '0',
+  hash: '0xd4469d6b9b0681046617e251e355e3870ebb7a7c2b33a0272af0135455dd75f6',
+  signatureType: 0,
+  v: 27,
+  r: '0xeb579f755c893af271c640631d993686c6003261d2044099e8cc7f98a63935bb',
+  s: '0x77256d27ad58f235c5b4f0c6f28b1b80664cab755b8f131838cf87fca695ad14',
+  chain: 'wen',
+  properties: [
+    {
+      propertyValidator: '0x0000000000000000000000000000000000000000',
+      propertyData: '0x'
+    }
+  ]
+       */
+
+      // { ExchangeData
+      //   order: {
+      //     maker: '0xb4752134bfacf63a918df8fabe65abf00cffff00',
+      //     taker: '0x0000000000000000000000000000000000000000',
+      //     expiry: '0x8000000000000000000000000000000000000000000000036614d7c3661e127a',
+      //     nonce: '6',
+      //     erc20Token: '0x4300000000000000000000000000000000000004',
+      //     erc20TokenAmount: '1116000000000000',
+      //     fees: [ [Object], [Object] ],
+      //     nft: '0x41951c1a94d068e1da124f63d5e99ee2a0acdaac',
+      //     nftId: '0',
+      //     nftProperties: [ [Object] ],
+      //     hashNonce: '0'
+      //   },
+      //   signature: {
+      //     signatureType: 0,
+      //     v: 27,
+      //     r: '0x9f69c62cf8cdc75b31564bcf89349405011d399931187652f2833ae01320a55f',
+      //     s: '0x66168f958fb95c48e5383e220cb9bea3e0030c78bc4d45caff7c4940c25e6405'
+      //   },
+      //   extraData: ''
+      // }
+      // const exchangeDataObject = {
+      //   basicCollections: data.basicCollections,
+      //   collections: data.collections,
+      //   startNonce: data.startNonce,
+      //   hashNonce: data.hashNonce,
+      //   platformFeeRecipient: data.platformFeeRecipient,
+      //   v: data.v,
+      //   r: data.r,
+      //   s: data.s,
+      //   listingTime: data.listingTime,
+      //   expirationTime: data.expirationTime,
+      //   maker: data.maker,
+      //   hash: data.hash,
+      //   paymentToken: data.paymentToken,
+      //   signatureType: SIGNATURE_TYPE_EIP712,
+      // };
+    } catch (error) {}
+  },
+
   getOrdersNonce: async (ctx, next) => {
     try {
       const { maker, schema, count } = ctx.request.query;
-      // console.log("getOrderNonce : ", maker, schema, count);
+      console.log("getOrderNonce : ", maker, schema, count);
 
       let makerNonce;
       const uuid = createUuidv4();
@@ -102,6 +357,7 @@ module.exports = {
           {}
         );
       } else {
+        console.log("t", "no");
         ctx.body = {
           code: ERROR_RESPONSE,
           msg: `${maker} doesn't exist on db`,
@@ -784,6 +1040,80 @@ module.exports = {
           saleKind: orderData.sale_kind,
           price: orderData.price,
           isValid: true,
+          errorDetail: "",
+          taker: "0x0000000000000000000000000000000000000000",
+          expirationTime: orderData.expiration_time,
+          quantity: orderData.quantity,
+          priceBase: orderData.price_eth,
+          schema: orderData.schema,
+          paymentTokenCoin: {
+            id: orderData.token.token_id,
+            name: orderData.token.symbol,
+            address: orderData.token.address,
+            icon: orderData.token.icon,
+            decimal: orderData.token.decimal,
+            accuracy: 4,
+          },
+          exchangeData: orderData.exchange_data,
+          orderHash: orderData.order_hash,
+          orderId: orderData.order_id,
+        });
+      }
+    }
+
+    ctx.body = {
+      data: {
+        orderExchangeList: orderList,
+      },
+      code: SUCCESS_RESPONSE,
+    };
+  },
+
+  fetchBatchBuyExchangeDataByHash: async (ctx, next) => {
+    const data = ctx.request.body.data;
+
+    const hashListWithNonce = [];
+    const orderList = [];
+
+    // 1. get order data with orderHash
+    for (let order of data.hashList) {
+      const orderData = await strapi.db
+        .query("api::buy-order.buy-order")
+        .findOne({
+          where: {
+            $and: [
+              { order_hash: order.orderHash },
+              { is_hidden: false },
+              { is_sold: false },
+            ],
+          },
+          populate: {
+            collection: true,
+            token: true,
+            batch_buy_order: true,
+          },
+        });
+
+      console.log("orderData   :   ", orderData);
+      if (orderData == null) {
+        ctx.body = {
+          code: ERROR_RESPONSE,
+          msg: `order hash ${order.orderHash} doesn't exist on db`,
+        };
+        return;
+      } else {
+        orderList.push({
+          contractAddress: orderData.contract_address,
+          tokenId: orderData.token_id,
+          standard: orderData.standard,
+          paymentToken: orderData.token.address,
+          maker: orderData.maker,
+          listingTime: orderData.listing_time,
+          side: orderData.side,
+          saleKind: orderData.sale_kind,
+          price: orderData.price,
+          is_hidden: orderData.is_hidden,
+          is_sold: orderData.is_sold,
           errorDetail: "",
           taker: "0x0000000000000000000000000000000000000000",
           expirationTime: orderData.expiration_time,

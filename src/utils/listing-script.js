@@ -28,7 +28,7 @@ const listingCollectionScript = async ({address, strapi}) => {
       const name = metadataInfo.name;
       const total_supply = metadataInfo.total_supply;
       const token_type = metadataInfo.isERC721 ? "ERC721" : "ERC1155";
-      return createCollection({
+      collection = await  createCollection({
         strapi,
         contract_address: address,
         creator_address,
@@ -54,7 +54,7 @@ const listingCollectionScript = async ({address, strapi}) => {
   }
 
   const token_id_list = Array.from(
-    { length: 5000 },
+    { length: collection.total_supply },
     (_, i) => i + start_token_id
   );
 
@@ -154,7 +154,7 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id }) =
       }
 
 
-      dm.logListingNFT({ collection, createdNFT }).catch(
+      dm.logNFTMinting({ collection, createdNFT }).catch(
         (err) => console.error(err.message)
       );
 

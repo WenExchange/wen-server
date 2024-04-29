@@ -15,7 +15,7 @@ const {
 const {
   updateListingPoint,
 } = require("../../../utils/airdropPrePointHelper.js");
-const {SDK, EX_TYPE} = require("../../../utils/constants")
+const { SDK, EX_TYPE } = require("../../../utils/constants");
 
 /**
  * A set of functions called "actions" for `sdk`
@@ -35,7 +35,13 @@ const WENETH_ADDRESS = "0x289Da9DE60f270c743848d287DDabA807C2c4722";
 const WENETH_TOKEN_ID = 6;
 
 //From SDK
-const {SIGNATURE_TYPE_EIP712,SIGNATURE_TYPE_PRESIGNED, SALEKIND_BatchSignedERC721Order, SALEKIND_ContractOffer, SALEKIND_KIND_BATCH_OFFER_ERC721S } = SDK
+const {
+  SIGNATURE_TYPE_EIP712,
+  SIGNATURE_TYPE_PRESIGNED,
+  SALEKIND_BatchSignedERC721Order,
+  SALEKIND_ContractOffer,
+  SALEKIND_KIND_BATCH_OFFER_ERC721S,
+} = SDK;
 
 const ORDERSIDE_BUY = 0;
 const ORDERSIDE_SELL = 1;
@@ -125,14 +131,14 @@ module.exports = {
       );
 
       if (wenETHBalance - totalERC20Amount < 0) {
-        return ctx.body = {
+        return (ctx.body = {
           code: ERROR_RESPONSE,
           msg: `address ${data.maker} doesn't have enough wenETH to place a bid`,
-        };
-        
+        });
       }
 
       // 4. Create Batch Order
+
       const single_price = (
         totalERC20Amount / BigInt(data.quantity)
       ).toString();
@@ -226,20 +232,22 @@ module.exports = {
 
       console.log("buy orders has created: ", createdOrderIds);
 
-      await updateBestOffer({strapi, contractAddress: data.metadata.asset.address})
-      return ctx.body = {
+      await updateBestOffer({
+        strapi,
+        contractAddress: data.metadata.asset.address,
+      });
+      return (ctx.body = {
         data: { batchOrderObject, createdOrderIds },
         code: SUCCESS_RESPONSE,
-      };
-      
+      });
     } catch (error) {
-      console.error(error.message)
+      console.error(error.message);
     }
   },
 
   getCollectionOfferWall: async (ctx, next) => {
     try {
-      const {slug, offset, limit} = ctx.request.body.data;
+      const { slug, offset, limit } = ctx.request.body.data;
 
       // 2. Check if the collection exist.
       const collection = await strapi.db
@@ -1031,8 +1039,8 @@ module.exports = {
       });
     } else {
       andQueryList.push({
-        $or: orQueryList
-      })
+        $or: orQueryList,
+      });
       r = await strapi.db.query("api::order.order").findPage({
         where: { $and: andQueryList },
         pageSize: DEFAULT_PAGE_SIZE,
@@ -1661,8 +1669,8 @@ async function getValidOrders({ contractAddress, userAddress }) {
         collection: true,
         buy_orders: {
           populate: {
-            token: true
-          }
+            token: true,
+          },
         },
       },
     });

@@ -19,7 +19,7 @@
       "type": "string"
     },
     "token_id": {
-      "type": "integer"
+      "type": "biginteger"
     },
     "quantity": {
       "type": "integer"

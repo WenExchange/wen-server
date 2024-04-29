@@ -5,7 +5,8 @@ const slugify = require("slugify");
 const DiscordManager = require("../discord/DiscordManager");
 const {
   jsonRpcProvider_cron,
-  PROTOCOL_FEE
+  PROTOCOL_FEE,
+  DISCORD_INFO
 } = require("../utils/constants");
 const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
 const { wait } = require("../utils/helpers");
@@ -74,6 +75,8 @@ const getContractMetadata = async (address) => {
     return { isERC721, isERC1155, name, total_supply };
   } catch (error) {
     console.log(`getContractMetadata - error ${error.message}`);
+    const dm = DiscordManager.getInstance()
+    dm.logError({ error, identifier: `collectionDeployerERC721And1155Listener | getContractMetadata`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG }).catch()
     return false;
   }
 };
@@ -186,7 +189,10 @@ const collectionDeployerERC721And1155Listener = async ({blockNumber, strapi}) =>
       }
     }
   } catch (error) {
-    console.log("collectionDeployerERC721And1155Listener error", error.message);
+    const dm = DiscordManager.getInstance()
+    dm.logError({ error, identifier: `collectionDeployerERC721And1155Listener`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG }).catch()
+
+    
   }
 };
 module.exports = {

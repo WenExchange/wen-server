@@ -60,7 +60,6 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
-      
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
         const nmqm = NFTMintingQueueManager.getInstance(strapi);

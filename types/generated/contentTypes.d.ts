@@ -1389,7 +1389,7 @@ export interface ApiNftNft extends Schema.CollectionType {
     >;
     name: Attribute.String & Attribute.Required;
     image_url: Attribute.Text & Attribute.Required;
-    token_id: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
+    token_id: Attribute.BigInteger & Attribute.Required;
     rarity_score: Attribute.Float & Attribute.DefaultTo<0>;
     rarity_rank: Attribute.Integer;
     owner: Attribute.String & Attribute.Required;

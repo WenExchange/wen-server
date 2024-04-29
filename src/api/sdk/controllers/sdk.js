@@ -15,7 +15,7 @@ const {
 const {
   updateListingPoint,
 } = require("../../../utils/airdropPrePointHelper.js");
-const {SDK} = require("../../../utils/constants")
+const {SDK, EX_TYPE} = require("../../../utils/constants")
 
 /**
  * A set of functions called "actions" for `sdk`
@@ -1492,6 +1492,7 @@ async function processItem(
     "api::nft-trade-log.nft-trade-log",
     {
       data: {
+        ex_type: EX_TYPE.WEN,
         type: LOG_TYPE_LISTING,
         price: weiToEther(item.erc20TokenAmount.toString()),
         from: data.maker,

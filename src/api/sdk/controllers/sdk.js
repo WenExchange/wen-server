@@ -1017,6 +1017,8 @@ module.exports = {
       }
     }
 
+    console.log(333, "orQueryList",orQueryList);
+
     //isValid = true 인 order만
     andQueryList.push({ is_valid: true });
     const order = {};
@@ -1030,8 +1032,12 @@ module.exports = {
         orderBy: [order],
       });
     } else {
+      andQueryList.push({
+        $or: orQueryList
+      })
+      console.log(333, "andQueryList",andQueryList);
       r = await strapi.db.query("api::order.order").findPage({
-        where: { $and: andQueryList, $or: orQueryList },
+        where: { $and: andQueryList },
         pageSize: DEFAULT_PAGE_SIZE,
         page: page,
         orderBy: [order],

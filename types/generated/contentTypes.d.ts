@@ -1481,7 +1481,7 @@ export interface ApiOrderOrder extends Schema.CollectionType {
   attributes: {
     order_id: Attribute.String;
     schema: Attribute.String;
-    token_id: Attribute.Integer;
+    token_id: Attribute.BigInteger;
     quantity: Attribute.Integer;
     order_hash: Attribute.String;
     collection: Attribute.Relation<

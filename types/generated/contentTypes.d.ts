@@ -1022,7 +1022,7 @@ export interface ApiBuyOrderBuyOrder extends Schema.CollectionType {
     total_price: Attribute.String;
     hash_nonce: Attribute.BigInteger;
     base_price: Attribute.BigInteger;
-    order_id: Attribute.String;
+    order_id: Attribute.String & Attribute.Required;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

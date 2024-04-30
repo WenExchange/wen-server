@@ -407,27 +407,22 @@ module.exports = {
 
   getSellMyNFTsInfo: async (ctx, next) => {
     try {
-      const data = ctx.request.body.data;
+      const data = ctx.request.body.data
 
       console.log(data.standards);
       // 1. Check if the maker is the user
-      const user = await strapi.entityService.findMany(
-        "api::exchange-user.exchange-user",
-        {
-          filters: {
-            address: {
-              $eqi: data.maker,
-            },
-          },
-        }
-      );
+      const user = await strapi.db.query("api::exchange-user.exchange-user").findMany({
+        where: {
+          address: data.maker
+        },
+      })
 
-      if (user.length != 1) {
-        ctx.body = {
+      if (!user) {
+        return ctx.body = {
           code: ERROR_RESPONSE,
           msg: `address ${data.maker} doesn't exist on db`,
         };
-        return;
+        
       }
 
       const assetListByContract = {};
@@ -450,19 +445,22 @@ module.exports = {
       const returnData = [];
       for (const key in assetListByContract) {
         if (Object.hasOwnProperty.call(assetListByContract, key)) {
-          const contractItems = assetListByContract[key];
+          let contractItems = assetListByContract[key];
           const validOrderList = await getValidOrders({
             contractAddress: key,
             userAddress: data.maker,
           });
-          if (validOrderList.length < contractItems.length) {
-            throw Error(`There is no enough order for ${key}`);
-          }
-          contractItems.forEach((item, index) => {
-            item.order = validOrderList[index];
-            item.contractAddress = key;
+          // if (validOrderList.length < contractItems.length) {
+          //   throw Error(`There is no enough order for ${key}`);
+          // }
+          contractItems = contractItems.map((item, index) => {
+            const isExistValidOrder = index < validOrderList.length 
+            return {
+              ...item,
+              order : isExistValidOrder ?  validOrderList[index] : null,
+            contractAddress: key
+            }
           });
-
           returnData.push(...contractItems);
         }
       }
@@ -1657,6 +1655,8 @@ async function getValidOrders({ contractAddress, userAddress }) {
       },
     },
   ];
+
+  console.log(333, "andList",andList);
 
   const batchBuyOrders = await strapi.db
     .query("api::batch-buy-order.batch-buy-order")

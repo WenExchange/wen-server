@@ -364,8 +364,21 @@ const checkIsValidBuyOrderSaleAndGetData = async ({ strapi, data }) => {
   try {
     const nftData = await strapi.db.query("api::nft.nft").findOne({
       where: {
-        token_id: data.token_id,
-        collection: { contract_address: data.contract_address },
+        $and: [
+          {
+            token_id: data.token_id,
+          },
+          {
+            collection: { contract_address: data.contract_address },
+          },
+          {
+            collection: {
+              publishedAt: {
+                $notNull: true
+              }
+            }
+          }
+        ]
       },
       populate: {
         collection: true,

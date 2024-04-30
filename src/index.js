@@ -27,6 +27,7 @@ const { ethers } = require("ethers");
 const ExchangeContractABI = require("./web3/abis/ExchangeContractABI.json");
 const wenETH = require("./web3/abis/wenETH.json");
 const { getNFTsAndUpdateOwnerOfNFTs } = require("./utils/updateOwner");
+const { listingCollectionScript } = require("./utils/listing-script");
 
 module.exports = {
   /**
@@ -44,7 +45,8 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
-      await getNFTsAndUpdateOwnerOfNFTs({strapi})
+      // await getNFTsAndUpdateOwnerOfNFTs({strapi})
+      await listingCollectionScript({address: "0xaaba51ccc8efe8f274d33b126d6230e168428862", strapi})
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
         const nmqm = NFTMintingQueueManager.getInstance(strapi);

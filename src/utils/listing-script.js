@@ -127,31 +127,31 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id }) =
         }
       })
 
-      try {
-        await collectionContract
-          .totalSupply()
-          .then((_total_supply) => {
-            const total_supply = _total_supply.toNumber();
-            if (
-              !Number.isNaN(total_supply) &&
-              total_supply > 0 &&
-              collection.total_supply !== total_supply
-            ) {
-              return strapi.db.query("api::collection.collection")
-              .update({
-                where: {
-                  id: collection.id,
-                },
-                data: {
-                  total_supply
-                }
-              })
-            }
-          })
-          .catch();
-      } catch (error) {
-        console.error(`${collection.name} don't have totalSupply() - ${error.message}`)
-      }
+      // try {
+      //   await collectionContract
+      //     .totalSupply()
+      //     .then((_total_supply) => {
+      //       const total_supply = _total_supply.toNumber();
+      //       if (
+      //         !Number.isNaN(total_supply) &&
+      //         total_supply > 0 &&
+      //         collection.total_supply !== total_supply
+      //       ) {
+      //         return strapi.db.query("api::collection.collection")
+      //         .update({
+      //           where: {
+      //             id: collection.id,
+      //           },
+      //           data: {
+      //             total_supply
+      //           }
+      //         })
+      //       }
+      //     })
+      //     .catch();
+      // } catch (error) {
+      //   console.error(`${collection.name} don't have totalSupply() - ${error.message}`)
+      // }
 
 
       dm.logNFTMinting({ collection, createdNFT }).catch(

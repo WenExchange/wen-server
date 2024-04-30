@@ -356,6 +356,7 @@ module.exports = {
             count: validOrderList.length,
             single_price_in_eth: batchBuyOrder.single_price_in_eth,
             listing_time: batchBuyOrder.listing_time,
+            nonce: batchBuyOrder.nonce,
             token_id: batchBuyOrder.buy_orders[0].token_id,
             sale_kind: batchBuyOrder.sale_kind,
             expiration_time: batchBuyOrder.expiration_time,
@@ -450,36 +451,76 @@ module.exports = {
             };
           });
 
+          console.log("here : 1 ", JSON.stringify(contractItems[0]));
           // Check if the single offer exist and change it if the offer is more expensive.
-          contractItems = contractItems.map(async (item, index) => {
+
+          for (let index = 0; index < contractItems.length; index++) {
+            const item = contractItems[index];
             const newOrders = await getValidSingleNFTOrders({
               contractAddress: key,
               userAddress: data.maker,
               tokenId: item.tokenId,
             });
 
+            console.log("getValidSingleNFTOrders", JSON.stringify(newOrders));
             if (newOrders.length > 0) {
               if (item.order == null) {
-                return {
+                contractItems[index] = {
                   ...item,
                   order: newOrders[0],
                 };
               } else {
+                let originalOrder = item.order;
                 const newOrder = newOrders[0];
+                console.log(
+                  " originalOrder.single_price_eth",
+                  originalOrder.single_price_eth,
+                  newOrder.single_price_eth
+                );
                 if (
                   originalOrder.single_price_eth < newOrder.single_price_eth
                 ) {
-                  return {
+                  contractItems[index] = {
                     ...item,
                     order: newOrder,
                   };
                 }
               }
             }
-            return {
-              ...item,
-            };
-          });
+          }
+
+          // contractItems = contractItems.map(async (item, index) => {
+          //   const newOrders = await getValidSingleNFTOrders({
+          //     contractAddress: key,
+          //     userAddress: data.maker,
+          //     tokenId: item.tokenId,
+          //   });
+
+          //   if (newOrders.length > 0) {
+          //     if (item.order == null) {
+          //       return {
+          //         ...item,
+          //         order: newOrders[0],
+          //       };
+          //     } else {
+          //       let originalOrder = item.order;
+          //       const newOrder = newOrders[0];
+          //       if (
+          //         originalOrder.single_price_eth < newOrder.single_price_eth
+          //       ) {
+          //         return {
+          //           ...item,
+          //           order: newOrder,
+          //         };
+          //       }
+          //     }
+          //   }
+          //   return {
+          //     ...item,
+          //   };
+          // });
+          console.log("here : 2 ", contractItems.toString());
+
           returnData.push(...contractItems);
         }
       }
@@ -1739,7 +1780,7 @@ async function getValidSingleNFTOrders({
     { is_cancelled: false },
     { is_all_sold: false },
     { is_expired: false },
-    { sale_kind: SALEKIND_SINGLE_OFFER },
+    { sale_kind: 0 },
     {
       $not: {
         maker: userAddress,

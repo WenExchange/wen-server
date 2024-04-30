@@ -148,8 +148,8 @@ const updateUserBatchOrderStatus = async ({ strapi, user }) => {
         stateChangedToShowingOrderIds.length > 0 ||
         stateChangedToHiddenOrderIds.length > 0
       ) {
-        // TODO: BEST OFFER 여기서 OFFER UPDATE
         const collectionAddress = batchBuyOrder.collection.contract_address;
+       await updateBestOffer({strapi, contractAddress :collectionAddress })
       }
     }
   }

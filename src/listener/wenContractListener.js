@@ -143,11 +143,13 @@ const wenContractListener = async ({ event, strapi }) => {
               data.toString() +
               "error message" +
               e.message;
-            strapi.entityService.create("api::error-log.error-log", {
-              data: {
-                error_detail: errorDetail,
-              },
-            }).catch();
+            strapi.entityService
+              .create("api::error-log.error-log", {
+                data: {
+                  error_detail: errorDetail,
+                },
+              })
+              .catch();
           }
         );
 
@@ -374,11 +376,11 @@ const checkIsValidBuyOrderSaleAndGetData = async ({ strapi, data }) => {
           {
             collection: {
               publishedAt: {
-                $notNull: true
-              }
-            }
-          }
-        ]
+                $notNull: true,
+              },
+            },
+          },
+        ],
       },
       populate: {
         collection: true,
@@ -730,6 +732,8 @@ const cancelAllOrdersInWen = async ({ data, strapi }) => {
     });
 
   if (buyOrderList && buyOrderList.length > 0) {
+    const contractAddresses = new Set();
+
     for (let i = 0; i < buyOrderList.length; i++) {
       const result = buyOrderList[i];
       await strapi.entityService.update(
@@ -741,6 +745,7 @@ const cancelAllOrdersInWen = async ({ data, strapi }) => {
           },
         }
       );
+      contractAddresses.add(result.collection.contract_address);
 
       await strapi.entityService
         .create("api::nft-trade-log.nft-trade-log", {
@@ -757,8 +762,13 @@ const cancelAllOrdersInWen = async ({ data, strapi }) => {
             `cancelProcessInWen (batch-buy-order) - create nft-trade-log - ${e.message}`
           )
         );
+    }
 
-      // TODO: BEST OFFER 여기서 OFFER UPDATE
+    for (const address of contractAddresses) {
+      await updateBestOffer({
+        strapi,
+        contractAddress: address,
+      });
     }
   }
 };
@@ -835,6 +845,9 @@ const cancelProcessInWen = async ({ data, strapi }) => {
             },
           ],
         },
+        populate: {
+          collection: true,
+        },
       });
 
     if (result && result.id) {
@@ -864,7 +877,10 @@ const cancelProcessInWen = async ({ data, strapi }) => {
           )
         );
 
-      // TODO: BEST OFFER 여기서 OFFER UPDATE
+      await updateBestOffer({
+        strapi,
+        contractAddress: result.collection.contract_address,
+      });
     }
   }
 };

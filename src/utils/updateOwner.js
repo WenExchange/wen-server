@@ -1,17 +1,18 @@
-const {  jsonRpcProvider, jsonRpcProvider_cron }  = require("./constants") 
+const {  jsonRpcProvider, jsonRpcProvider_cron, DISCORD_INFO }  = require("./constants") 
 const { ethers }  = require("ethers") 
 const IERC721 = require("../api/sdk/controllers/IERC721");
 const { getISOString } = require("./helpers");
-const dayjs = require("dayjs")
+const dayjs = require("dayjs");
+const DiscordManager = require("../discord/DiscordManager");
 
 
 const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
     const seconds_1h = 60 * 60
     const seconds_1d = seconds_1h * 24
-    const unit = 20
+    const unit = 10
 
     let totalUpdatedCount = 0
-    for (let i = 0; i < 150000 / 20; i++) {
+    for (let i = 0; i < 150000 / unit; i++) {
         console.log(`${i} start`);
         const start = i * unit
         const end = unit * (i+1)
@@ -69,7 +70,8 @@ const updateOwnerOfNFTs = async ({strapi, nfts}) => {
         return collectionContract.ownerOf(nft.token_id).then(realOwner => {
             try {
                 if (realOwner.toLowerCase() !== nft.owner.toLowerCase()) {
-                  
+                    const dm = DiscordManager.getInstance()
+                    dm.logError({ error: new Error(`${nft.collection.contract_address} | ${nft.token_id} | prev:${nft.owner} | real: ${realOwner}`), identifier: `updateOwnerOfNFTs`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG }).catch()
                     if (nft.sell_order) {
                         
                         console.log(`${nft.id} ${nft.name} will delete order and change owner ${nft.owner} -> ${realOwner}`)

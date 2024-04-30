@@ -92,8 +92,6 @@ async function updateBestOffer({ strapi, contractAddress }) {
             batch_buy_order:  { is_all_sold: false },
           },
           {
-            batch_buy_order: { is_expired: false },
-          }, {
             batch_buy_order:  { sale_kind: SALEKIND_KIND_BATCH_OFFER_ERC721S },
           },
           {

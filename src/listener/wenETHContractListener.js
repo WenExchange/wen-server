@@ -9,6 +9,8 @@ const {
   EX_TYPE,
   SALE_TYPE,
   PAYMENT_TOKEN,
+  jsonRpcProvider_cron,
+  CONTRACT_ADDRESSES
 } = require("../utils/constants");
 const ERC721Event = require("../web3/abis/ERC721Event.json");
 const ERC1155Event = require("../web3/abis/ERC1155Event.json");
@@ -49,6 +51,15 @@ const wenETHContractListener = async ({ strapi, event }) => {
         const value = BigNumber.from(eventData.value);
 
         // Check if this is transfer or sale.
+
+        const tx_hash = event.transactionHash
+        const tx = await jsonRpcProvider.getTransaction(tx_hash);
+        const receipt = await tx.wait();
+
+        console.log(333, "tx", tx);
+        console.log(444, "receipt",receipt);
+        
+        if (receipt.to.toLowerCase() === CONTRACT_ADDRESSES.WEN_EX.toLowerCase()) return 
 
         // Update From User
         await updateUserBatchOrderStatus({ strapi, user: from });

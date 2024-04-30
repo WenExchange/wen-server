@@ -76,25 +76,22 @@ module.exports = {
   postBuyOrder: async (ctx, next) => {
     try {
       const data = ctx.request.body.data;
+
+      console.log(333, data);
       // console.log("post order ", data);
       // 1. check if the user exist.
       // contractAddress 로 값을 찾아온다.
-      const user = await strapi.entityService.findMany(
-        "api::exchange-user.exchange-user",
-        {
-          filters: {
-            address: {
-              $eqi: data.maker,
-            },
-          },
-        }
-      );
-      if (user.length != 1) {
-        ctx.body = {
+      const user = await strapi.db.query("api::exchange-user.exchange-user").findOne({
+        where: {
+          address: data.maker,
+        },
+      });
+      if (!user) {
+        return ctx.body = {
           code: ERROR_RESPONSE,
           msg: `address ${data.maker} doesn't exist on db`,
         };
-        return;
+        
       }
 
       // 2. Check if the collection exist.
@@ -106,12 +103,12 @@ module.exports = {
           },
         });
 
-      if (collection == null) {
-        ctx.body = {
+      if (!collection ) {
+        return ctx.body = {
           code: ERROR_RESPONSE,
           msg: `contract ${data.metadata.asset.address} doesn't basePrice on collection table`,
         };
-        return;
+        
       }
 
       //
@@ -316,7 +313,6 @@ module.exports = {
               },
               { is_cancelled: false },
               { is_all_sold: false },
-              { is_expired: false },
             ],
           },
           orderBy: { single_price_in_eth: "DESC" },
@@ -340,15 +336,11 @@ module.exports = {
         const batchBuyOrder = batchBuyOrders[i];
         console.log(333, "batchBuyOrder",batchBuyOrder);
         if (batchBuyOrder.expiration_time < currentTs) {
-          await strapi.entityService.update(
-            "api::batch-buy-order.batch-buy-order",
-            batchBuyOrder.id,
-            {
-              data: {
-                is_expired: true,
-              },
-            }
-          );
+          await strapi.db.query("api::batch-buy-order.batch-buy-order").delete({
+              where: {
+                id: batchBuyOrder.id,
+              }
+            })
         } else {
           batchBuyOrder.buy_orders.forEach((buyOrder) => {
             if (!buyOrder.is_hidden && !buyOrder.is_sold) {
@@ -1681,7 +1673,6 @@ async function getValidOrdersUpdateBatchOrder({
     },
     { is_cancelled: false },
     { is_all_sold: false },
-    { is_expired: false },
     { sale_kind: SALEKIND_KIND_BATCH_OFFER_ERC721S },
   ];
   // exclude if the user is the maker of the batch buy order
@@ -1709,15 +1700,12 @@ async function getValidOrdersUpdateBatchOrder({
   for (let i = 0; i < batchBuyOrders.length; i++) {
     const batchBuyOrder = batchBuyOrders[i];
     if (batchBuyOrder.expiration_time < currentTs) {
-      await strapi.entityService.update(
-        "api::batch-buy-order.batch-buy-order",
-        batchBuyOrder.id,
-        {
-          data: {
-            is_expired: true,
-          },
+      await strapi.db.query("api::batch-buy-order.batch-buy-order").delete({
+        where: {
+          id: batchBuyOrder.id,
         }
-      );
+      })
+
     } else {
       for (let i = 0; i < batchBuyOrder.buy_orders.length; i++) {
         const buyOrder = batchBuyOrder.buy_orders[i];
@@ -1740,7 +1728,6 @@ async function getValidOrders({ contractAddress, userAddress }) {
     },
     { is_cancelled: false },
     { is_all_sold: false },
-    { is_expired: false },
     { sale_kind: SALEKIND_KIND_BATCH_OFFER_ERC721S },
     {
       $not: {
@@ -1748,8 +1735,6 @@ async function getValidOrders({ contractAddress, userAddress }) {
       },
     },
   ];
-
-  console.log(333, "andList", andList);
 
   const batchBuyOrders = await strapi.db
     .query("api::batch-buy-order.batch-buy-order")
@@ -1776,15 +1761,12 @@ async function getValidOrders({ contractAddress, userAddress }) {
   for (let i = 0; i < batchBuyOrders.length; i++) {
     const batchBuyOrder = batchBuyOrders[i];
     if (batchBuyOrder.expiration_time < currentTs) {
-      await strapi.entityService.update(
-        "api::batch-buy-order.batch-buy-order",
-        batchBuyOrder.id,
-        {
-          data: {
-            is_expired: true,
-          },
+      await strapi.db.query("api::batch-buy-order.batch-buy-order").delete({
+        where: {
+          id: batchBuyOrder.id,
         }
-      );
+      })
+
     } else {
       for (let i = 0; i < batchBuyOrder.buy_orders.length; i++) {
         const buyOrder = batchBuyOrder.buy_orders[i];
@@ -1812,7 +1794,6 @@ async function getValidSingleNFTOrders({
     },
     { is_cancelled: false },
     { is_all_sold: false },
-    { is_expired: false },
     { sale_kind: 0 },
     {
       $not: {
@@ -1847,15 +1828,11 @@ async function getValidSingleNFTOrders({
   for (let i = 0; i < batchBuyOrders.length; i++) {
     const batchBuyOrder = batchBuyOrders[i];
     if (batchBuyOrder.expiration_time < currentTs) {
-      await strapi.entityService.update(
-        "api::batch-buy-order.batch-buy-order",
-        batchBuyOrder.id,
-        {
-          data: {
-            is_expired: true,
-          },
+      await strapi.db.query("api::batch-buy-order.batch-buy-order").delete({
+        where: {
+          id: batchBuyOrder.id,
         }
-      );
+      })
     } else {
       for (let i = 0; i < batchBuyOrder.buy_orders.length; i++) {
         const buyOrder = batchBuyOrder.buy_orders[i];

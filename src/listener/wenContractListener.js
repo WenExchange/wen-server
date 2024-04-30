@@ -22,7 +22,7 @@ const {
 } = require("./collectionStats");
 const { wait } = require("../utils/helpers");
 const { updateListingPoint } = require("../utils/airdropPrePointHelper");
-const { updateUserBatchOrderStatus } = require("./updateUserBatchOrders");
+const { updateUserBatchOrderStatus,updateUserBatchOrderStatusWithoutUpdateBestOffer } = require("./updateUserBatchOrders");
 
 const {
   LOG_TYPE_SALE,
@@ -153,8 +153,8 @@ const wenContractListener = async ({ event, strapi }) => {
           }
         );
 
-        await updateUserBatchOrderStatus({ strapi, user: maker });
-        await updateUserBatchOrderStatus({ strapi, user: taker });
+        // await updateUserBatchOrderStatus({ strapi, user: maker });
+        // await updateUserBatchOrderStatus({ strapi, user: taker });
 
         break;
       }
@@ -634,6 +634,13 @@ const buyOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
       buy_order_hash: data.buy_order_hash,
     },
   });
+
+  await updateUserBatchOrderStatusWithoutUpdateBestOffer({ strapi, user: data.to });
+  await updateUserBatchOrderStatusWithoutUpdateBestOffer({ strapi, user: data.from });
+  await updateBestOffer({
+    strapi,
+    contractAddress: data.contract_address,
+  });
 };
 
 const cancelAllOrdersInWen = async ({ data, strapi }) => {
@@ -717,7 +724,6 @@ const cancelAllOrdersInWen = async ({ data, strapi }) => {
         $and: [
           { is_cancelled: false },
           { is_all_sold: false },
-          { is_expired: false },
           {
             $not: {
               hash_nonce: data.newHashNonce,

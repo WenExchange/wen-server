@@ -321,8 +321,12 @@ module.exports = {
           },
           orderBy: { single_price_in_eth: "DESC" },
           populate: {
-            collection: true,
-            buy_orders: true,
+            collection: {
+              select: ["id", "name", "logo_url", "airdrop_multiplier", "floor_price","best_offer" ]
+            },
+            buy_orders: {
+              select: ["id", "is_hidden", "is_sold", "token_id" , "order_hash"]
+            },
           },
         });
 
@@ -334,6 +338,7 @@ module.exports = {
       for (let i = 0; i < batchBuyOrders.length; i++) {
         const validOrderList = [];
         const batchBuyOrder = batchBuyOrders[i];
+        console.log(333, "batchBuyOrder",batchBuyOrder);
         if (batchBuyOrder.expiration_time < currentTs) {
           await strapi.entityService.update(
             "api::batch-buy-order.batch-buy-order",
@@ -363,6 +368,32 @@ module.exports = {
             batch_buy_order_id: batchBuyOrder.id,
             collection: batchBuyOrder.collection,
           };
+
+          if (batchBuyOrder.sale_kind === 0) {
+            const nft = await strapi.db.query("api::nft.nft").findOne({
+              where: {
+                $and: [
+                  {
+                    collection: {
+                      id: batchBuyOrder.collection.id,
+                    }
+                  },
+                  {
+                    collection: {
+                      publishedAt: {
+                        $notNull: true
+                      }
+                    }
+                  },
+                  {
+                    token_id: batchBuyOrder.buy_orders[0].token_id
+                  }
+                ]
+              },
+              select: ["id", "name","image_url", "token_id"]
+            })
+            myOffers[batchBuyOrder.buy_orders[0].order_hash]["nft"] = nft
+          }
         }
       }
 
@@ -372,7 +403,9 @@ module.exports = {
         code: SUCCESS_RESPONSE,
       };
       return;
-    } catch (error) {}
+    } catch (error) {
+      console.error(error.message)
+    }
   },
 
   /**

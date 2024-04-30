@@ -46,13 +46,24 @@ module.exports = {
       testnetjsonRpcProvider
     );
 
-    console.log("hihihi");
     const wcqm = WenContractQueueManager.getInstance(strapi);
     wenContract.on("*", async (event) => {
-      console.log("here!", event);
+      console.log("here!");
       wcqm.addQueue(event);
     });
-    
+
+    const wenETHContract = new ethers.Contract(
+      "0x289Da9DE60f270c743848d287DDabA807C2c4722",
+      wenETH.abi,
+      testnetjsonRpcProvider
+    );
+
+    const wecqm = wenETHContractQueueManager.getInstance(strapi);
+    wenETHContract.on("*", async (event) => {
+      console.log("here2!");
+      wecqm.addQueue(event);
+    });
+
     const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
     if (isBOTServer) {
     }

@@ -1,5 +1,5 @@
-const {SDK} = require("../utils/constants")
-const { SALEKIND_KIND_BATCH_OFFER_ERC721S } = SDK
+const { SDK } = require("../utils/constants");
+const { SALEKIND_KIND_BATCH_OFFER_ERC721S } = SDK;
 
 async function batchUpdateFloorPrice({ strapi, addressList }) {
   for (let address of addressList) {
@@ -57,80 +57,79 @@ async function updateFloorPrice({ strapi }, contractAddress) {
   } else {
     // If there is no Order data, set the floor_price to 0
 
-    const entry = await strapi.db.query('api::collection.collection').update({
+    const entry = await strapi.db.query("api::collection.collection").update({
       where: { contract_address: contractAddress },
       data: {
         floor_price: 0,
       },
     });
-    
+
     console.log("no order data", contractAddress);
   }
 }
 
 async function updateBestOffer({ strapi, contractAddress }) {
   try {
-    const orderData = await strapi.db.query("api::batch-buy-order.batch-buy-order").findOne({
-      where: {
-        $and: [
-          {
-            collection: {
-              contract_address: contractAddress,
+    const orderData = await strapi.db
+      .query("api::batch-buy-order.batch-buy-order")
+      .findOne({
+        where: {
+          $and: [
+            {
+              collection: {
+                contract_address: contractAddress,
+              },
             },
-          },
-          {
-            collection: {
-              publishedAt: {
-                $notNull: true
-              }
-            }
-          },
-          { is_cancelled: false },
-          { is_all_sold: false },
-          { is_expired: false },
-          { sale_kind: SALEKIND_KIND_BATCH_OFFER_ERC721S },
-        ]
-      },
-      orderBy: {
-        single_price_in_eth: "desc",
-      },
-      populate: {
-        collection: true,
-      },
-    });
-  
+            {
+              collection: {
+                publishedAt: {
+                  $notNull: true,
+                },
+              },
+            },
+            { is_cancelled: false },
+            { is_all_sold: false },
+            { is_expired: false },
+            { sale_kind: SALEKIND_KIND_BATCH_OFFER_ERC721S },
+          ],
+        },
+        orderBy: {
+          single_price_in_eth: "desc",
+        },
+        populate: {
+          collection: true,
+        },
+      });
 
     if (orderData) {
-  
-      let prevBestOffer = Number(orderData?.collection.best_offer)
-      if (Number.isNaN(prevBestOffer)) prevBestOffer = 0
+      let prevBestOffer = Number(orderData?.collection.best_offer);
+      if (Number.isNaN(prevBestOffer)) prevBestOffer = 0;
 
-      let currentBestOffer = Number(orderData?.single_price_in_eth)
-      if (Number.isNaN(currentBestOffer)) currentBestOffer = 0
+      let currentBestOffer = Number(orderData?.single_price_in_eth);
+      if (Number.isNaN(currentBestOffer)) currentBestOffer = 0;
 
+      console.log("update best offer : ", prevBestOffer, currentBestOffer);
 
       if (prevBestOffer !== currentBestOffer) {
-        await strapi.db.query('api::collection.collection').update({
-        where: { id: orderData.collection.id },
-        data: {
-          best_offer: currentBestOffer,
-        },
-      })
+        await strapi.db.query("api::collection.collection").update({
+          where: { id: orderData.collection.id },
+          data: {
+            best_offer: currentBestOffer,
+          },
+        });
       }
     } else {
       // If there is no Order data, set the floor_price to 0
-      await strapi.db.query('api::collection.collection').update({
+      await strapi.db.query("api::collection.collection").update({
         where: { contract_address: contractAddress },
         data: {
           best_offer: 0,
         },
-      })
+      });
     }
-
   } catch (error) {
-    console.error(error.message)
+    console.error(error.message);
   }
-  
 }
 
 async function updateOwnerCount({ strapi }, collection_address) {

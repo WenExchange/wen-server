@@ -70,43 +70,58 @@ async function updateFloorPrice({ strapi }, contractAddress) {
 
 async function updateBestOffer({ strapi, contractAddress }) {
   try {
-    const orderData = await strapi.db
-      .query("api::batch-buy-order.batch-buy-order")
-      .findOne({
-        where: {
-          $and: [
-            {
-              collection: {
-                contract_address: contractAddress,
-              },
+    const orderData = await strapi.db.query("api::buy-order.buy-order").findOne({
+      where: {
+        $and: [
+          {
+            collection: {
+              contract_address: contractAddress,
             },
-            {
-              collection: {
-                publishedAt: {
-                  $notNull: true,
-                },
-              },
-            },
-            { is_cancelled: false },
-            { is_all_sold: false },
-            { is_expired: false },
-            { sale_kind: SALEKIND_KIND_BATCH_OFFER_ERC721S },
-          ],
+          },
+          {
+            collection: {
+              publishedAt: {
+                $notNull: true
+              }
+            }
+          },
+          {
+            batch_buy_order: { is_cancelled: false },
+          },
+          {
+            batch_buy_order:  { is_all_sold: false },
+          },
+          {
+            batch_buy_order: { is_expired: false },
+          }, {
+            batch_buy_order:  { sale_kind: SALEKIND_KIND_BATCH_OFFER_ERC721S },
+          },
+          {
+            is_hidden: false,
+          },
+          {
+            is_sold: false
+          }
+         
+        ]
+      },
+      orderBy: {
+        single_price_eth: "desc",
+      },
+      populate: {
+        collection :{
+          select: ["id", "best_offer"]
         },
-        orderBy: {
-          single_price_in_eth: "desc",
-        },
-        populate: {
-          collection: true,
-        },
-      });
+      },
+    });
+  
 
     if (orderData) {
       let prevBestOffer = Number(orderData?.collection.best_offer);
       if (Number.isNaN(prevBestOffer)) prevBestOffer = 0;
 
-      let currentBestOffer = Number(orderData?.single_price_in_eth);
-      if (Number.isNaN(currentBestOffer)) currentBestOffer = 0;
+      let currentBestOffer = Number(orderData?.single_price_eth)
+      if (Number.isNaN(currentBestOffer)) currentBestOffer = 0
 
       console.log("update best offer : ", prevBestOffer, currentBestOffer);
 

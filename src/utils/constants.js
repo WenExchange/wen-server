@@ -101,5 +101,6 @@ module.exports = {
     SALEKIND_BatchSignedERC721Order: 3,
     SALEKIND_ContractOffer: 7,
     SALEKIND_KIND_BATCH_OFFER_ERC721S: 8,
-  }
+    SALEKIND_KIND_SINGLE_OFFER: 0,
+  },
 };

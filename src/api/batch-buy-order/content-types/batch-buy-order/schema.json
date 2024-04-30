@@ -73,6 +73,9 @@
     },
     "nonce": {
       "type": "biginteger"
+    },
+    "token_id": {
+      "type": "biginteger"
     }
   }
 }

@@ -146,6 +146,11 @@ module.exports = {
         totalERC20Amount / BigInt(data.quantity)
       );
       let orderUuid = createUuidv4();
+
+      let token_id;
+      if (data.saleKind == 0) {
+        token_id = data.metadata.asset.id;
+      }
       let batchOrderObject = {
         order_id: orderUuid,
         maker: data.maker,
@@ -161,6 +166,7 @@ module.exports = {
         sale_kind: data.saleKind,
         nonce: data.nonce,
         hash_nonce: data.hashNonce,
+        token_id,
       };
       console.log("batchOrderObject", batchOrderObject);
       const batchOrder = await strapi.entityService.create(
@@ -390,22 +396,23 @@ module.exports = {
 
   getSellMyNFTsInfo: async (ctx, next) => {
     try {
-      const data = ctx.request.body.data
+      const data = ctx.request.body.data;
 
       console.log(data.standards);
       // 1. Check if the maker is the user
-      const user = await strapi.db.query("api::exchange-user.exchange-user").findMany({
-        where: {
-          address: data.maker
-        },
-      })
+      const user = await strapi.db
+        .query("api::exchange-user.exchange-user")
+        .findMany({
+          where: {
+            address: data.maker,
+          },
+        });
 
       if (!user) {
-        return ctx.body = {
+        return (ctx.body = {
           code: ERROR_RESPONSE,
           msg: `address ${data.maker} doesn't exist on db`,
-        };
-        
+        });
       }
 
       const assetListByContract = {};
@@ -428,31 +435,50 @@ module.exports = {
       const returnData = [];
       for (const key in assetListByContract) {
         if (Object.hasOwnProperty.call(assetListByContract, key)) {
-          const contractItems = assetListByContract[key];
-
-          // TODO 1: valid order list 에서 sale_kind 있는 거를 없애준다.
           let contractItems = assetListByContract[key];
           const validOrderList = await getValidOrders({
             contractAddress: key,
             userAddress: data.maker,
           });
-          if (validOrderList.length < contractItems.length) {
-            throw Error(`There is no enough order for ${key}`);
-          }
-          contractItems.forEach((item, index) => {
-            // TODO 2: 여기에서 valid order list 에서 token_id 와 contract item의 토큰 아이디가 같지 않으면 무시하고 다음걸로 넘어간다.
-            item.order = validOrderList[index];
-            item.contractAddress = key;
-          // if (validOrderList.length < contractItems.length) {
-          //   throw Error(`There is no enough order for ${key}`);
-          // }
+
           contractItems = contractItems.map((item, index) => {
-            const isExistValidOrder = index < validOrderList.length 
+            const isExistValidOrder = index < validOrderList.length;
             return {
               ...item,
-              order : isExistValidOrder ?  validOrderList[index] : null,
-            contractAddress: key
+              order: isExistValidOrder ? validOrderList[index] : null,
+              contractAddress: key,
+            };
+          });
+
+          // Check if the single offer exist and change it if the offer is more expensive.
+          contractItems = contractItems.map(async (item, index) => {
+            const newOrders = await getValidSingleNFTOrders({
+              contractAddress: key,
+              userAddress: data.maker,
+              tokenId: item.tokenId,
+            });
+
+            if (newOrders.length > 0) {
+              if (item.order == null) {
+                return {
+                  ...item,
+                  order: newOrders[0],
+                };
+              } else {
+                const newOrder = newOrders[0];
+                if (
+                  originalOrder.single_price_eth < newOrder.single_price_eth
+                ) {
+                  return {
+                    ...item,
+                    order: newOrder,
+                  };
+                }
+              }
             }
+            return {
+              ...item,
+            };
           });
           returnData.push(...contractItems);
         }
@@ -1647,6 +1673,79 @@ async function getValidOrders({ contractAddress, userAddress }) {
         maker: userAddress,
       },
     },
+  ];
+
+  console.log(333, "andList", andList);
+
+  const batchBuyOrders = await strapi.db
+    .query("api::batch-buy-order.batch-buy-order")
+    .findMany({
+      where: {
+        $and: andList,
+      },
+      orderBy: { single_price_in_eth: "DESC" },
+      populate: {
+        collection: true,
+        buy_orders: {
+          populate: {
+            token: true,
+          },
+        },
+      },
+    });
+
+  // 2. Update if any batch buy were expired.
+
+  const currentTs = dayjs().unix();
+
+  const validOrderList = [];
+  for (let i = 0; i < batchBuyOrders.length; i++) {
+    const batchBuyOrder = batchBuyOrders[i];
+    if (batchBuyOrder.expiration_time < currentTs) {
+      await strapi.entityService.update(
+        "api::batch-buy-order.batch-buy-order",
+        batchBuyOrder.id,
+        {
+          data: {
+            is_expired: true,
+          },
+        }
+      );
+    } else {
+      for (let i = 0; i < batchBuyOrder.buy_orders.length; i++) {
+        const buyOrder = batchBuyOrder.buy_orders[i];
+        if (!buyOrder.is_hidden && !buyOrder.is_sold) {
+          validOrderList.push(buyOrder);
+        }
+      }
+    }
+  }
+  return validOrderList;
+}
+
+async function getValidSingleNFTOrders({
+  contractAddress,
+  userAddress,
+  tokenId,
+}) {
+  // 1. Get All Batch Buy Orders
+
+  let andList = [
+    {
+      collection: {
+        contract_address: contractAddress,
+      },
+    },
+    { is_cancelled: false },
+    { is_all_sold: false },
+    { is_expired: false },
+    { sale_kind: SALEKIND_SINGLE_OFFER },
+    {
+      $not: {
+        maker: userAddress,
+      },
+    },
+    { token_id: tokenId },
   ];
 
   const batchBuyOrders = await strapi.db

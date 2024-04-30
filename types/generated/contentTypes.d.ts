@@ -951,6 +951,7 @@ export interface ApiBatchBuyOrderBatchBuyOrder extends Schema.CollectionType {
     sale_kind: Attribute.Integer;
     hash_nonce: Attribute.BigInteger;
     nonce: Attribute.BigInteger;
+    token_id: Attribute.BigInteger;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

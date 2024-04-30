@@ -162,6 +162,7 @@ module.exports = {
         nonce: data.nonce,
         hash_nonce: data.hashNonce,
       };
+      console.log("batchOrderObject", batchOrderObject);
       const batchOrder = await strapi.entityService.create(
         "api::batch-buy-order.batch-buy-order",
         {
@@ -369,6 +370,8 @@ module.exports = {
             count: validOrderList.length,
             single_price_in_eth: batchBuyOrder.single_price_in_eth,
             listing_time: batchBuyOrder.listing_time,
+            token_id: batchBuyOrder.buy_orders[0].token_id,
+            sale_kind: batchBuyOrder.sale_kind,
             expiration_time: batchBuyOrder.expiration_time,
             batch_buy_order_id: batchBuyOrder.id,
             collection: batchBuyOrder.collection,
@@ -445,11 +448,21 @@ module.exports = {
       const returnData = [];
       for (const key in assetListByContract) {
         if (Object.hasOwnProperty.call(assetListByContract, key)) {
+          const contractItems = assetListByContract[key];
+
+          // TODO 1: valid order list 에서 sale_kind 있는 거를 없애준다.
           let contractItems = assetListByContract[key];
           const validOrderList = await getValidOrders({
             contractAddress: key,
             userAddress: data.maker,
           });
+          if (validOrderList.length < contractItems.length) {
+            throw Error(`There is no enough order for ${key}`);
+          }
+          contractItems.forEach((item, index) => {
+            // TODO 2: 여기에서 valid order list 에서 token_id 와 contract item의 토큰 아이디가 같지 않으면 무시하고 다음걸로 넘어간다.
+            item.order = validOrderList[index];
+            item.contractAddress = key;
           // if (validOrderList.length < contractItems.length) {
           //   throw Error(`There is no enough order for ${key}`);
           // }

@@ -39,7 +39,7 @@ module.exports = {
   async bootstrap({ strapi }) {
     try {
 
-      await listingCollectionScript({strapi, address: "0x7e112445627ead3a79782bc1575f94d6988d5337"})
+      await listingCollectionScript({strapi, address: "0xaaba51ccc8efe8f274d33b126d6230e168428862"})
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
 

@@ -299,26 +299,6 @@ module.exports = {
 
       console.log("get collection offer ", data.maker);
 
-      // 1. check if the user exist.
-      // contractAddress 로 값을 찾아온다.
-      const user = await strapi.entityService.findMany(
-        "api::exchange-user.exchange-user",
-        {
-          filters: {
-            address: {
-              $eqi: data.maker,
-            },
-          },
-        }
-      );
-      if (user.length != 1) {
-        ctx.body = {
-          code: ERROR_RESPONSE,
-          msg: `address ${data.maker} doesn't exist on db`,
-        };
-        return;
-      }
-
       // 1. Get All Batch Buy Orders
       const batchBuyOrders = await strapi.db
         .query("api::batch-buy-order.batch-buy-order")
@@ -381,7 +361,7 @@ module.exports = {
 
       // 3. Return
       ctx.body = {
-        data: { myOffers },
+        data: myOffers,
         code: SUCCESS_RESPONSE,
       };
       return;
@@ -1668,8 +1648,6 @@ async function getValidOrders({ contractAddress, userAddress }) {
       },
     },
   ];
-
-  console.log(333, "andList",andList);
 
   const batchBuyOrders = await strapi.db
     .query("api::batch-buy-order.batch-buy-order")

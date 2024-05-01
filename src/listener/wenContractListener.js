@@ -22,7 +22,10 @@ const {
 } = require("./collectionStats");
 const { wait } = require("../utils/helpers");
 const { updateListingPoint } = require("../utils/airdropPrePointHelper");
-const { updateUserBatchOrderStatus,updateUserBatchOrderStatusWithoutUpdateBestOffer } = require("./updateUserBatchOrders");
+const {
+  updateUserBatchOrderStatus,
+  updateUserBatchOrderStatusWithoutUpdateBestOffer,
+} = require("./updateUserBatchOrders");
 
 const {
   LOG_TYPE_SALE,
@@ -34,6 +37,7 @@ const {
   LOG_TYPE_AUTO_CANCEL_LISTING,
   LOG_TYPE_CANCEL_OFFER,
   LOG_TYPE_MINT,
+  LOG_TYPE_COLLECTION_SALE,
 } = NFT_LOG_TYPE;
 
 const wenContractListener = async ({ event, strapi }) => {
@@ -624,7 +628,7 @@ const buyOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
       ex_type: data.ex_type,
       sale_type: data.sale_type,
       payment_token: data.payment_token,
-      type: LOG_TYPE_COLLECTION_OFFER,
+      type: LOG_TYPE_COLLECTION_SALE,
       price: data.price,
       from: data.from,
       to: data.to,
@@ -635,8 +639,14 @@ const buyOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
     },
   });
 
-  await updateUserBatchOrderStatusWithoutUpdateBestOffer({ strapi, user: data.to });
-  await updateUserBatchOrderStatusWithoutUpdateBestOffer({ strapi, user: data.from });
+  await updateUserBatchOrderStatusWithoutUpdateBestOffer({
+    strapi,
+    user: data.to,
+  });
+  await updateUserBatchOrderStatusWithoutUpdateBestOffer({
+    strapi,
+    user: data.from,
+  });
   await updateBestOffer({
     strapi,
     contractAddress: data.contract_address,

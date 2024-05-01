@@ -509,12 +509,12 @@ module.exports = {
       return;
     } catch (error) {
       console.log("Error : ", error.message);
-      await strapi.entityService.create("api::error-log.error-log", {
+      strapi.entityService.create("api::error-log.error-log", {
         data: {
           error_detail:
             "getSellMyNFTsInfo" + error.message + "\n" + error.toString(),
         },
-      });
+      }).catch();
     }
   },
 

@@ -36,10 +36,6 @@ async function createTransferListener({ strapi }) {
   jsonRpcProvider.on(filter, async (log, _) => {
     await transferListener({log, strapi})
   });
-
-
-  
-
   /** Mintify , Opensea */
   const excqm = ExchangeContractQueueManager.getInstance(strapi)
   const mintifyContract = new ethers.Contract(

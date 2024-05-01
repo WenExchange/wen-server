@@ -26,10 +26,6 @@
       "type": "boolean",
       "default": false
     },
-    "is_expired": {
-      "type": "boolean",
-      "default": false
-    },
     "listing_time": {
       "type": "biginteger"
     },

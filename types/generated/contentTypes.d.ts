@@ -932,7 +932,6 @@ export interface ApiBatchBuyOrderBatchBuyOrder extends Schema.CollectionType {
     >;
     is_cancelled: Attribute.Boolean & Attribute.DefaultTo<false>;
     is_all_sold: Attribute.Boolean & Attribute.DefaultTo<false>;
-    is_expired: Attribute.Boolean & Attribute.DefaultTo<false>;
     listing_time: Attribute.BigInteger;
     expiration_time: Attribute.BigInteger;
     maker: Attribute.String;

@@ -13,7 +13,8 @@ const {
   NFT_LOG_TYPE,
   CONTRACT_ADDRESSES,
   EVENT_TYPE,
-  EX_TYPE
+  EX_TYPE,
+  WEN_ETH_ADDRESS
 } = require("../utils/constants");
 
 const { collectionDeployerERC721And1155Listener } = require("./collectionDeployerERC721And1155Listener");
@@ -87,6 +88,18 @@ async function createTransferListener({ strapi }) {
   const wcqm = WenContractQueueManager.getInstance(strapi)
   wenContract.on("*", async event => {
     wcqm.addQueue(event)
+  });
+
+  /** wenETH Contract Listener */
+  const wenETHContract = new ethers.Contract(
+    WEN_ETH_ADDRESS,
+    wenETH.abi,
+    jsonRpcProvider
+  );
+
+  const wecqm = wenETHContractQueueManager.getInstance(strapi);
+  wenETHContract.on("*", async (event) => {
+    wecqm.addQueue(event);
   });
   
   /** Collection Deploy Listener */

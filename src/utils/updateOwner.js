@@ -49,7 +49,7 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
           const updatedCount = await updateOwnerOfNFTs({strapi,nfts: batchNFTs})
           totalUpdatedCount += updatedCount
       } catch (error) {
-          console.error(`333 error - ${error.message}`)
+          console.error(`error - ${error.message}`)
       }
       
 

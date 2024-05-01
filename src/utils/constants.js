@@ -11,6 +11,7 @@ module.exports = {
     EL_EX: "0x4196b39157659bf0de9ebf6e505648b7889a39ce",
     MIN_EX: "0x00000000000000adc04c56bf30ac9d3c0aaf14dc",
   },
+  WEN_ETH_ADDRESS: "0xE1492F298fCDDD26e1D953c7dC88E5143aCa5FeA",
   EVENT_TYPE: {
     ERC721SellOrderFilled:
       "0x9c248aa1a265aa616f707b979d57f4529bb63a4fc34dc7fc61fdddc18410f74e",

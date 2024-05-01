@@ -54,12 +54,9 @@ const wenETHContractListener = async ({ strapi, event }) => {
 
         const tx_hash = event.transactionHash
         const tx = await jsonRpcProvider.getTransaction(tx_hash);
-        const receipt = await tx.wait();
-
-        console.log(333, "tx", tx);
-        console.log(444, "receipt",receipt);
+      
         
-        if (receipt.to.toLowerCase() === CONTRACT_ADDRESSES.WEN_EX.toLowerCase()) return 
+        if (tx.to.toLowerCase() === CONTRACT_ADDRESSES.WEN_EX.toLowerCase()) return 
 
         // Update From User
         await updateUserBatchOrderStatus({ strapi, user: from });

@@ -76,8 +76,6 @@ module.exports = {
   postBuyOrder: async (ctx, next) => {
     try {
       const data = ctx.request.body.data;
-
-      console.log(333, data);
       // console.log("post order ", data);
       // 1. check if the user exist.
       // contractAddress 로 값을 찾아온다.
@@ -118,14 +116,6 @@ module.exports = {
       // totalERC20Amount 는 fee를 더한 금액
       const totalERC20Amount = BigInt(data.totalERC20Amount);
       const wenETHBalance = await getERC20Balance(WENETH_ADDRESS, data.maker);
-      console.log(
-        "totalERC20Amount",
-        totalERC20Amount.toString(),
-        "wenETHBalance",
-        wenETHBalance.toString(),
-        wenETHBalance - totalERC20Amount,
-        data.maker
-      );
 
       if (wenETHBalance - totalERC20Amount < 0) {
         return (ctx.body = {
@@ -165,7 +155,6 @@ module.exports = {
         hash_nonce: data.hashNonce,
         token_id,
       };
-      console.log("batchOrderObject", batchOrderObject);
       const batchOrder = await strapi.entityService.create(
         "api::batch-buy-order.batch-buy-order",
         {
@@ -234,8 +223,6 @@ module.exports = {
         createdOrderIds.push(order.id);
       }
 
-      console.log("buy orders has created: ", createdOrderIds);
-
       await updateBestOffer({
         strapi,
         contractAddress: data.metadata.asset.address,
@@ -298,10 +285,6 @@ module.exports = {
     try {
       const data = ctx.request.body.data;
 
-      // {"userAddress":"0xb4752134bfacf63a918df8fabe65abf00cffff00"}
-
-      console.log("get collection offer ", data.maker);
-
       // 1. Get All Batch Buy Orders
       const batchBuyOrders = await strapi.db
         .query("api::batch-buy-order.batch-buy-order")
@@ -334,7 +317,6 @@ module.exports = {
       for (let i = 0; i < batchBuyOrders.length; i++) {
         const validOrderList = [];
         const batchBuyOrder = batchBuyOrders[i];
-        console.log(333, "batchBuyOrder",batchBuyOrder);
         if (batchBuyOrder.expiration_time < currentTs) {
           await strapi.db.query("api::batch-buy-order.batch-buy-order").delete({
               where: {
@@ -423,8 +405,6 @@ module.exports = {
   getSellMyNFTsInfo: async (ctx, next) => {
     try {
       const data = ctx.request.body.data;
-
-      console.log(data.standards);
       // 1. Check if the maker is the user
       const user = await strapi.db
         .query("api::exchange-user.exchange-user")
@@ -454,8 +434,6 @@ module.exports = {
         });
       });
 
-      console.log(JSON.stringify(assetListByContract));
-
       // 3. Find orders and match with the tokenId
 
       const returnData = [];
@@ -475,8 +453,6 @@ module.exports = {
               contractAddress: key,
             };
           });
-
-          console.log("here : 1 ", JSON.stringify(contractItems[0]));
           // Check if the single offer exist and change it if the offer is more expensive.
 
           for (let index = 0; index < contractItems.length; index++) {
@@ -487,7 +463,6 @@ module.exports = {
               tokenId: item.tokenId,
             });
 
-            console.log("getValidSingleNFTOrders", JSON.stringify(newOrders));
             if (newOrders.length > 0) {
               if (item.order == null) {
                 contractItems[index] = {
@@ -497,11 +472,6 @@ module.exports = {
               } else {
                 let originalOrder = item.order;
                 const newOrder = newOrders[0];
-                console.log(
-                  " originalOrder.single_price_eth",
-                  originalOrder.single_price_eth,
-                  newOrder.single_price_eth
-                );
                 if (
                   originalOrder.single_price_eth < newOrder.single_price_eth
                 ) {
@@ -544,7 +514,6 @@ module.exports = {
           //     ...item,
           //   };
           // });
-          console.log("here : 2 ", contractItems.toString());
 
           returnData.push(...contractItems);
         }
@@ -556,13 +525,12 @@ module.exports = {
       };
       return;
     } catch (error) {
-      console.log("Error : ", error.message);
-      await strapi.entityService.create("api::error-log.error-log", {
+       strapi.entityService.create("api::error-log.error-log", {
         data: {
           error_detail:
             "getSellMyNFTsInfo" + error.message + "\n" + error.toString(),
         },
-      });
+      }).catch();
     }
   },
 
@@ -1273,7 +1241,6 @@ module.exports = {
         },
       });
 
-      console.log("orderData   :   ", orderData);
       if (orderData == null) {
         ctx.body = {
           code: ERROR_RESPONSE,
@@ -1359,7 +1326,6 @@ module.exports = {
             id: orderData.id,
           },
         });
-        console.log("orderData.id", orderData.id);
         orderList.push({
           contractAddress: orderData.contract_address,
           tokenId: orderData.token_id,
@@ -1417,7 +1383,6 @@ async function checkIfUserExist(userAddress) {
     },
   });
 
-  console.log(userAddress);
   if (r == null) {
     throw new Error();
   }
@@ -1463,17 +1428,11 @@ async function getNftPrice(order, tokenId, contractAddress) {
         for (let item of collection.items) {
           if (item.nftId === tokenId) {
             return { result: true, price: item.erc20TokenAmount };
-          } else {
-            console.log("nono", item.nftId);
-          }
+          } 
         }
-      } else {
-        console.log("11", collection.nftAddress, contractAddress);
-      }
+      } 
     }
-  } else {
-    console.log("131");
-  }
+  } 
 
   if (collections) {
     for (let collection of collections) {
@@ -1543,7 +1502,6 @@ async function processItem(
         nftData.sell_order.id
       );
     } else {
-      console.log("no sell_order error", nftData.sell_order);
 
       throw new Error(
         `${collection.nftAddress} item id ${item.nftId} already has a sell order. Please cancel the previous sell order first.`

@@ -482,11 +482,6 @@ const createAirdropStat = async ({ strapi }) => {
           }
         );
 
-        console.log(
-          "Exchange user total point 추가",
-          userData.originalListingAirdropPoint,
-          userData.total_listing
-        );
         // 2. Exchange User Total Point 추가
         await strapi.entityService.update(
           "api::exchange-user.exchange-user",

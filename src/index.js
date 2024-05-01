@@ -36,33 +36,23 @@ module.exports = {
    */
   register({ strapi }) {
     // Test
-    const testnetjsonRpcProvider = new ethers.providers.JsonRpcProvider(
-      "https://rpc.ankr.com/blast_testnet_sepolia/d347c8e224d87a27991df14f8963b6b858f52617aec0cc0d1278bca0fcb0178c"
-    );
-    // /** Wen Contract Listener */
-    const wenContract = new ethers.Contract(
-      "0xD75104c9C2aeC1594944c8F3a2858C62DEeaE91b",
-      ExchangeContractABI.abi,
-      testnetjsonRpcProvider
-    );
+    // const testnetjsonRpcProvider = new ethers.providers.JsonRpcProvider(
+    //   "https://rpc.ankr.com/blast_testnet_sepolia/d347c8e224d87a27991df14f8963b6b858f52617aec0cc0d1278bca0fcb0178c"
+    // );
+    // // /** Wen Contract Listener */
+    // const wenContract = new ethers.Contract(
+    //   "0xD75104c9C2aeC1594944c8F3a2858C62DEeaE91b",
+    //   ExchangeContractABI.abi,
+    //   testnetjsonRpcProvider
+    // );
 
-    const wcqm = WenContractQueueManager.getInstance(strapi);
-    wenContract.on("*", async (event) => {
-      console.log("here!");
-      wcqm.addQueue(event);
-    });
+    // const wcqm = WenContractQueueManager.getInstance(strapi);
+    // wenContract.on("*", async (event) => {
+    //   console.log("here!");
+    //   wcqm.addQueue(event);
+    // });
 
-    const wenETHContract = new ethers.Contract(
-      "0x289Da9DE60f270c743848d287DDabA807C2c4722",
-      wenETH.abi,
-      testnetjsonRpcProvider
-    );
-
-    const wecqm = wenETHContractQueueManager.getInstance(strapi);
-    wenETHContract.on("*", async (event) => {
-      console.log("here2!");
-      wecqm.addQueue(event);
-    });
+  
 
     const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
     if (isBOTServer) {

@@ -10,12 +10,8 @@ async function getNFTOwner(nftContract, tokenId) {
   return owner.toLowerCase();
 }
 
-// TODO: TESTNET : json RPC Provider 바꿔라
 async function getERC20Balance(ERC20Address, userAddress) {
-  const provider = new ethers.providers.JsonRpcProvider(
-    "https://blast-sepolia.blockpi.network/v1/rpc/public"
-  );
-  const nft = new ethers.Contract(ERC20Address, IERC20.abi, provider);
+  const nft = new ethers.Contract(ERC20Address, IERC20.abi, jsonRpcProvider);
 
   const balance = await nft.balanceOf(userAddress);
   return BigInt(balance);

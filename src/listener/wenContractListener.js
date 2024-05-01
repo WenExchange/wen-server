@@ -18,9 +18,14 @@ const {
   updateFloorPrice,
   updateOrdersCount,
   updateOwnerCount,
+  updateBestOffer,
 } = require("./collectionStats");
 const { wait } = require("../utils/helpers");
 const { updateListingPoint } = require("../utils/airdropPrePointHelper");
+const {
+  updateUserBatchOrderStatus,
+  updateUserBatchOrderStatusWithoutUpdateBestOffer,
+} = require("./updateUserBatchOrders");
 
 const {
   LOG_TYPE_SALE,
@@ -32,6 +37,7 @@ const {
   LOG_TYPE_AUTO_CANCEL_LISTING,
   LOG_TYPE_CANCEL_OFFER,
   LOG_TYPE_MINT,
+  LOG_TYPE_COLLECTION_SALE,
 } = NFT_LOG_TYPE;
 
 const wenContractListener = async ({ event, strapi }) => {
@@ -91,6 +97,8 @@ const wenContractListener = async ({ event, strapi }) => {
 
         // ERC721BuyOrderFilled (bytes32 orderHash, address maker, address taker, uint256 nonce, address erc20Token, uint256 erc20TokenAmount, tuple[] fees, address erc721Token, uint256 erc721TokenId)  s
 
+        // buy order hash
+        const buyOrderHash = eventData["0"].toString();
         // 2. ERC 20 토큰의 양(낸 가격)
         const price = eventData["5"].toString();
         // 3. ERC 721 컨트랙트 어드레스
@@ -115,7 +123,15 @@ const wenContractListener = async ({ event, strapi }) => {
           timestamp: dayjs().unix(),
           token_id: ERC721TokenId,
           contract_address: ERC721ContractAddress,
+          buy_order_hash: buyOrderHash,
         };
+
+        console.log(
+          "FIRED : ERC721BuyOrderFilled",
+          eventData["0"].toString(),
+          "\n\n\n",
+          data
+        );
 
         const checkedInfo = await checkIsValidBuyOrderSaleAndGetData({
           strapi,
@@ -123,9 +139,27 @@ const wenContractListener = async ({ event, strapi }) => {
         });
         if (typeof checkedInfo === "boolean") return;
         const { nftData, existedTradeLog } = checkedInfo;
-        await buyOrderSaleProcessInWen({ data, strapi, nftData }).catch((e) =>
-          console.error(e.message)
+        await buyOrderSaleProcessInWen({ data, strapi, nftData }).catch(
+          async (e) => {
+            const errorDetail =
+              "[Error] wenContractListener - EVENT_TYPE.ERC721BuyOrderFilled \n" +
+              "data : " +
+              data.toString() +
+              "error message" +
+              e.message;
+            strapi.entityService
+              .create("api::error-log.error-log", {
+                data: {
+                  error_detail: errorDetail,
+                },
+              })
+              .catch();
+          }
         );
+
+        // await updateUserBatchOrderStatus({ strapi, user: maker });
+        // await updateUserBatchOrderStatus({ strapi, user: taker });
+
         break;
       }
 
@@ -152,6 +186,45 @@ const wenContractListener = async ({ event, strapi }) => {
         await cancelProcessInWen({ data, strapi }).catch((e) =>
           console.error(e.message)
         );
+
+        break;
+      }
+
+      case EVENT_TYPE.IncrementHashNonce: {
+        //ERC721BuyOrderFilled - WETH를 받고 판 경우
+        const eventData = decodeData(
+          ERC721Event.abi,
+          "HashNonceIncremented",
+          event
+        );
+
+        // HashNonceIncremented (address maker, uint256 newHashNonce)
+        const maker = eventData["0"];
+        const newHashNonce = eventData["1"];
+        console.log("HashNonceIncremented : ", maker, newHashNonce);
+
+        const data = {
+          ex_type: EX_TYPE.WEN,
+          maker,
+          newHashNonce,
+          tx_hash: event.transactionHash,
+          timestamp: dayjs().unix(),
+        };
+
+        await cancelAllOrdersInWen({ data, strapi }).catch((e) =>
+          console.error(e.message)
+        );
+
+        // update user hash_nonce
+        const updated = await strapi.db
+          .query("api::exchange-user.exchange-user")
+          .update({
+            where: { address: data.maker },
+            data: {
+              hash_nonce: newHashNonce,
+            },
+          });
+        console.log("updated", updated);
 
         break;
       }
@@ -297,20 +370,36 @@ const checkIsValidBuyOrderSaleAndGetData = async ({ strapi, data }) => {
   try {
     const nftData = await strapi.db.query("api::nft.nft").findOne({
       where: {
-        token_id: data.token_id,
-        collection: { contract_address: data.contract_address },
+        $and: [
+          {
+            token_id: data.token_id,
+          },
+          {
+            collection: { contract_address: data.contract_address },
+          },
+          {
+            collection: {
+              publishedAt: {
+                $notNull: true,
+              },
+            },
+          },
+        ],
       },
       populate: {
-        sell_order: true,
         collection: true,
       },
     });
 
-    if (!nftData) return false;
+    if (!nftData) {
+      console.log(`[WEN] no nft data`);
+      return false;
+    }
 
     /**
-     * 하나의 NFT token id 당 하나의 hash
+     * 하나의 NFT token id, orderHash, token_id 까지 같아야함.
      */
+    console.log("nft id", nftData.id);
     const existedTradeLog = await strapi.db
       .query("api::nft-trade-log.nft-trade-log")
       .findOne({
@@ -333,6 +422,7 @@ const checkIsValidBuyOrderSaleAndGetData = async ({ strapi, data }) => {
                 id: nftData.id,
               },
             },
+            { buy_order_hash: data.buy_order_hash },
           ],
         },
       });
@@ -369,8 +459,6 @@ const sellOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
    *
    */
   // order 지우고 로그 찍어주긔
-
-  // TODO : test 끝나고 지우기
 
   if (nftData.sell_order) {
     console.log(
@@ -441,9 +529,9 @@ const sellOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
     })
     .catch((e) => console.error(e.message));
 
-    console.log(
-      `[WEN] ERC721SellOrderFilled - 4. nft id: ${nftData.id} created SALE log id ${createdLog.id} `
-    );
+  console.log(
+    `[WEN] ERC721SellOrderFilled - 4. nft id: ${nftData.id} created SALE log id ${createdLog.id} `
+  );
 
   await updateSalePoint(
     data.payment_token,
@@ -458,49 +546,47 @@ const sellOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
   console.log(
     `[WEN] ERC721SellOrderFilled - 5. nft id: ${nftData.id} update sale point `
   );
- 
 };
 
 const buyOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
   /**
    * Wen DB 에 존재하는 NFT 임이 가정입니다. (Validation 완료)
-   * 1. offer, bid table 의 데이터 지우기
+   * 1. offer, bid table 의 데이터 업데이트
    * 2. 리스팅이 되어있는 시점에서 Offer 를 받을때 기존 리스팅 삭제.
    * 2. nft 의 last_sale_price 와 Owner 를 업데이트 해줍니다.
    * 3. 그 이후에 collection 의 owner count, floor price 를 순서대로 업데이트 해줍니다.
    * 4. sale 로그 찍습니다.
-   *
    */
 
-  // TODO offer 테이블 지워주기
+  // buy order 상태 업데이트
+  const buyOrder = await strapi.db.query("api::buy-order.buy-order").findOne({
+    where: {
+      $and: [
+        { order_hash: data.buy_order_hash },
+        { is_hidden: false },
+        { is_sold: false },
+        { collection: { contract_address: data.contract_address } },
+      ],
+    },
+    populate: {
+      collection: true,
+      token: true,
+      batch_buy_order: {
+        populate: {
+          buy_orders: true,
+        },
+      },
+    },
+  });
 
-  if (nftData.sell_order) {
-    await strapi.entityService
-      .delete("api::order.order", nftData.sell_order.id, {
-        populate: { nft: true },
-      })
-      .then((deletedOrder) => {
-        return strapi.entityService
-          .create("api::nft-trade-log.nft-trade-log", {
-            data: {
-              ex_type: data.ex_type,
-              type: LOG_TYPE_AUTO_CANCEL_LISTING,
-              from: data.from,
-              nft: nftData.id,
-              tx_hash: data.tx_hash,
-              timestamp: dayjs().unix(),
-            },
-          })
-          .then((_) => {
-            return updateFloorPrice({ strapi }, data.contract_address)
-              .then((_) => {
-                return updateOrdersCount({ strapi }, data.contract_address);
-              })
-              .catch((e) => console.error(e.message));
-          });
-      })
-      .catch((e) => console.error(e.message));
-  }
+  await strapi.entityService.update("api::buy-order.buy-order", buyOrder.id, {
+    data: {
+      is_hidden: true,
+      is_sold: true,
+      token_id: data.token_id,
+    },
+  });
+
   // update NFT
   await strapi.entityService
     .update("api::nft.nft", nftData.id, {
@@ -512,35 +598,206 @@ const buyOrderSaleProcessInWen = async ({ data, strapi, nftData }) => {
     .then((_) => {
       // update owner count after nft owner update
       return updateOwnerCount({ strapi }, data.contract_address);
-    })
-    .catch((e) => console.error(e.message));
+    });
+
+  // batch buy order 상태 업데이트 해주기  - All Sold 인가?
+
+  let isSoldFalseCount = 0;
+  for (let order of buyOrder.batch_buy_order.buy_orders) {
+    if (!order.is_sold) {
+      isSoldFalseCount++;
+    }
+  }
+
+  // 만약 buyOrder가 존재하고 isSold = false 가 하나인 경우(마지막 남은 order)인 경우 is_all_sold를 true 로 바꿔준다.
+  if (buyOrder && isSoldFalseCount == 1) {
+    await strapi.entityService.update(
+      "api::batch-buy-order.batch-buy-order",
+      buyOrder.batch_buy_order.id,
+      {
+        data: {
+          is_all_sold: true,
+        },
+      }
+    );
+  }
 
   // SALE log
-  await strapi.entityService
-    .create("api::nft-trade-log.nft-trade-log", {
-      data: {
-        ex_type: data.ex_type,
-        sale_type: data.sale_type,
-        payment_token: data.payment_token,
-        type: LOG_TYPE_SALE,
-        price: data.price,
-        from: data.from,
-        to: data.to,
-        nft: nftData.id,
-        tx_hash: data.tx_hash,
-        timestamp: dayjs().unix(),
+  await strapi.entityService.create("api::nft-trade-log.nft-trade-log", {
+    data: {
+      ex_type: data.ex_type,
+      sale_type: data.sale_type,
+      payment_token: data.payment_token,
+      type: LOG_TYPE_COLLECTION_SALE,
+      price: data.price,
+      from: data.from,
+      to: data.to,
+      nft: nftData.id,
+      tx_hash: data.tx_hash,
+      timestamp: dayjs().unix(),
+      buy_order_hash: data.buy_order_hash,
+    },
+  });
+
+  await updateUserBatchOrderStatusWithoutUpdateBestOffer({
+    strapi,
+    user: data.to,
+  });
+  await updateUserBatchOrderStatusWithoutUpdateBestOffer({
+    strapi,
+    user: data.from,
+  });
+  await updateBestOffer({
+    strapi,
+    contractAddress: data.contract_address,
+  });
+};
+
+const cancelAllOrdersInWen = async ({ data, strapi }) => {
+  /**
+   * 1. 유저의 (Sell)Order 가 있다면 지웁니다.
+   * 1-1. Sell Order가 지워진 것이 있다면 해당 collection들을 업데이트를 해줍니다.
+   *
+   * 2. 유저의 Batch Buy Order가 있다면 지웁니다.
+   * 2-1. Batch Buy Order가 지워진 것이 있으면 해당 collection을 업데이트 해줍니다.
+   */
+
+  // 1. Order 중 hash Nonce가 data.newHashNonce 가 아닌 것을 모두 찾습니다.
+
+  let sellOrderList = await strapi.db.query("api::order.order").findMany({
+    where: {
+      $and: [
+        {
+          maker: data.maker,
+        },
+        {
+          $not: {
+            hash_nonce: data.newHashNonce,
+          },
+        },
+      ],
+    },
+    populate: {
+      nft: true,
+    },
+  });
+
+  if (sellOrderList && sellOrderList.length > 0) {
+    for (let i = 0; i < sellOrderList.length; i++) {
+      const result = sellOrderList[i];
+
+      let deleted = await strapi.entityService.delete(
+        "api::order.order",
+        result.id
+      );
+
+      await strapi.entityService
+        .create("api::nft-trade-log.nft-trade-log", {
+          data: {
+            ex_type: data.ex_type,
+            type: LOG_TYPE_CANCEL_LISTING,
+            from: data.maker,
+            nft: result.nft.id,
+            tx_hash: data.tx_hash,
+            timestamp: dayjs().unix(),
+          },
+        })
+        .catch((e) =>
+          console.error(
+            `Increment Hash Nonce - create nft-trade-log - ${e.message}`
+          )
+        );
+
+      // CANCEL LISTING HISTORY LOG IF ANY
+      await updateListingPoint(
+        true,
+        data.maker,
+        result.contract_address,
+        result.nft.token_id,
+        0,
+        0,
+        { strapi }
+      );
+
+      await updateFloorPrice({ strapi }, result.contract_address)
+        .then((_) => {
+          return updateOrdersCount({ strapi }, result.contract_address);
+        })
+        .catch((e) => console.error(e.message));
+    }
+  }
+
+  let buyOrderList = await strapi.db
+    .query("api::batch-buy-order.batch-buy-order")
+    .findMany({
+      where: {
+        $and: [
+          { is_cancelled: false },
+          { is_all_sold: false },
+          {
+            $not: {
+              hash_nonce: data.newHashNonce,
+            },
+          },
+          { maker: data.maker },
+        ],
       },
-    })
-    .catch((e) => console.error(e.message));
+      populate: {
+        collection: true,
+      },
+    });
+
+  if (buyOrderList && buyOrderList.length > 0) {
+    const contractAddresses = new Set();
+
+    for (let i = 0; i < buyOrderList.length; i++) {
+      const result = buyOrderList[i];
+      await strapi.entityService.update(
+        "api::batch-buy-order.batch-buy-order",
+        result.id,
+        {
+          data: {
+            is_cancelled: true,
+          },
+        }
+      );
+      contractAddresses.add(result.collection.contract_address);
+
+      await strapi.entityService
+        .create("api::nft-trade-log.nft-trade-log", {
+          data: {
+            ex_type: data.ex_type,
+            type: LOG_TYPE_CANCEL_OFFER,
+            from: data.maker,
+            tx_hash: data.tx_hash,
+            timestamp: dayjs().unix(),
+          },
+        })
+        .catch((e) =>
+          console.error(
+            `cancelProcessInWen (batch-buy-order) - create nft-trade-log - ${e.message}`
+          )
+        );
+    }
+
+    for (const address of contractAddresses) {
+      await updateBestOffer({
+        strapi,
+        contractAddress: address,
+      });
+    }
+  }
 };
 
 const cancelProcessInWen = async ({ data, strapi }) => {
   /**
    * 1. Order 가 있다면 지웁니다.
-   * 2. 오더가 지워진 경우 nft trade log 를 생성합니다.
-   * 3. collection floor price, orderscount 를 순서대로 업데이트 합니다.
+   * 1-1. 오더가 지워진 경우 nft trade log 를 생성합니다.
+   * 1-2. collection floor price, orderscount 를 순서대로 업데이트 합니다.
+   *
+   * 2. order에서 없다면, batch-buy-order에서 확인하고 지웁니다.
    */
-  const result = await strapi.db.query("api::order.order").delete({
+  let result = await strapi.db.query("api::order.order").delete({
     where: {
       $and: [
         {
@@ -590,6 +847,57 @@ const cancelProcessInWen = async ({ data, strapi }) => {
         return updateOrdersCount({ strapi }, result.contract_address);
       })
       .catch((e) => console.error(e.message));
+  } else {
+    result = await strapi.db
+      .query("api::batch-buy-order.batch-buy-order")
+      .findOne({
+        where: {
+          $and: [
+            {
+              maker: data.maker,
+            },
+            {
+              nonce: data.nonce,
+            },
+          ],
+        },
+        populate: {
+          collection: true,
+        },
+      });
+
+    if (result && result.id) {
+      await strapi.entityService.update(
+        "api::batch-buy-order.batch-buy-order",
+        result.id,
+        {
+          data: {
+            is_cancelled: true,
+          },
+        }
+      );
+
+      await strapi.entityService
+        .create("api::nft-trade-log.nft-trade-log", {
+          data: {
+            ex_type: data.ex_type,
+            type: LOG_TYPE_CANCEL_OFFER,
+            from: data.maker,
+            tx_hash: data.tx_hash,
+            timestamp: dayjs().unix(),
+          },
+        })
+        .catch((e) =>
+          console.error(
+            `cancelProcessInWen (batch-buy-order) - create nft-trade-log - ${e.message}`
+          )
+        );
+
+      await updateBestOffer({
+        strapi,
+        contractAddress: result.collection.contract_address,
+      });
+    }
   }
 };
 

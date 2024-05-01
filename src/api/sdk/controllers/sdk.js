@@ -9,11 +9,13 @@ const {
 const dayjs = require("dayjs");
 const {
   batchUpdateFloorPrice,
+  updateBestOffer,
 } = require("../../../listener/collectionStats.js");
 
 const {
   updateListingPoint,
 } = require("../../../utils/airdropPrePointHelper.js");
+const { SDK, EX_TYPE, WEN_ETH_ADDRESS } = require("../../../utils/constants");
 
 /**
  * A set of functions called "actions" for `sdk`
@@ -27,16 +29,18 @@ const ERROR_RESPONSE = 1234;
 const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
 const DEFAULT_PAGE_SIZE = 40;
 
-// TODO: TESTNET
-const WENETH_ADDRESS = "0x289Da9DE60f270c743848d287DDabA807C2c4722";
-// TODO: TESTNET
-const WENETH_TOKEN_ID = 6;
+
+const WENETH_TOKEN_ID = 5;
 
 //From SDK
-const SIGNATURE_TYPE_EIP712 = 0;
-const SIGNATURE_TYPE_PRESIGNED = 1;
-const SALEKIND_BatchSignedERC721Order = 3;
-const SALEKIND_ContractOffer = 7;
+const {
+  SIGNATURE_TYPE_EIP712,
+  SIGNATURE_TYPE_PRESIGNED,
+  SALEKIND_BatchSignedERC721Order,
+  SALEKIND_ContractOffer,
+  SALEKIND_KIND_BATCH_OFFER_ERC721S,
+} = SDK;
+
 const ORDERSIDE_BUY = 0;
 const ORDERSIDE_SELL = 1;
 
@@ -70,25 +74,20 @@ module.exports = {
   postBuyOrder: async (ctx, next) => {
     try {
       const data = ctx.request.body.data;
-      console.log("post order ", data);
+      // console.log("post order ", data);
       // 1. check if the user exist.
       // contractAddress 로 값을 찾아온다.
-      const user = await strapi.entityService.findMany(
-        "api::exchange-user.exchange-user",
-        {
-          filters: {
-            address: {
-              $eqi: data.maker,
-            },
-          },
-        }
-      );
-      if (user.length != 1) {
-        ctx.body = {
+      const user = await strapi.db.query("api::exchange-user.exchange-user").findOne({
+        where: {
+          address: data.maker,
+        },
+      });
+      if (!user) {
+        return ctx.body = {
           code: ERROR_RESPONSE,
           msg: `address ${data.maker} doesn't exist on db`,
         };
-        return;
+        
       }
 
       // 2. Check if the collection exist.
@@ -100,12 +99,12 @@ module.exports = {
           },
         });
 
-      if (collection == null) {
-        ctx.body = {
+      if (!collection ) {
+        return ctx.body = {
           code: ERROR_RESPONSE,
           msg: `contract ${data.metadata.asset.address} doesn't basePrice on collection table`,
         };
-        return;
+        
       }
 
       //
@@ -114,22 +113,17 @@ module.exports = {
       // Base price 는 fee를 뺀 금액
       // totalERC20Amount 는 fee를 더한 금액
       const totalERC20Amount = BigInt(data.totalERC20Amount);
-      const wenETHBalance = await getERC20Balance(WENETH_ADDRESS, data.maker);
-      console.log(
-        totalERC20Amount,
-        wenETHBalance,
-        wenETHBalance - totalERC20Amount
-      );
+      const wenETHBalance = await getERC20Balance(WEN_ETH_ADDRESS, data.maker);
 
       if (wenETHBalance - totalERC20Amount < 0) {
-        ctx.body = {
+        return (ctx.body = {
           code: ERROR_RESPONSE,
           msg: `address ${data.maker} doesn't have enough wenETH to place a bid`,
-        };
-        return;
+        });
       }
 
       // 4. Create Batch Order
+
       const single_price = (
         totalERC20Amount / BigInt(data.quantity)
       ).toString();
@@ -137,6 +131,11 @@ module.exports = {
         totalERC20Amount / BigInt(data.quantity)
       );
       let orderUuid = createUuidv4();
+
+      let token_id;
+      if (data.saleKind == 0) {
+        token_id = data.metadata.asset.id;
+      }
       let batchOrderObject = {
         order_id: orderUuid,
         maker: data.maker,
@@ -148,7 +147,11 @@ module.exports = {
         total_price: totalERC20Amount.toString(),
         total_price_in_eth: weiToEther(totalERC20Amount.toString()),
         single_price,
-        single_price_in_eth,
+        single_price_in_eth: single_price_in_eth,
+        sale_kind: data.saleKind,
+        nonce: data.nonce,
+        hash_nonce: data.hashNonce,
+        token_id,
       };
       const batchOrder = await strapi.entityService.create(
         "api::batch-buy-order.batch-buy-order",
@@ -156,8 +159,6 @@ module.exports = {
           data: batchOrderObject,
         }
       );
-
-      console.log("batch order! ", batchOrder);
 
       let createdOrderIds = [];
       for (let i = 0; i < data.quantity; i++) {
@@ -185,6 +186,7 @@ module.exports = {
         };
 
         //5. Create Orders by the quantity.
+        const order_id = createUuidv4();
         const order = await strapi.entityService.create(
           "api::buy-order.buy-order",
           {
@@ -202,7 +204,7 @@ module.exports = {
               total_price: totalERC20Amount.toString(),
               total_price_in_eth: weiToEther(totalERC20Amount.toString()),
               single_price,
-              single_price_in_eth,
+              single_price_eth: single_price_in_eth,
               expiration_time: data.expirationTime,
               listing_time: data.listingTime,
               batch_buy_order: batchOrder.id,
@@ -212,111 +214,327 @@ module.exports = {
               hash_nonce: data.hashNonce,
               standard: WEN_STANDARD,
               exchange_data: JSON.stringify(exchangeDataObject),
+              order_id: order_id,
             },
           }
         );
         createdOrderIds.push(order.id);
       }
 
-      console.log("buy orders has created: ", createdOrderIds);
-
-      ctx.body = {
+      await updateBestOffer({
+        strapi,
+        contractAddress: data.metadata.asset.address,
+      });
+      return (ctx.body = {
         data: { batchOrderObject, createdOrderIds },
+        code: SUCCESS_RESPONSE,
+      });
+    } catch (error) {
+      console.error(error.message);
+    }
+  },
+
+  getCollectionOfferWall: async (ctx, next) => {
+    try {
+      const { slug, offset, limit } = ctx.request.body.data;
+
+      // 2. Check if the collection exist.
+      const collection = await strapi.db
+        .query("api::collection.collection")
+        .findOne({
+          where: {
+            $and: [
+              {
+                slug,
+              },
+              {
+                publishedAt: {
+                  $notNull: true,
+                },
+              },
+            ],
+          },
+        });
+
+      if (collection == null) {
+        ctx.body = {
+          code: ERROR_RESPONSE,
+          msg: `contract ${data.contractAddress} doesn't exist on collection table`,
+        };
+        return;
+      }
+
+      const validOrderList = await getValidOrdersUpdateBatchOrder({
+        contractAddress: collection.contract_address,
+        offset,
+        limit,
+      });
+
+      // 3. Return
+      ctx.body = {
+        data: { validOrderList },
         code: SUCCESS_RESPONSE,
       };
       return;
-
-      // const userWenETHBalance =
-      /**
-       * post order  {
-  exchange: '0xd75104c9c2aec1594944c8f3a2858c62deeae91b',
-  maker: '0xe0c78c90e25165cf8707ece8664916d1ea0b7994',
-  taker: '0x0000000000000000000000000000000000000000',
-  side: 0,
-  saleKind: 8,
-  paymentToken: '0x289da9de60f270c743848d287ddaba807c2c4722',
-  quantity: '2',
-  basePrice: '20000000000000000',
-  extra: '2',
-  listingTime: 1712853721,
-  expirationTime: 1713458581,
-  metadata: {
-    asset: { id: '0', address: '0x0bf4a65d89ed719827e825fa7a130095da9fd68c' },
-    schema: 'ERC721'
+    } catch (error) {}
   },
-  fees: [
+
+  getMyBuyOrders: async (ctx, next) => {
+    try {
+      const data = ctx.request.body.data;
+
+      // 1. Get All Batch Buy Orders
+      const batchBuyOrders = await strapi.db
+        .query("api::batch-buy-order.batch-buy-order")
+        .findMany({
+          where: {
+            $and: [
+              {
+                maker: data.maker,
+              },
+              { is_cancelled: false },
+              { is_all_sold: false },
+            ],
+          },
+          orderBy: { single_price_in_eth: "DESC" },
+          populate: {
+            collection: {
+              select: ["id", "name", "logo_url", "airdrop_multiplier", "floor_price","best_offer" ]
+            },
+            buy_orders: {
+              select: ["id", "is_hidden", "is_sold", "token_id" , "order_hash"]
+            },
+          },
+        });
+
+      // 2. Update if any batch buy were expired.
+
+      const currentTs = dayjs().unix();
+
+      const myOffers = {};
+      for (let i = 0; i < batchBuyOrders.length; i++) {
+        const validOrderList = [];
+        const batchBuyOrder = batchBuyOrders[i];
+        if (batchBuyOrder.expiration_time < currentTs) {
+          await strapi.db.query("api::batch-buy-order.batch-buy-order").delete({
+              where: {
+                id: batchBuyOrder.id,
+              }
+            })
+        } else {
+          batchBuyOrder.buy_orders.forEach((buyOrder) => {
+            if (!buyOrder.is_hidden && !buyOrder.is_sold) {
+              validOrderList.push(buyOrder);
+            }
+          });
+        }
+        if (validOrderList.length > 0) {
+          myOffers[batchBuyOrder.buy_orders[0].order_hash] = {
+            count: validOrderList.length,
+            single_price_in_eth: batchBuyOrder.single_price_in_eth,
+            listing_time: batchBuyOrder.listing_time,
+            nonce: batchBuyOrder.nonce,
+            token_id: batchBuyOrder.buy_orders[0].token_id,
+            sale_kind: batchBuyOrder.sale_kind,
+            expiration_time: batchBuyOrder.expiration_time,
+            batch_buy_order_id: batchBuyOrder.id,
+            collection: batchBuyOrder.collection,
+          };
+
+          if (batchBuyOrder.sale_kind === 0) {
+            const nft = await strapi.db.query("api::nft.nft").findOne({
+              where: {
+                $and: [
+                  {
+                    collection: {
+                      id: batchBuyOrder.collection.id,
+                    }
+                  },
+                  {
+                    collection: {
+                      publishedAt: {
+                        $notNull: true
+                      }
+                    }
+                  },
+                  {
+                    token_id: batchBuyOrder.buy_orders[0].token_id
+                  }
+                ]
+              },
+              select: ["id", "name","image_url", "token_id"]
+            })
+            myOffers[batchBuyOrder.buy_orders[0].order_hash]["nft"] = nft
+          }
+        }
+      }
+
+      // 3. Return
+      ctx.body = {
+        data: myOffers,
+        code: SUCCESS_RESPONSE,
+      };
+      return;
+    } catch (error) {
+      console.error(error.message)
+    }
+  },
+
+  /**
+ * {
+  "chainMId": 1801,
+  "standards": ["element-ex-v3"],
+  "assetList": [
     {
-      recipient: '0x02d50300dad0b3f35540e593e508fad312786292',
-      amount: '1000000000000000',
-      feeData: '0x'
+      "tokenId": "1256",
+      "contractAddress": "0x64e38aa7515826bcc00cece38f57ca21b1495710",
+      "quantity": 1
     },
     {
-      recipient: '0xfb6fb1c53943d6797add7e4228c44c909e993023',
-      amount: '600000000000000',
-      feeData: '0x'
+      "tokenId": "1257",
+      "contractAddress": "0x64e38aa7515826bcc00cece38f57ca21b1495710",
+      "quantity": 1
     }
   ],
-  nonce: '15',
-  hashNonce: '0',
-  hash: '0xd4469d6b9b0681046617e251e355e3870ebb7a7c2b33a0272af0135455dd75f6',
-  signatureType: 0,
-  v: 27,
-  r: '0xeb579f755c893af271c640631d993686c6003261d2044099e8cc7f98a63935bb',
-  s: '0x77256d27ad58f235c5b4f0c6f28b1b80664cab755b8f131838cf87fca695ad14',
-  chain: 'wen',
-  properties: [
-    {
-      propertyValidator: '0x0000000000000000000000000000000000000000',
-      propertyData: '0x'
-    }
-  ]
-       */
+  "maker": "0xbafe2f03805148376bacb417f34773bad138e683"
+}
+ */
 
-      // { ExchangeData
-      //   order: {
-      //     maker: '0xb4752134bfacf63a918df8fabe65abf00cffff00',
-      //     taker: '0x0000000000000000000000000000000000000000',
-      //     expiry: '0x8000000000000000000000000000000000000000000000036614d7c3661e127a',
-      //     nonce: '6',
-      //     erc20Token: '0x4300000000000000000000000000000000000004',
-      //     erc20TokenAmount: '1116000000000000',
-      //     fees: [ [Object], [Object] ],
-      //     nft: '0x41951c1a94d068e1da124f63d5e99ee2a0acdaac',
-      //     nftId: '0',
-      //     nftProperties: [ [Object] ],
-      //     hashNonce: '0'
-      //   },
-      //   signature: {
-      //     signatureType: 0,
-      //     v: 27,
-      //     r: '0x9f69c62cf8cdc75b31564bcf89349405011d399931187652f2833ae01320a55f',
-      //     s: '0x66168f958fb95c48e5383e220cb9bea3e0030c78bc4d45caff7c4940c25e6405'
-      //   },
-      //   extraData: ''
-      // }
-      // const exchangeDataObject = {
-      //   basicCollections: data.basicCollections,
-      //   collections: data.collections,
-      //   startNonce: data.startNonce,
-      //   hashNonce: data.hashNonce,
-      //   platformFeeRecipient: data.platformFeeRecipient,
-      //   v: data.v,
-      //   r: data.r,
-      //   s: data.s,
-      //   listingTime: data.listingTime,
-      //   expirationTime: data.expirationTime,
-      //   maker: data.maker,
-      //   hash: data.hash,
-      //   paymentToken: data.paymentToken,
-      //   signatureType: SIGNATURE_TYPE_EIP712,
-      // };
-    } catch (error) {}
+  getSellMyNFTsInfo: async (ctx, next) => {
+    try {
+      const data = ctx.request.body.data;
+      // 1. Check if the maker is the user
+      const user = await strapi.db
+        .query("api::exchange-user.exchange-user")
+        .findMany({
+          where: {
+            address: data.maker,
+          },
+        });
+
+      if (!user) {
+        return (ctx.body = {
+          code: ERROR_RESPONSE,
+          msg: `address ${data.maker} doesn't exist on db`,
+        });
+      }
+
+      const assetListByContract = {};
+      // 2. Categorize by contract address
+      data.assetList.forEach((item) => {
+        if (!assetListByContract[item.contractAddress]) {
+          assetListByContract[item.contractAddress] = []; // 없다면 새 배열 생성
+        }
+        // 해당 키의 배열에 현재 아이템 추가
+        assetListByContract[item.contractAddress].push({
+          tokenId: item.tokenId,
+          quantity: item.quantity,
+        });
+      });
+
+      // 3. Find orders and match with the tokenId
+
+      const returnData = [];
+      for (const key in assetListByContract) {
+        if (Object.hasOwnProperty.call(assetListByContract, key)) {
+          let contractItems = assetListByContract[key];
+          const validOrderList = await getValidOrders({
+            contractAddress: key,
+            userAddress: data.maker,
+          });
+
+          contractItems = contractItems.map((item, index) => {
+            const isExistValidOrder = index < validOrderList.length;
+            return {
+              ...item,
+              order: isExistValidOrder ? validOrderList[index] : null,
+              contractAddress: key,
+            };
+          });
+          // Check if the single offer exist and change it if the offer is more expensive.
+
+          for (let index = 0; index < contractItems.length; index++) {
+            const item = contractItems[index];
+            const newOrders = await getValidSingleNFTOrders({
+              contractAddress: key,
+              userAddress: data.maker,
+              tokenId: item.tokenId,
+            });
+
+            if (newOrders.length > 0) {
+              if (item.order == null) {
+                contractItems[index] = {
+                  ...item,
+                  order: newOrders[0],
+                };
+              } else {
+                let originalOrder = item.order;
+                const newOrder = newOrders[0];
+                if (
+                  originalOrder.single_price_eth < newOrder.single_price_eth
+                ) {
+                  contractItems[index] = {
+                    ...item,
+                    order: newOrder,
+                  };
+                }
+              }
+            }
+          }
+
+          // contractItems = contractItems.map(async (item, index) => {
+          //   const newOrders = await getValidSingleNFTOrders({
+          //     contractAddress: key,
+          //     userAddress: data.maker,
+          //     tokenId: item.tokenId,
+          //   });
+
+          //   if (newOrders.length > 0) {
+          //     if (item.order == null) {
+          //       return {
+          //         ...item,
+          //         order: newOrders[0],
+          //       };
+          //     } else {
+          //       let originalOrder = item.order;
+          //       const newOrder = newOrders[0];
+          //       if (
+          //         originalOrder.single_price_eth < newOrder.single_price_eth
+          //       ) {
+          //         return {
+          //           ...item,
+          //           order: newOrder,
+          //         };
+          //       }
+          //     }
+          //   }
+          //   return {
+          //     ...item,
+          //   };
+          // });
+
+          returnData.push(...contractItems);
+        }
+      }
+
+      ctx.body = {
+        data: returnData,
+        code: SUCCESS_RESPONSE,
+      };
+      return;
+    } catch (error) {
+       strapi.entityService.create("api::error-log.error-log", {
+        data: {
+          error_detail:
+            "getSellMyNFTsInfo" + error.message + "\n" + error.toString(),
+        },
+      }).catch();
+    }
   },
 
   getOrdersNonce: async (ctx, next) => {
     try {
       const { maker, schema, count } = ctx.request.query;
-      console.log("getOrderNonce : ", maker, schema, count);
 
       let makerNonce;
       const uuid = createUuidv4();
@@ -357,7 +575,6 @@ module.exports = {
           {}
         );
       } else {
-        console.log("t", "no");
         ctx.body = {
           code: ERROR_RESPONSE,
           msg: `${maker} doesn't exist on db`,
@@ -424,11 +641,9 @@ module.exports = {
     }
   },
 
-  // TODO: 이 함수는 sell order만 처리
   postOrderBatch: async (ctx, next) => {
     try {
       const data = ctx.request.body.data;
-      console.log("post order ", data);
 
       // 1. check if the user exist.
       // contractAddress 로 값을 찾아온다.
@@ -872,8 +1087,11 @@ module.exports = {
         orderBy: [order],
       });
     } else {
+      andQueryList.push({
+        $or: orQueryList,
+      });
       r = await strapi.db.query("api::order.order").findPage({
-        where: { $and: andQueryList, $or: orQueryList },
+        where: { $and: andQueryList },
         pageSize: DEFAULT_PAGE_SIZE,
         page: page,
         orderBy: [order],
@@ -1021,7 +1239,6 @@ module.exports = {
         },
       });
 
-      console.log("orderData   :   ", orderData);
       if (orderData == null) {
         ctx.body = {
           code: ERROR_RESPONSE,
@@ -1072,8 +1289,8 @@ module.exports = {
   fetchBatchBuyExchangeDataByHash: async (ctx, next) => {
     const data = ctx.request.body.data;
 
-    const hashListWithNonce = [];
     const orderList = [];
+    const picked = [];
 
     // 1. get order data with orderHash
     for (let order of data.hashList) {
@@ -1085,6 +1302,7 @@ module.exports = {
               { order_hash: order.orderHash },
               { is_hidden: false },
               { is_sold: false },
+              ...picked,
             ],
           },
           populate: {
@@ -1094,7 +1312,6 @@ module.exports = {
           },
         });
 
-      console.log("orderData   :   ", orderData);
       if (orderData == null) {
         ctx.body = {
           code: ERROR_RESPONSE,
@@ -1102,6 +1319,11 @@ module.exports = {
         };
         return;
       } else {
+        picked.push({
+          $not: {
+            id: orderData.id,
+          },
+        });
         orderList.push({
           contractAddress: orderData.contract_address,
           tokenId: orderData.token_id,
@@ -1134,7 +1356,6 @@ module.exports = {
         });
       }
     }
-
     ctx.body = {
       data: {
         orderExchangeList: orderList,
@@ -1160,7 +1381,6 @@ async function checkIfUserExist(userAddress) {
     },
   });
 
-  console.log(userAddress);
   if (r == null) {
     throw new Error();
   }
@@ -1206,17 +1426,11 @@ async function getNftPrice(order, tokenId, contractAddress) {
         for (let item of collection.items) {
           if (item.nftId === tokenId) {
             return { result: true, price: item.erc20TokenAmount };
-          } else {
-            console.log("nono", item.nftId);
-          }
+          } 
         }
-      } else {
-        console.log("11", collection.nftAddress, contractAddress);
-      }
+      } 
     }
-  } else {
-    console.log("131");
-  }
+  } 
 
   if (collections) {
     for (let collection of collections) {
@@ -1286,7 +1500,6 @@ async function processItem(
         nftData.sell_order.id
       );
     } else {
-      console.log("no sell_order error", nftData.sell_order);
 
       throw new Error(
         `${collection.nftAddress} item id ${item.nftId} already has a sell order. Please cancel the previous sell order first.`
@@ -1319,6 +1532,7 @@ async function processItem(
       royalty_fee_point: collection.royaltyFee,
       protocol_fee_receiver: exchangeDataObject.platformFeeRecipient,
       protocol_fee_point: collection.platformFee,
+      hash_nonce: data.hashNonce,
     },
   });
 
@@ -1328,6 +1542,7 @@ async function processItem(
     "api::nft-trade-log.nft-trade-log",
     {
       data: {
+        ex_type: EX_TYPE.WEN,
         type: LOG_TYPE_LISTING,
         price: weiToEther(item.erc20TokenAmount.toString()),
         from: data.maker,
@@ -1397,6 +1612,193 @@ function processCollections(
     }
   }
   return { promise: Promise.all(operations), totalCount: itemCount };
+}
+
+async function getValidOrdersUpdateBatchOrder({
+  contractAddress,
+  offset,
+  limit,
+}) {
+  // 1. Get All Batch Buy Orders
+
+  let andList = [
+    {
+      collection: {
+        contract_address: contractAddress,
+      },
+    },
+    { is_cancelled: false },
+    { is_all_sold: false },
+    { sale_kind: SALEKIND_KIND_BATCH_OFFER_ERC721S },
+  ];
+  // exclude if the user is the maker of the batch buy order
+
+  const batchBuyOrders = await strapi.db
+    .query("api::batch-buy-order.batch-buy-order")
+    .findMany({
+      where: {
+        $and: andList,
+      },
+      orderBy: { single_price_in_eth: "desc" },
+      populate: {
+        collection: true,
+        buy_orders: true,
+      },
+      offset,
+      limit,
+    });
+
+  // 2. Update if any batch buy were expired.
+
+  const currentTs = dayjs().unix();
+
+  const validOrderList = [];
+  for (let i = 0; i < batchBuyOrders.length; i++) {
+    const batchBuyOrder = batchBuyOrders[i];
+    if (batchBuyOrder.expiration_time < currentTs) {
+      await strapi.db.query("api::batch-buy-order.batch-buy-order").delete({
+        where: {
+          id: batchBuyOrder.id,
+        }
+      })
+
+    } else {
+      for (let i = 0; i < batchBuyOrder.buy_orders.length; i++) {
+        const buyOrder = batchBuyOrder.buy_orders[i];
+        if (!buyOrder.is_hidden && !buyOrder.is_sold) {
+          validOrderList.push(buyOrder);
+        }
+      }
+    }
+  }
+  return validOrderList;
+}
+async function getValidOrders({ contractAddress, userAddress }) {
+  // 1. Get All Batch Buy Orders
+
+  let andList = [
+    {
+      collection: {
+        contract_address: contractAddress,
+      },
+    },
+    { is_cancelled: false },
+    { is_all_sold: false },
+    { sale_kind: SALEKIND_KIND_BATCH_OFFER_ERC721S },
+    {
+      $not: {
+        maker: userAddress,
+      },
+    },
+  ];
+
+  const batchBuyOrders = await strapi.db
+    .query("api::batch-buy-order.batch-buy-order")
+    .findMany({
+      where: {
+        $and: andList,
+      },
+      orderBy: { single_price_in_eth: "DESC" },
+      populate: {
+        collection: true,
+        buy_orders: {
+          populate: {
+            token: true,
+          },
+        },
+      },
+    });
+
+  // 2. Update if any batch buy were expired.
+
+  const currentTs = dayjs().unix();
+
+  const validOrderList = [];
+  for (let i = 0; i < batchBuyOrders.length; i++) {
+    const batchBuyOrder = batchBuyOrders[i];
+    if (batchBuyOrder.expiration_time < currentTs) {
+      await strapi.db.query("api::batch-buy-order.batch-buy-order").delete({
+        where: {
+          id: batchBuyOrder.id,
+        }
+      })
+
+    } else {
+      for (let i = 0; i < batchBuyOrder.buy_orders.length; i++) {
+        const buyOrder = batchBuyOrder.buy_orders[i];
+        if (!buyOrder.is_hidden && !buyOrder.is_sold) {
+          validOrderList.push(buyOrder);
+        }
+      }
+    }
+  }
+  return validOrderList;
+}
+
+async function getValidSingleNFTOrders({
+  contractAddress,
+  userAddress,
+  tokenId,
+}) {
+  // 1. Get All Batch Buy Orders
+
+  let andList = [
+    {
+      collection: {
+        contract_address: contractAddress,
+      },
+    },
+    { is_cancelled: false },
+    { is_all_sold: false },
+    { sale_kind: 0 },
+    {
+      $not: {
+        maker: userAddress,
+      },
+    },
+    { token_id: tokenId },
+  ];
+
+  const batchBuyOrders = await strapi.db
+    .query("api::batch-buy-order.batch-buy-order")
+    .findMany({
+      where: {
+        $and: andList,
+      },
+      orderBy: { single_price_in_eth: "DESC" },
+      populate: {
+        collection: true,
+        buy_orders: {
+          populate: {
+            token: true,
+          },
+        },
+      },
+    });
+
+  // 2. Update if any batch buy were expired.
+
+  const currentTs = dayjs().unix();
+
+  const validOrderList = [];
+  for (let i = 0; i < batchBuyOrders.length; i++) {
+    const batchBuyOrder = batchBuyOrders[i];
+    if (batchBuyOrder.expiration_time < currentTs) {
+      await strapi.db.query("api::batch-buy-order.batch-buy-order").delete({
+        where: {
+          id: batchBuyOrder.id,
+        }
+      })
+    } else {
+      for (let i = 0; i < batchBuyOrder.buy_orders.length; i++) {
+        const buyOrder = batchBuyOrder.buy_orders[i];
+        if (!buyOrder.is_hidden && !buyOrder.is_sold) {
+          validOrderList.push(buyOrder);
+        }
+      }
+    }
+  }
+  return validOrderList;
 }
 
 function getPlaneHash(orderHash) {

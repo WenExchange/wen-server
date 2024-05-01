@@ -206,6 +206,13 @@ const checkIsValidBuyOrderSaleAndGetData = async ({ strapi, data }) => {
           },
           {
             collection: { contract_address: data.contract_address },
+          },
+          {
+            collection: {
+              publishedAt: {
+                $notNull: true
+              }
+            }
           }
         ]
       },

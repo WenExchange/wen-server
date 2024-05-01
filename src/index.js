@@ -20,6 +20,7 @@ var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
 const DiscordManager = require("./discord/DiscordManager");
 const ExchangeContractQueueManager = require("./queue-manager/ExchangeContractQueueManager");
 const NFTMintingQueueManager = require("./queue-manager/NFTMintingQueueManager");
+const { getNFTsAndUpdateOwnerOfNFTs } = require("./utils/updateOwner");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -39,6 +40,7 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
+      await getNFTsAndUpdateOwnerOfNFTs({strapi})
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
         const nmqm = NFTMintingQueueManager.getInstance(strapi);

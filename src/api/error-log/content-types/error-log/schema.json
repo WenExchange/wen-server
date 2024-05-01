@@ -1,0 +1,18 @@
+{
+  "kind": "collectionType",
+  "collectionName": "error_logs",
+  "info": {
+    "singularName": "error-log",
+    "pluralName": "error-logs",
+    "displayName": "ErrorLog"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "error_detail": {
+      "type": "text"
+    }
+  }
+}

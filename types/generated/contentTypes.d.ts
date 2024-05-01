@@ -932,7 +932,6 @@ export interface ApiBatchBuyOrderBatchBuyOrder extends Schema.CollectionType {
     >;
     is_cancelled: Attribute.Boolean & Attribute.DefaultTo<false>;
     is_all_sold: Attribute.Boolean & Attribute.DefaultTo<false>;
-    is_expired: Attribute.Boolean & Attribute.DefaultTo<false>;
     listing_time: Attribute.BigInteger;
     expiration_time: Attribute.BigInteger;
     maker: Attribute.String;
@@ -948,6 +947,10 @@ export interface ApiBatchBuyOrderBatchBuyOrder extends Schema.CollectionType {
     single_price: Attribute.BigInteger;
     single_price_in_eth: Attribute.Float;
     taker: Attribute.String;
+    sale_kind: Attribute.Integer;
+    hash_nonce: Attribute.BigInteger;
+    nonce: Attribute.BigInteger;
+    token_id: Attribute.BigInteger;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1019,6 +1022,7 @@ export interface ApiBuyOrderBuyOrder extends Schema.CollectionType {
     total_price: Attribute.String;
     hash_nonce: Attribute.BigInteger;
     base_price: Attribute.BigInteger;
+    order_id: Attribute.String & Attribute.Required;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1116,6 +1120,8 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     airdrop_multiplier: Attribute.Decimal & Attribute.DefaultTo<1>;
     change_7d: Attribute.Float;
     creator_address: Attribute.String;
+    best_offer: Attribute.Float & Attribute.DefaultTo<0>;
+    is_launchpad: Attribute.Boolean & Attribute.DefaultTo<false>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -1228,6 +1234,36 @@ export interface ApiEarlyUserEarlyUser extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::early-user.early-user',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiErrorLogErrorLog extends Schema.CollectionType {
+  collectionName: 'error_logs';
+  info: {
+    singularName: 'error-log';
+    pluralName: 'error-logs';
+    displayName: 'ErrorLog';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    error_detail: Attribute.Text;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::error-log.error-log',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::error-log.error-log',
       'oneToOne',
       'admin::user'
     > &
@@ -1412,6 +1448,7 @@ export interface ApiNftTradeLogNftTradeLog extends Schema.CollectionType {
       'oneToOne',
       'api::token.token'
     >;
+    buy_order_hash: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1474,6 +1511,7 @@ export interface ApiOrderOrder extends Schema.CollectionType {
     royalty_fee_receiver: Attribute.String;
     protocol_fee_point: Attribute.Integer;
     royalty_fee_point: Attribute.Integer;
+    hash_nonce: Attribute.BigInteger;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<
@@ -1558,6 +1596,40 @@ export interface ApiTokenToken extends Schema.CollectionType {
       Attribute.Private;
     updatedBy: Attribute.Relation<
       'api::token.token',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
+export interface ApiWenEthBalanceChangeLogWenEthBalanceChangeLog
+  extends Schema.CollectionType {
+  collectionName: 'wen_eth_balance_change_logs';
+  info: {
+    singularName: 'wen-eth-balance-change-log';
+    pluralName: 'wen-eth-balance-change-logs';
+    displayName: 'WenETH Balance Change Log';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    from: Attribute.String;
+    to: Attribute.String;
+    amount: Attribute.String;
+    type: Attribute.String;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    publishedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::wen-eth-balance-change-log.wen-eth-balance-change-log',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::wen-eth-balance-change-log.wen-eth-balance-change-log',
       'oneToOne',
       'admin::user'
     > &
@@ -1662,6 +1734,7 @@ declare module '@strapi/types' {
       'api::collection.collection': ApiCollectionCollection;
       'api::collection-stat-log.collection-stat-log': ApiCollectionStatLogCollectionStatLog;
       'api::early-user.early-user': ApiEarlyUserEarlyUser;
+      'api::error-log.error-log': ApiErrorLogErrorLog;
       'api::exchange-user.exchange-user': ApiExchangeUserExchangeUser;
       'api::featured-item.featured-item': ApiFeaturedItemFeaturedItem;
       'api::nft.nft': ApiNftNft;
@@ -1669,6 +1742,7 @@ declare module '@strapi/types' {
       'api::order.order': ApiOrderOrder;
       'api::request-log.request-log': ApiRequestLogRequestLog;
       'api::token.token': ApiTokenToken;
+      'api::wen-eth-balance-change-log.wen-eth-balance-change-log': ApiWenEthBalanceChangeLogWenEthBalanceChangeLog;
       'api::wen-og-pass-stat.wen-og-pass-stat': ApiWenOgPassStatWenOgPassStat;
       'api::wen-trade-pool-stat.wen-trade-pool-stat': ApiWenTradePoolStatWenTradePoolStat;
     }

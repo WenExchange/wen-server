@@ -26,10 +26,6 @@
       "type": "boolean",
       "default": false
     },
-    "is_expired": {
-      "type": "boolean",
-      "default": false
-    },
     "listing_time": {
       "type": "biginteger"
     },
@@ -64,6 +60,18 @@
     },
     "taker": {
       "type": "string"
+    },
+    "sale_kind": {
+      "type": "integer"
+    },
+    "hash_nonce": {
+      "type": "biginteger"
+    },
+    "nonce": {
+      "type": "biginteger"
+    },
+    "token_id": {
+      "type": "biginteger"
     }
   }
 }

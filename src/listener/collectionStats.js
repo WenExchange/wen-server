@@ -1,3 +1,6 @@
+const { SDK } = require("../utils/constants");
+const { SALEKIND_KIND_BATCH_OFFER_ERC721S } = SDK;
+
 async function batchUpdateFloorPrice({ strapi, addressList }) {
   for (let address of addressList) {
     // don't use await. just send it to server.
@@ -54,14 +57,91 @@ async function updateFloorPrice({ strapi }, contractAddress) {
   } else {
     // If there is no Order data, set the floor_price to 0
 
-    const entry = await strapi.db.query('api::collection.collection').update({
+    const entry = await strapi.db.query("api::collection.collection").update({
       where: { contract_address: contractAddress },
       data: {
         floor_price: 0,
       },
     });
-    
+
     console.log("no order data", contractAddress);
+  }
+}
+
+async function updateBestOffer({ strapi, contractAddress }) {
+  try {
+    const orderData = await strapi.db.query("api::buy-order.buy-order").findOne({
+      where: {
+        $and: [
+          {
+            collection: {
+              contract_address: contractAddress,
+            },
+          },
+          {
+            collection: {
+              publishedAt: {
+                $notNull: true
+              }
+            }
+          },
+          {
+            batch_buy_order: { is_cancelled: false },
+          },
+          {
+            batch_buy_order:  { is_all_sold: false },
+          },
+          {
+            batch_buy_order:  { sale_kind: SALEKIND_KIND_BATCH_OFFER_ERC721S },
+          },
+          {
+            is_hidden: false,
+          },
+          {
+            is_sold: false
+          }
+         
+        ]
+      },
+      orderBy: {
+        single_price_eth: "desc",
+      },
+      populate: {
+        collection :{
+          select: ["id", "best_offer"]
+        },
+      },
+    });
+  
+
+    if (orderData) {
+      let prevBestOffer = Number(orderData?.collection.best_offer);
+      if (Number.isNaN(prevBestOffer)) prevBestOffer = 0;
+
+      let currentBestOffer = Number(orderData?.single_price_eth)
+      if (Number.isNaN(currentBestOffer)) currentBestOffer = 0
+
+      console.log("update best offer : ", prevBestOffer, currentBestOffer);
+
+      if (prevBestOffer !== currentBestOffer) {
+        await strapi.db.query("api::collection.collection").update({
+          where: { id: orderData.collection.id },
+          data: {
+            best_offer: currentBestOffer,
+          },
+        });
+      }
+    } else {
+      // If there is no Order data, set the floor_price to 0
+      await strapi.db.query("api::collection.collection").update({
+        where: { contract_address: contractAddress },
+        data: {
+          best_offer: 0,
+        },
+      });
+    }
+  } catch (error) {
+    console.error(error.message);
   }
 }
 
@@ -193,6 +273,7 @@ async function update1hourStat({ strapi }, collection_address) {
 module.exports = {
   batchUpdateFloorPrice,
   updateFloorPrice,
+  updateBestOffer,
   updateOwnerCount,
   updateOrdersCount,
   update1hourStat,

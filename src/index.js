@@ -1,6 +1,7 @@
 "use strict";
 require("dotenv").config();
 const axios = require("axios");
+
 const {
   SERVER_TYPE,
   jsonRpcProvider,
@@ -8,9 +9,10 @@ const {
 } = require("./utils/constants");
 const { createTransferListener } = require("./listener/blockchainListener");
 const CollectionCacheManager = require("./cache-managers/CollectionCacheManager");
-const TokenTransferQueueManager = require("./queue-manager/TokenTransferQueueManager")
-const ElementContractQueueManager = require("./queue-manager/ElementContractQueueManager")
-const WenContractQueueManager = require("./queue-manager/WenContractQueueManager")
+const TokenTransferQueueManager = require("./queue-manager/TokenTransferQueueManager");
+const ElementContractQueueManager = require("./queue-manager/ElementContractQueueManager");
+const WenContractQueueManager = require("./queue-manager/WenContractQueueManager");
+const wenETHContractQueueManager = require("./queue-manager/wenETHContractQueueManager");
 
 const dayjs = require("dayjs");
 var utc = require("dayjs/plugin/utc");
@@ -30,6 +32,7 @@ module.exports = {
    * This gives you an opportunity to extend code.
    */
   register({ strapi }) {
+
     const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
     if (isBOTServer) {
     }
@@ -37,17 +40,15 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
-      
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
-  
-
-      const nmqm = NFTMintingQueueManager.getInstance(strapi)
-      const tqm = TokenTransferQueueManager.getInstance(strapi)
-      const excqm = ExchangeContractQueueManager.getInstance(strapi)
-      const ecqm = ElementContractQueueManager.getInstance(strapi)
-      const wcqm = WenContractQueueManager.getInstance(strapi)
-      const ccm = CollectionCacheManager.getInstance(strapi);
+        const nmqm = NFTMintingQueueManager.getInstance(strapi);
+        const tqm = TokenTransferQueueManager.getInstance(strapi);
+        const excqm = ExchangeContractQueueManager.getInstance(strapi);
+        const ecqm = ElementContractQueueManager.getInstance(strapi);
+        const wcqm = WenContractQueueManager.getInstance(strapi);
+        const ccm = CollectionCacheManager.getInstance(strapi);
+        wenETHContractQueueManager.getInstance(strapi)
 
         createTransferListener({ strapi }).catch((e) => {
           strapi.log.error(`createTransferListener error - ${e.message}`);
@@ -59,13 +60,10 @@ module.exports = {
   },
 
   async destroy() {
-    const dm = DiscordManager.getInstance()
-    const error = new Error("Server is closed")
+    const dm = DiscordManager.getInstance();
+    const error = new Error("Server is closed");
     try {
-      dm.logError({error, identifier: "LifeCycle - Destory"})
-    } catch (error) {
-      
-    }
-    
-  }
+      dm.logError({ error, identifier: "LifeCycle - Destory" });
+    } catch (error) {}
+  },
 };

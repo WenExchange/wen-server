@@ -29,7 +29,6 @@ const ERROR_RESPONSE = 1234;
 const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
 const DEFAULT_PAGE_SIZE = 40;
 
-
 const WENETH_TOKEN_ID = 5;
 
 //From SDK
@@ -77,17 +76,18 @@ module.exports = {
       // console.log("post order ", data);
       // 1. check if the user exist.
       // contractAddress 로 값을 찾아온다.
-      const user = await strapi.db.query("api::exchange-user.exchange-user").findOne({
-        where: {
-          address: data.maker,
-        },
-      });
+      const user = await strapi.db
+        .query("api::exchange-user.exchange-user")
+        .findOne({
+          where: {
+            address: data.maker,
+          },
+        });
       if (!user) {
-        return ctx.body = {
+        return (ctx.body = {
           code: ERROR_RESPONSE,
           msg: `address ${data.maker} doesn't exist on db`,
-        };
-        
+        });
       }
 
       // 2. Check if the collection exist.
@@ -99,12 +99,11 @@ module.exports = {
           },
         });
 
-      if (!collection ) {
-        return ctx.body = {
+      if (!collection) {
+        return (ctx.body = {
           code: ERROR_RESPONSE,
           msg: `contract ${data.metadata.asset.address} doesn't basePrice on collection table`,
-        };
-        
+        });
       }
 
       //
@@ -299,10 +298,17 @@ module.exports = {
           orderBy: { single_price_in_eth: "DESC" },
           populate: {
             collection: {
-              select: ["id", "name", "logo_url", "airdrop_multiplier", "floor_price","best_offer" ]
+              select: [
+                "id",
+                "name",
+                "logo_url",
+                "airdrop_multiplier",
+                "floor_price",
+                "best_offer",
+              ],
             },
             buy_orders: {
-              select: ["id", "is_hidden", "is_sold", "token_id" , "order_hash"]
+              select: ["id", "is_hidden", "is_sold", "token_id", "order_hash"],
             },
           },
         });
@@ -317,10 +323,10 @@ module.exports = {
         const batchBuyOrder = batchBuyOrders[i];
         if (batchBuyOrder.expiration_time < currentTs) {
           await strapi.db.query("api::batch-buy-order.batch-buy-order").delete({
-              where: {
-                id: batchBuyOrder.id,
-              }
-            })
+            where: {
+              id: batchBuyOrder.id,
+            },
+          });
         } else {
           batchBuyOrder.buy_orders.forEach((buyOrder) => {
             if (!buyOrder.is_hidden && !buyOrder.is_sold) {
@@ -348,23 +354,23 @@ module.exports = {
                   {
                     collection: {
                       id: batchBuyOrder.collection.id,
-                    }
+                    },
                   },
                   {
                     collection: {
                       publishedAt: {
-                        $notNull: true
-                      }
-                    }
+                        $notNull: true,
+                      },
+                    },
                   },
                   {
-                    token_id: batchBuyOrder.buy_orders[0].token_id
-                  }
-                ]
+                    token_id: batchBuyOrder.buy_orders[0].token_id,
+                  },
+                ],
               },
-              select: ["id", "name","image_url", "token_id"]
-            })
-            myOffers[batchBuyOrder.buy_orders[0].order_hash]["nft"] = nft
+              select: ["id", "name", "image_url", "token_id"],
+            });
+            myOffers[batchBuyOrder.buy_orders[0].order_hash]["nft"] = nft;
           }
         }
       }
@@ -376,7 +382,7 @@ module.exports = {
       };
       return;
     } catch (error) {
-      console.error(error.message)
+      console.error(error.message);
     }
   },
 
@@ -403,6 +409,8 @@ module.exports = {
   getSellMyNFTsInfo: async (ctx, next) => {
     try {
       const data = ctx.request.body.data;
+
+      console.log(data.standards);
       // 1. Check if the maker is the user
       const user = await strapi.db
         .query("api::exchange-user.exchange-user")
@@ -432,6 +440,8 @@ module.exports = {
         });
       });
 
+      console.log(JSON.stringify(assetListByContract));
+
       // 3. Find orders and match with the tokenId
 
       const returnData = [];
@@ -451,8 +461,8 @@ module.exports = {
               contractAddress: key,
             };
           });
-          // Check if the single offer exist and change it if the offer is more expensive.
 
+          // 각 아이템에 대해 최적의 offer 검색 및 적용
           for (let index = 0; index < contractItems.length; index++) {
             const item = contractItems[index];
             const newOrders = await getValidSingleNFTOrders({
@@ -461,58 +471,33 @@ module.exports = {
               tokenId: item.tokenId,
             });
 
-            if (newOrders.length > 0) {
-              if (item.order == null) {
-                contractItems[index] = {
-                  ...item,
-                  order: newOrders[0],
-                };
-              } else {
-                let originalOrder = item.order;
-                const newOrder = newOrders[0];
-                if (
-                  originalOrder.single_price_eth < newOrder.single_price_eth
-                ) {
-                  contractItems[index] = {
-                    ...item,
-                    order: newOrder,
-                  };
-                }
-              }
+            // 새로운 order가 기존 order보다 높은 경우에만 업데이트
+            if (
+              newOrders.length > 0 &&
+              newOrders[0].single_price_eth >
+                (item.order?.single_price_eth || 0)
+            ) {
+              contractItems[index] = {
+                ...item,
+                order: newOrders[0],
+                updated: true, // 새로운 order로 업데이트되었음을 표시
+              };
             }
           }
 
-          // contractItems = contractItems.map(async (item, index) => {
-          //   const newOrders = await getValidSingleNFTOrders({
-          //     contractAddress: key,
-          //     userAddress: data.maker,
-          //     tokenId: item.tokenId,
-          //   });
-
-          //   if (newOrders.length > 0) {
-          //     if (item.order == null) {
-          //       return {
-          //         ...item,
-          //         order: newOrders[0],
-          //       };
-          //     } else {
-          //       let originalOrder = item.order;
-          //       const newOrder = newOrders[0];
-          //       if (
-          //         originalOrder.single_price_eth < newOrder.single_price_eth
-          //       ) {
-          //         return {
-          //           ...item,
-          //           order: newOrder,
-          //         };
-          //       }
-          //     }
-          //   }
-          //   return {
-          //     ...item,
-          //   };
-          // });
-
+          let index = 0;
+          contractItems = contractItems.map((item) => {
+            if (!item.updated) {
+              // 업데이트되지 않은 아이템만 처리
+              const isExistValidOrder = index < validOrderList.length;
+              return {
+                ...item,
+                order: isExistValidOrder ? validOrderList[index++] : item.order,
+                contractAddress: key,
+              };
+            }
+            return item; // 이미 업데이트된 아이템은 변경하지 않음
+          });
           returnData.push(...contractItems);
         }
       }
@@ -523,12 +508,13 @@ module.exports = {
       };
       return;
     } catch (error) {
-       strapi.entityService.create("api::error-log.error-log", {
+      console.log("Error : ", error.message);
+      await strapi.entityService.create("api::error-log.error-log", {
         data: {
           error_detail:
             "getSellMyNFTsInfo" + error.message + "\n" + error.toString(),
         },
-      }).catch();
+      });
     }
   },
 
@@ -1426,11 +1412,11 @@ async function getNftPrice(order, tokenId, contractAddress) {
         for (let item of collection.items) {
           if (item.nftId === tokenId) {
             return { result: true, price: item.erc20TokenAmount };
-          } 
+          }
         }
-      } 
+      }
     }
-  } 
+  }
 
   if (collections) {
     for (let collection of collections) {
@@ -1500,7 +1486,6 @@ async function processItem(
         nftData.sell_order.id
       );
     } else {
-
       throw new Error(
         `${collection.nftAddress} item id ${item.nftId} already has a sell order. Please cancel the previous sell order first.`
       );
@@ -1659,9 +1644,8 @@ async function getValidOrdersUpdateBatchOrder({
       await strapi.db.query("api::batch-buy-order.batch-buy-order").delete({
         where: {
           id: batchBuyOrder.id,
-        }
-      })
-
+        },
+      });
     } else {
       for (let i = 0; i < batchBuyOrder.buy_orders.length; i++) {
         const buyOrder = batchBuyOrder.buy_orders[i];
@@ -1720,9 +1704,8 @@ async function getValidOrders({ contractAddress, userAddress }) {
       await strapi.db.query("api::batch-buy-order.batch-buy-order").delete({
         where: {
           id: batchBuyOrder.id,
-        }
-      })
-
+        },
+      });
     } else {
       for (let i = 0; i < batchBuyOrder.buy_orders.length; i++) {
         const buyOrder = batchBuyOrder.buy_orders[i];
@@ -1787,8 +1770,8 @@ async function getValidSingleNFTOrders({
       await strapi.db.query("api::batch-buy-order.batch-buy-order").delete({
         where: {
           id: batchBuyOrder.id,
-        }
-      })
+        },
+      });
     } else {
       for (let i = 0; i < batchBuyOrder.buy_orders.length; i++) {
         const buyOrder = batchBuyOrder.buy_orders[i];

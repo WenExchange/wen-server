@@ -10,6 +10,7 @@ const {
   getERC20Balance,
 } = require("../api/sdk/controllers/blockchainHelper");
 const { updateBestOffer } = require("./collectionStats");
+const { WEN_ETH_ADDRESS } = require("../utils/constants");
 
 const updateUserBatchOrderStatus = async ({ strapi, user }) => {
   // 1. Check if the user is wen exchange user
@@ -26,10 +27,8 @@ const updateUserBatchOrderStatus = async ({ strapi, user }) => {
   }
 
   // 1. Get User's current wenETH Balance
-  // TODO: TESTNET
-  const WENETH_ADDRESS = "0x289Da9DE60f270c743848d287DDabA807C2c4722";
   const wenETHBalance = BigNumber.from(
-    (await getERC20Balance(WENETH_ADDRESS, user)).toString()
+    (await getERC20Balance(WEN_ETH_ADDRESS, user)).toString()
   );
 
   // 2. Get All Batch Buy Orders
@@ -161,10 +160,8 @@ const updateUserBatchOrderStatusWithoutUpdateBestOffer = async ({ strapi, user }
   }
 
   // 1. Get User's current wenETH Balance
-  // TODO: TESTNET
-  const WENETH_ADDRESS = "0x289Da9DE60f270c743848d287DDabA807C2c4722";
   const wenETHBalance = BigNumber.from(
-    (await getERC20Balance(WENETH_ADDRESS, user)).toString()
+    (await getERC20Balance(WEN_ETH_ADDRESS, user)).toString()
   );
 
   // 2. Get All Batch Buy Orders

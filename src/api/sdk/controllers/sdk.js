@@ -15,7 +15,7 @@ const {
 const {
   updateListingPoint,
 } = require("../../../utils/airdropPrePointHelper.js");
-const { SDK, EX_TYPE } = require("../../../utils/constants");
+const { SDK, EX_TYPE, WEN_ETH_ADDRESS } = require("../../../utils/constants");
 
 /**
  * A set of functions called "actions" for `sdk`
@@ -29,10 +29,8 @@ const ERROR_RESPONSE = 1234;
 const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
 const DEFAULT_PAGE_SIZE = 40;
 
-// TODO: TESTNET
-const WENETH_ADDRESS = "0x289Da9DE60f270c743848d287DDabA807C2c4722";
-// TODO: TESTNET
-const WENETH_TOKEN_ID = 6;
+
+const WENETH_TOKEN_ID = 5;
 
 //From SDK
 const {
@@ -115,7 +113,7 @@ module.exports = {
       // Base price 는 fee를 뺀 금액
       // totalERC20Amount 는 fee를 더한 금액
       const totalERC20Amount = BigInt(data.totalERC20Amount);
-      const wenETHBalance = await getERC20Balance(WENETH_ADDRESS, data.maker);
+      const wenETHBalance = await getERC20Balance(WEN_ETH_ADDRESS, data.maker);
 
       if (wenETHBalance - totalERC20Amount < 0) {
         return (ctx.body = {

@@ -1312,7 +1312,6 @@ export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
     total_sale_point: Attribute.Float;
     total_bidding_point: Attribute.Float;
     total_listing_point: Attribute.Float;
-    weneth_balance: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

@@ -28,7 +28,7 @@ const listingCollectionScript = async ({address, strapi}) => {
       const name = metadataInfo.name;
       const total_supply = metadataInfo.total_supply;
       const token_type = metadataInfo.isERC721 ? "ERC721" : "ERC1155";
-      return createCollection({
+      collection = await  createCollection({
         strapi,
         contract_address: address,
         creator_address,

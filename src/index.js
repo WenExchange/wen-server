@@ -21,6 +21,7 @@ const DiscordManager = require("./discord/DiscordManager");
 const ExchangeContractQueueManager = require("./queue-manager/ExchangeContractQueueManager");
 const NFTMintingQueueManager = require("./queue-manager/NFTMintingQueueManager");
 const { getNFTsAndUpdateOwnerOfNFTs } = require("./utils/updateOwner");
+const { listingCollectionScript } = require("./utils/listing-script");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -40,7 +41,11 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
-      await getNFTsAndUpdateOwnerOfNFTs({strapi})
+      const ccm = CollectionCacheManager.getInstance(strapi);
+
+            await getNFTsAndUpdateOwnerOfNFTs({strapi})
+            // await listingCollectionScript({strapi, address: "0x1195cf65f83b3a5768f3c496d3a05ad6412c64b7"})
+
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
         const nmqm = NFTMintingQueueManager.getInstance(strapi);
@@ -48,7 +53,7 @@ module.exports = {
         const excqm = ExchangeContractQueueManager.getInstance(strapi);
         const ecqm = ElementContractQueueManager.getInstance(strapi);
         const wcqm = WenContractQueueManager.getInstance(strapi);
-        const ccm = CollectionCacheManager.getInstance(strapi);
+      
         wenETHContractQueueManager.getInstance(strapi)
 
         createTransferListener({ strapi }).catch((e) => {

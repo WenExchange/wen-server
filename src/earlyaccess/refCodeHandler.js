@@ -1,6 +1,5 @@
 
 const voucher_codes = require('voucher-code-generator');
-const fs = require('fs/promises');
 
 
 const createRefCode = () => {

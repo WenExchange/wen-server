@@ -20,8 +20,6 @@ const {
 const { collectionDeployerERC721And1155Listener } = require("./collectionDeployerERC721And1155Listener");
 
 
-
-
 async function createTransferListener({ strapi }) {
   console.log("[TRANSFER EVENT LISTENING ON]");
   
@@ -36,9 +34,6 @@ async function createTransferListener({ strapi }) {
   jsonRpcProvider.on(filter, async (log, _) => {
     await transferListener({log, strapi})
   });
-
-
-  
 
   /** Mintify , Opensea */
   const excqm = ExchangeContractQueueManager.getInstance(strapi)

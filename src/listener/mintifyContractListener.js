@@ -1,5 +1,4 @@
 const { ethers, BigNumber } = require("ethers");
-const fs = require("fs").promises;
 
 const dayjs = require("dayjs");
 const DiscordManager = require("../discord/DiscordManager");

@@ -6,7 +6,9 @@ const {
   AIRDROP_TYPE,
 } = require("../../../utils/constants");
 const ERC721 = require("../../../web3/abis/ERC721.json");
-const tinfunHolders = require("../../../tinfun.json")
+const twitterEvent1 = require("../../../twitterEvent1.json")
+const {getSelect}  = require("../../../utils/querySelectHelpers")
+const schema = require("../content-types/exchange-user/schema.json")
 /**
  * exchange-user controller
  */
@@ -24,7 +26,7 @@ module.exports = createCoreController(
             message,
             signature
           );
-
+          const userSelect = getSelect({schema, filterSelect:["maker_nonce", "hash_nonce","signature" ]})
           if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
             return (ctx.body = {
               success: false,
@@ -36,9 +38,7 @@ module.exports = createCoreController(
             .query("api::exchange-user.exchange-user")
             .findOne({
               where: { address },
-              populate: {
-                early_user: true
-              }
+              select: userSelect
             });
 
           const currentTimestamp = Date.now();
@@ -54,20 +54,19 @@ module.exports = createCoreController(
                   at_last_login: isoString,
                   signature
                 },
+                select: userSelect
               }
             ).catch(e => console.error(e.message));
           } else {
-            user = await strapi.entityService.create(
-              "api::exchange-user.exchange-user",
+            
+            user = await strapi.db.query("api::exchange-user.exchange-user").create(
               {
                 data: {
                   address: address.toLowerCase(),
                   signature,
                   at_last_login: isoString,
                 },
-                populate: {
-                  early_user: true
-                }
+                select: userSelect
               }
             );
           }
@@ -390,7 +389,7 @@ module.exports = createCoreController(
       }
     },
 
-    async tinfunEvent(ctx) {
+    async checkEligibilityAndClaimBox(ctx) {
       {
         try {
 
@@ -407,11 +406,12 @@ module.exports = createCoreController(
             });
           }
 
+          const userSelect = getSelect({schema, filterSelect:["maker_nonce", "hash_nonce","signature" ]})
+
           let user = await strapi.db
             .query("api::exchange-user.exchange-user")
             .findOne({
               where: { address },
-              
             });
 
           if (!user) {
@@ -421,32 +421,45 @@ module.exports = createCoreController(
             });
           }
 
-          if (user.box_unrevealed > 0) {
+          if (user.is_event1 === true) {
             return (ctx.body = {
-              success: true,
+              success: false,
               message: "You have already received the box.",
             });
           }
 
-          if (tinfunHolders.includes(user.address.toLowerCase())) {
-            const updatedUser = await strapi.db
+          const eventAddresses = twitterEvent1.map(i => i.address.toLowerCase())
+          if (eventAddresses.includes(user.address.toLowerCase())) {
+            let prevBox = Number(user.box_unrevealed)
+            if (Number.isNaN(prevBox))  prevBox = 0
+            
+            const box_unrevealed = prevBox + 1
+            user = await strapi.db
             .query("api::exchange-user.exchange-user")
             .update({
-              where: { address },
+              where: { $and:[
+                {
+                  id: user.id
+                }, {
+                  address
+                }
+              ] },
               data: {
-                box_unrevealed: 1
-              }
+                box_unrevealed,
+                is_event1: true
+              },
+              select: userSelect
             });
 
             return (ctx.body = {
               success: true,
+              user
             });
-
           }
 
           return (ctx.body = {
             success: false,
-            message: "Your address was not included in the holder snapshot by TinFun team.",
+            message: "Your address was not included",
           });
           
           

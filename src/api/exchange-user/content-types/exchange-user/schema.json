@@ -90,6 +90,10 @@
     },
     "total_listing_point": {
       "type": "float"
+    },
+    "is_event1": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

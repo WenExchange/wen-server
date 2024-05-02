@@ -17,7 +17,6 @@ module.exports = ({ env }) => {
       enabled: isBOTServer,
       tasks: cronTasks,
     }
-  
   }
 };
 

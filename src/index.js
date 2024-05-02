@@ -23,7 +23,6 @@ const NFTMintingQueueManager = require("./queue-manager/NFTMintingQueueManager")
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-
 module.exports = {
   /**
    * An asynchronous register function that runs before

@@ -73,20 +73,17 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id }) =
 
       // 1.1 check exist nft
       const existNFT = await strapi.db.query("api::nft.nft").findOne({
-        populate: {
-          collection: true
-        },
         where: {
           $and: [
             {
-              collection: collection.id,
+              collection: {
+                id: collection.id
+              },
             },
             {
               token_id,
-            }
+            },
           ]
-          
-       
         }
       })
       if (existNFT) {
@@ -109,7 +106,7 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id }) =
           name: `${collection.name} #${token_id}`,
           image_url: "",
           traits: null,
-          
+          try_count: 1
         }
         console.log(`${metadata.name} NFT at Mint (invalid metadata)`);
 
@@ -158,13 +155,9 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id }) =
       // }
 
 
-      dm.logNFTMinting({ collection, createdNFT }).catch(
+      dm.logNFTMinting({ contract_address: collection.contract_address, createdNFT }).catch(
         (err) => console.error(err.message)
       );
-
-
-
-      // publish
       // publish
       if (
         !collection.publishedAt &&

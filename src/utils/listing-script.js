@@ -28,7 +28,7 @@ const listingCollectionScript = async ({address, strapi}) => {
       const name = metadataInfo.name;
       const total_supply = metadataInfo.total_supply;
       const token_type = metadataInfo.isERC721 ? "ERC721" : "ERC1155";
-      return createCollection({
+      collection = await createCollection({
         strapi,
         contract_address: address,
         creator_address,
@@ -70,6 +70,31 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id }) =
     console.log(`Start Create NFT at Mint`);
     const dm = DiscordManager.getInstance();
     try {
+
+      // 1.1 check exist nft
+      const existNFT = await strapi.db.query("api::nft.nft").findOne({
+        populate: {
+          collection: true
+        },
+        where: {
+          $and: [
+            {
+              collection: collection.id,
+            },
+            {
+              token_id,
+            }
+          ]
+          
+       
+        }
+      })
+      if (existNFT) {
+        console.log(`${existNFT.name} NFT already exist`);
+        return 
+      }
+
+      
       // 1. fetch metadata
       let metadata = await fetchMetadata({
         collectionContract,
@@ -92,30 +117,9 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id }) =
         console.log(`${metadata.name} NFT at Mint (valid metadata)`);
       }
       
-       // 1.1 check exist nft
-       const existNFT = await strapi.db.query("api::nft.nft").findOne({
-        populate: {
-          collection: true
-        },
-        where: {
-          $and: [
-            {
-              collection: collection.id,
-            },
-            {
-              token_id: metadata.token_id,
-            }
-          ]
-          
-       
-        }
-      })
-      if (existNFT) {
-        dm.logListingNFTError({ collection, tokenId:existNFT.token_id, error: new Error(`${existNFT.name} NFT already exist`)  }).catch(
-          (err) => console.error(err.message)
-        );
-        return 
-      }
+       if (collection.contract_address.toLowerCase() == "0x93446b332522fecd8da1cb4d7223afe7fb65cb92") {
+        image_url = "https://d1kb1oeulsx0pq.cloudfront.net/Geeq-logo.png"
+       }
 
       // 2. create NFT
       const createdNFT = await strapi.db.query("api::nft.nft")
@@ -127,31 +131,31 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id }) =
         }
       })
 
-      try {
-        await collectionContract
-          .totalSupply()
-          .then((_total_supply) => {
-            const total_supply = _total_supply.toNumber();
-            if (
-              !Number.isNaN(total_supply) &&
-              total_supply > 0 &&
-              collection.total_supply !== total_supply
-            ) {
-              return strapi.db.query("api::collection.collection")
-              .update({
-                where: {
-                  id: collection.id,
-                },
-                data: {
-                  total_supply
-                }
-              })
-            }
-          })
-          .catch();
-      } catch (error) {
-        console.error(`${collection.name} don't have totalSupply() - ${error.message}`)
-      }
+      // try {
+      //   await collectionContract
+      //     .totalSupply()
+      //     .then((_total_supply) => {
+      //       const total_supply = _total_supply.toNumber();
+      //       if (
+      //         !Number.isNaN(total_supply) &&
+      //         total_supply > 0 &&
+      //         collection.total_supply !== total_supply
+      //       ) {
+      //         return strapi.db.query("api::collection.collection")
+      //         .update({
+      //           where: {
+      //             id: collection.id,
+      //           },
+      //           data: {
+      //             total_supply
+      //           }
+      //         })
+      //       }
+      //     })
+      //     .catch();
+      // } catch (error) {
+      //   console.error(`${collection.name} don't have totalSupply() - ${error.message}`)
+      // }
 
 
       dm.logNFTMinting({ collection, createdNFT }).catch(

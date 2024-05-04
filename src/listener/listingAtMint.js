@@ -22,16 +22,10 @@ const createNFTAtMint = async ({ log, strapi }) => {
     const tokenId = Number(bigIntTokenId)
 
     const contract_address = log.address;
-    const existedCollection = await strapi.db.query("api::collection.collection")
-    .findOne({
-      where: {
-        contract_address
-      }
-    })
-
+    const ccm = CollectionCacheManager.getInstance(strapi)
+    const existedCollection = ccm.getCollectionByAddress(contract_address)
   if (!existedCollection) return;
-
-
+  
     console.log(`Start Create NFT at Mint`);
     const dm = DiscordManager.getInstance();
     try {

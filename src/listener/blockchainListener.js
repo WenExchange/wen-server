@@ -24,9 +24,7 @@ async function createTransferListener({ strapi }) {
   console.log("[TRANSFER EVENT LISTENING ON]");
   
   await jsonRpcProvider.removeAllListeners();
-
   /** Transfer */
-
   let filter = {
     topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId
   };

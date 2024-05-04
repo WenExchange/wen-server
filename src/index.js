@@ -21,6 +21,7 @@ const DiscordManager = require("./discord/DiscordManager");
 const ExchangeContractQueueManager = require("./queue-manager/ExchangeContractQueueManager");
 const NFTMintingQueueManager = require("./queue-manager/NFTMintingQueueManager");
 const { listingCollectionScript } = require("./utils/listing-script");
+const { nft_retry_metadata } = require("./cron/nft_retry");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -43,9 +44,8 @@ module.exports = {
 
       const ccm = CollectionCacheManager.getInstance(strapi);
       
-      await listingCollectionScript({strapi, address: "0x93446b332522fecd8da1cb4d7223afe7fb65cb92"})
-      await listingCollectionScript({strapi, address: "0x35809be168665456c6bc833b733f3c6110f587ac"})
-      
+      // await listingCollectionScript({strapi, address: "0xf3a4c9ce8ae7ca1505c72a393b302870dd40b754"})
+      // await nft_retry_metadata({strapi})
       
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {

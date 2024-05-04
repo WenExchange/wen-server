@@ -180,14 +180,14 @@ const createNFTAtMint = async ({ log, strapi }) => {
   }
 };
 
-const fetchMetadata = async ({ collectionContract, tokenId }) => {
+const fetchMetadata = async ({ collectionContract, tokenId, timeout=3 * 1000 }) => {
   try {
     let tokenURI = await collectionContract.tokenURI(tokenId);
     if (tokenURI.startsWith("ipfs://"))
       tokenURI = tokenURI.replace("ipfs://", IPFS.GATEWAY_URL);
 
     let metadata = await axios.get(tokenURI, {
-      timeout: 3 * 1000
+      timeout
     }).then((res) => res.data);
     if (Buffer.isBuffer(metadata)) {
       // Read Buffer Data

@@ -23,9 +23,8 @@ module.exports = {
 
       { // Path defined with an URL parameter
         method: 'POST',
-        path: '/exchange-user/tinfun',
-        handler: 'exchange-user.tinfunEvent',
+        path: '/exchange-user/checkEligibilityAndClaimBox',
+        handler: 'exchange-user.checkEligibilityAndClaimBox',
       },
-
     ]
   }

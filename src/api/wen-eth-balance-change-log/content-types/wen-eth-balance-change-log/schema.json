@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "wen_eth_balance_change_logs",
+  "info": {
+    "singularName": "wen-eth-balance-change-log",
+    "pluralName": "wen-eth-balance-change-logs",
+    "displayName": "WenETH Balance Change Log"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "from": {
+      "type": "string"
+    },
+    "to": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    }
+  }
+}

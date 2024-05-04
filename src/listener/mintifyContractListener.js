@@ -1,5 +1,4 @@
 const { ethers, BigNumber } = require("ethers");
-const fs = require("fs").promises;
 
 const dayjs = require("dayjs");
 const DiscordManager = require("../discord/DiscordManager");
@@ -206,6 +205,13 @@ const checkIsValidBuyOrderSaleAndGetData = async ({ strapi, data }) => {
           },
           {
             collection: { contract_address: data.contract_address },
+          },
+          {
+            collection: {
+              publishedAt: {
+                $notNull: true
+              }
+            }
           }
         ]
       },

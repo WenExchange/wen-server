@@ -1,7 +1,18 @@
 module.exports = {
   abi: [
     {
-      inputs: [],
+      inputs: [
+        {
+          internalType: "string",
+          name: "name",
+          type: "string",
+        },
+        {
+          internalType: "string",
+          name: "symbol",
+          type: "string",
+        },
+      ],
       stateMutability: "nonpayable",
       type: "constructor",
     },
@@ -92,28 +103,6 @@ module.exports = {
       type: "error",
     },
     {
-      inputs: [
-        {
-          internalType: "address",
-          name: "owner",
-          type: "address",
-        },
-      ],
-      name: "OwnableInvalidOwner",
-      type: "error",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "account",
-          type: "address",
-        },
-      ],
-      name: "OwnableUnauthorizedAccount",
-      type: "error",
-    },
-    {
       anonymous: false,
       inputs: [
         {
@@ -136,25 +125,6 @@ module.exports = {
         },
       ],
       name: "Approval",
-      type: "event",
-    },
-    {
-      anonymous: false,
-      inputs: [
-        {
-          indexed: true,
-          internalType: "address",
-          name: "previousOwner",
-          type: "address",
-        },
-        {
-          indexed: true,
-          internalType: "address",
-          name: "newOwner",
-          type: "address",
-        },
-      ],
-      name: "OwnershipTransferred",
       type: "event",
     },
     {
@@ -276,21 +246,19 @@ module.exports = {
       type: "function",
     },
     {
-      inputs: [],
-      name: "owner",
-      outputs: [
+      inputs: [
         {
           internalType: "address",
-          name: "",
+          name: "holder",
           type: "address",
         },
+        {
+          internalType: "uint256",
+          name: "amount",
+          type: "uint256",
+        },
       ],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [],
-      name: "renounceOwnership",
+      name: "setBalance",
       outputs: [],
       stateMutability: "nonpayable",
       type: "function",
@@ -371,19 +339,6 @@ module.exports = {
           type: "bool",
         },
       ],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "newOwner",
-          type: "address",
-        },
-      ],
-      name: "transferOwnership",
-      outputs: [],
       stateMutability: "nonpayable",
       type: "function",
     },

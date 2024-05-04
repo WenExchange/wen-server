@@ -81,5 +81,32 @@ module.exports = {
         middlewares: [],
       },
     },
+    {
+      method: "POST",
+      path: "/sdk/orders/getCollectionOfferWall",
+      handler: "sdk.getCollectionOfferWall",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: "POST",
+      path: "/sdk/orders/getMyBuyOrders",
+      handler: "sdk.getMyBuyOrders",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
+    {
+      method: "POST",
+      path: "/sdk/orders/getSellMyNFTsInfo",
+      handler: "sdk.getSellMyNFTsInfo",
+      config: {
+        policies: [],
+        middlewares: [],
+      },
+    },
   ],
 };

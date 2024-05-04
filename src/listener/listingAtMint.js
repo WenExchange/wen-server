@@ -144,28 +144,28 @@ const createNFTAtMint = async ({ log, strapi }) => {
       }
 
       // Update total supply
-      try {
-        const _total_supply = await collectionContract
-          .totalSupply()
-        const total_supply = _total_supply.toNumber();
-        if (
-          !Number.isNaN(total_supply) &&
-          total_supply > 0 &&
-          existedCollection.total_supply !== total_supply
-        ) {
-          return strapi.db.query("api::collection.collection")
-            .update({
-              where: {
-                id: existedCollection.id,
-              },
-              data: {
-                total_supply
-              }
-            })
-        }
-      } catch (error) {
-        console.error(`${existedCollection.name} don't have totalSupply() - ${error.message}`)
-      }
+      // try {
+      //   const _total_supply = await collectionContract
+      //     .totalSupply()
+      //   const total_supply = _total_supply.toNumber();
+      //   if (
+      //     !Number.isNaN(total_supply) &&
+      //     total_supply > 0 &&
+      //     existedCollection.total_supply !== total_supply
+      //   ) {
+      //     return strapi.db.query("api::collection.collection")
+      //       .update({
+      //         where: {
+      //           id: existedCollection.id,
+      //         },
+      //         data: {
+      //           total_supply
+      //         }
+      //       })
+      //   }
+      // } catch (error) {
+      //   console.error(`${existedCollection.name} don't have totalSupply() - ${error.message}`)
+      // }
 
     } catch (error) {
       console.error(`Create NFT Error - ${error.message}`);

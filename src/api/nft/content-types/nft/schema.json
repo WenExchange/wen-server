@@ -29,8 +29,7 @@
       "unique": false
     },
     "token_id": {
-      "type": "integer",
-      "default": 0,
+      "type": "biginteger",
       "required": true
     },
     "rarity_score": {

@@ -1,6 +1,7 @@
 "use strict";
 require("dotenv").config();
 const axios = require("axios");
+
 const {
   SERVER_TYPE,
   jsonRpcProvider,
@@ -8,9 +9,10 @@ const {
 } = require("./utils/constants");
 const { createTransferListener } = require("./listener/blockchainListener");
 const CollectionCacheManager = require("./cache-managers/CollectionCacheManager");
-const TokenTransferQueueManager = require("./queue-manager/TokenTransferQueueManager")
-const ElementContractQueueManager = require("./queue-manager/ElementContractQueueManager")
-const WenContractQueueManager = require("./queue-manager/WenContractQueueManager")
+const TokenTransferQueueManager = require("./queue-manager/TokenTransferQueueManager");
+const ElementContractQueueManager = require("./queue-manager/ElementContractQueueManager");
+const WenContractQueueManager = require("./queue-manager/WenContractQueueManager");
+const wenETHContractQueueManager = require("./queue-manager/wenETHContractQueueManager");
 
 const dayjs = require("dayjs");
 var utc = require("dayjs/plugin/utc");
@@ -19,9 +21,9 @@ const DiscordManager = require("./discord/DiscordManager");
 const { listingCollectionScript } = require("./utils/listing-script");
 const ExchangeContractQueueManager = require("./queue-manager/ExchangeContractQueueManager");
 const NFTMintingQueueManager = require("./queue-manager/NFTMintingQueueManager");
+const { getNFTsAndUpdateOwnerOfNFTs } = require("./utils/updateOwner");
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
 
 module.exports = {
   /**
@@ -31,6 +33,7 @@ module.exports = {
    * This gives you an opportunity to extend code.
    */
   register({ strapi }) {
+
     const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
     if (isBOTServer) {
     }
@@ -39,19 +42,23 @@ module.exports = {
   async bootstrap({ strapi }) {
     try {
 
-      await listingCollectionScript({strapi, address: "0xaaba51ccc8efe8f274d33b126d6230e168428862"})
+      CollectionCacheManager.getInstance(strapi);
+
+      await listingCollectionScript({strapi, address: "0xe5ddb54065c81339448fc3cb6c1c183b0bb7f6ad"})
+     CollectionCacheManager.getInstance(strapi);
+      await listingCollectionScript({strapi, address: "0xee245ff9c86f6e62272dbbcb83f249887c122808"})
+      
+
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
 
-        
-  
 
       const nmqm = NFTMintingQueueManager.getInstance(strapi)
       const tqm = TokenTransferQueueManager.getInstance(strapi)
       const excqm = ExchangeContractQueueManager.getInstance(strapi)
       const ecqm = ElementContractQueueManager.getInstance(strapi)
       const wcqm = WenContractQueueManager.getInstance(strapi)
-      const ccm = CollectionCacheManager.getInstance(strapi);
+     
 
         createTransferListener({ strapi }).catch((e) => {
           strapi.log.error(`createTransferListener error - ${e.message}`);
@@ -63,13 +70,10 @@ module.exports = {
   },
 
   async destroy() {
-    const dm = DiscordManager.getInstance()
-    const error = new Error("Server is closed")
+    const dm = DiscordManager.getInstance();
+    const error = new Error("Server is closed");
     try {
-      dm.logError({error, identifier: "LifeCycle - Destory"})
-    } catch (error) {
-      
-    }
-    
-  }
+      dm.logError({ error, identifier: "LifeCycle - Destory" });
+    } catch (error) {}
+  },
 };

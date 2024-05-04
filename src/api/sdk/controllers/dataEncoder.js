@@ -295,7 +295,6 @@ function createOrdersData(orderList, taker) {
   let orderBySigned = {};
   for (let order of orderList) {
     if (!firstRoyaltyFeeReciepient) {
-      console.log(order);
       firstRoyaltyFeeReciepient = order.royalty_fee_receiver;
     }
 

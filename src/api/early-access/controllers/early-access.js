@@ -5,7 +5,6 @@ const CryptoJS = require("crypto-js");
 const voucher_codes = require("voucher-code-generator");
 const { TwitterApi } = require("twitter-api-v2");
 const axios = require("axios");
-const fs = require("fs/promises");
 const {
   createRefCode,
 } = require("../../../earlyaccess/refCodeHandler");

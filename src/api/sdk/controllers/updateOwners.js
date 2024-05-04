@@ -42,8 +42,6 @@ async function updateAllNftOwner({ strapi }) {
         data: { owner: owner },
       });
     }
-
-    console.log("total count ", totalCount++);
   }
 }
 
@@ -58,7 +56,6 @@ async function updateAllOrderFee({ strapi }) {
     const royaltyFeeReceiver =
       exchageData.basicCollections[0].royaltyFeeRecipient;
     const royaltyFeePoint = exchageData.basicCollections[0].royaltyFee;
-    console.log(royaltyFeeReceiver, royaltyFeePoint);
 
     // if (result.royalty_fee_point == null) {
     await strapi.entityService.update("api::order.order", result.id, {
@@ -67,11 +64,9 @@ async function updateAllOrderFee({ strapi }) {
         royalty_fee_point: royaltyFeePoint,
       },
     });
-    console.log("result update ");
     totalCount++;
     // }
   }
-  console.log("updated total count ", totalCount);
 }
 
 module.exports = { updateAllNftOwner, updateAllOrderFee };

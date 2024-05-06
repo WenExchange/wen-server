@@ -45,7 +45,7 @@ module.exports = {
       const ccm = CollectionCacheManager.getInstance(strapi);
       
       // await listingCollectionScript({strapi, address: "0x6B4016c2D37E037624Ca2bbC23567dc7759Ce52E"})
-      await listingCollectionScript({strapi, address: "0xCA99d5DBE60E975e9eB0e510E3798645A4d5D90B"})
+      // await listingCollectionScript({strapi, address: "0xCA99d5DBE60E975e9eB0e510E3798645A4d5D90B"})
       // await nft_retry_metadata({strapi})
       
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;

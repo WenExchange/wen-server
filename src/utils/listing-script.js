@@ -95,7 +95,8 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id }) =
       // 1. fetch metadata
       let metadata = await fetchMetadata({
         collectionContract,
-        tokenId: token_id
+        tokenId: token_id,
+        timeout: 10 * 1000
       });
       const owner = await collectionContract.ownerOf(token_id).catch(null);
       if (!owner) throw new Error("invalid owner");

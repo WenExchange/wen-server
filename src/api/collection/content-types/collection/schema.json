@@ -138,6 +138,10 @@
     "is_launchpad": {
       "type": "boolean",
       "default": false
+    },
+    "try_count": {
+      "type": "integer",
+      "default": 1
     }
   }
 }

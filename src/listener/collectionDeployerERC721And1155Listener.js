@@ -10,16 +10,10 @@ const {
 } = require("../utils/constants");
 const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
 const { wait } = require("../utils/helpers");
+const ERC721 = require("../web3/abis/ERC721.json")
 
 const getContractMetadata = async (address) => {
-  const abi = [
-    "function name() view returns (string)",
-    "function symbol() view returns (string)",
-    "function supportsInterface(bytes4 interfaceId) view returns (bool)",
-    "function totalSupply() view returns (uint256)",
-    "function maxSupply() view returns (uint256)"
-  ];
-  const contract = new ethers.Contract(address, abi, jsonRpcProvider_cron);
+  const contract = new ethers.Contract(address, ERC721, jsonRpcProvider_cron);
   try {
     const isERC721 = await contract
       .supportsInterface("0x80ac58cd")
@@ -56,13 +50,13 @@ const getContractMetadata = async (address) => {
       charset: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     })[0];
 
-    let name = `Auto Detecting Collection ${nameId}`
+    let name = ""
     try {
       name = await contract.name()
     } catch (error) {
       console.error(`getContractMetadata - ${error.message}`)
-      throw new Error("contract.name() error")
     }
+    if (!name) name = `Auto Detecting Collection ${nameId}`
 
     const regex = /test/i; // 'i' 플래그를 사용하여 대소문자를 구분하지 않습니다.
 
@@ -94,10 +88,15 @@ const createCollection = async ({
   const ccm = CollectionCacheManager.getInstance(strapi);
   let errorCollectionInfo;
   try {
-    const collection = ccm.getCollectionByAddress(contract_address);
+    
+
+    const collection = await strapi.db.query("api::collection.collection").findOne({
+      where: {
+        contract_address,
+      },
+    })
     if (collection) {
-      console.log("Already exist collection contract");
-      return;
+      throw new Error("Already exist collection contract")
     }
 
     let slug = slugify(`${name}`, {
@@ -105,6 +104,8 @@ const createCollection = async ({
       remove: /[*+~.()'"!:@]/g,
       strict: true
     });
+
+    
 
     const collectionBySlug = ccm.getCollectionBySlug(slug);
     if (collectionBySlug) {
@@ -130,6 +131,11 @@ const createCollection = async ({
       publishedAt: null
     };
 
+    let isAutoDetecting = false 
+    try {
+      isAutoDetecting = name.includes("Auto Detecting Collection") || Number(total_supply) === 0
+    } catch (error) {
+    }
 
     const createdCollection = await strapi.db.query("api::collection.collection").create({
       data: {
@@ -143,7 +149,8 @@ const createCollection = async ({
         protocol_fee_receiver: PROTOCOL_FEE.RECEIVER,
         protocol_fee_point: PROTOCOL_FEE.POINT,
         total_supply,
-        publishedAt: null
+        publishedAt: null,
+        try_count: isAutoDetecting ? 1 : null
       }
     })
     
@@ -162,14 +169,13 @@ const createCollection = async ({
   }
 };
 
-const collectionDeployerERC721And1155Listener = async ({blockNumber, strapi}) => {
+const collectionDeployerERC721And1155Listener = async ({blockNumber, strapi, provider}) => {
   // // exit early if it's not our NFTs
   try {
-    const block = await jsonRpcProvider_cron.getBlockWithTransactions(blockNumber);
+    const block = await provider.getBlockWithTransactions(blockNumber);
     for (const tx of block.transactions) {
       if (tx.to === null) {
-        const receipt = await jsonRpcProvider_cron.getTransactionReceipt(tx.hash);
-        const contract_address = receipt.contractAddress;
+        const contract_address = tx.creates;
         let metadataInfo = await getContractMetadata(contract_address);
         if (typeof metadataInfo === "boolean") return;
         if (!metadataInfo.isERC721) return;
@@ -189,6 +195,7 @@ const collectionDeployerERC721And1155Listener = async ({blockNumber, strapi}) =>
       }
     }
   } catch (error) {
+    // console.error(error.message)
     const dm = DiscordManager.getInstance()
     dm.logError({ error, identifier: `collectionDeployerERC721And1155Listener`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG }).catch()
 

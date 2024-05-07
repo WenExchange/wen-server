@@ -25,16 +25,12 @@ const createNFTAtMint = async ({ log, strapi }) => {
     const ccm = CollectionCacheManager.getInstance(strapi)
     const existedCollection = ccm.getCollectionByAddress(contract_address)
   if (!existedCollection) return;
-  
     console.log(`Start Create NFT at Mint`);
     const dm = DiscordManager.getInstance();
     try {
 
       // 1.1 check exist nft
       const existNFT = await strapi.db.query("api::nft.nft").findOne({
-        populate: {
-          collection: true
-        },
         where: {
           $and: [
             {
@@ -155,31 +151,6 @@ const createNFTAtMint = async ({ log, strapi }) => {
           console.error(err.message)
         );
       }
-
-
-      // Update total supply
-      // try {
-      //   const _total_supply = await collectionContract
-      //     .totalSupply()
-      //   const total_supply = _total_supply.toNumber();
-      //   if (
-      //     !Number.isNaN(total_supply) &&
-      //     total_supply > 0 &&
-      //     existedCollection.total_supply !== total_supply
-      //   ) {
-      //     return strapi.db.query("api::collection.collection")
-      //       .update({
-      //         where: {
-      //           id: existedCollection.id,
-      //         },
-      //         data: {
-      //           total_supply
-      //         }
-      //       })
-      //   }
-      // } catch (error) {
-      //   console.error(`${existedCollection.name} don't have totalSupply() - ${error.message}`)
-      // }
 
     } catch (error) {
       console.error(`Create NFT Error - ${error.message}`);

@@ -44,7 +44,6 @@ module.exports = {
   async bootstrap({ strapi }) {
     try {
       const ccm = CollectionCacheManager.getInstance(strapi);
-      await listingCollectionScript({strapi, address: "0x8c545c0476d70aa84b23cadc33e07b8956bf7b58"})
       
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {

@@ -114,10 +114,6 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id }) =
       } else {
         console.log(`${metadata.name} NFT at Mint (valid metadata)`);
       }
-      
-       if (collection.contract_address.toLowerCase() == "0x93446b332522fecd8da1cb4d7223afe7fb65cb92") {
-        image_url = "https://d1kb1oeulsx0pq.cloudfront.net/Geeq-logo.png"
-       }
 
       // 2. create NFT
       const createdNFT = await strapi.db.query("api::nft.nft")

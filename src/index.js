@@ -43,17 +43,7 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
-
       const ccm = CollectionCacheManager.getInstance(strapi);
-      
-      await listingCollectionScript({strapi, address: "0x87964d155e44894ebe185e384a7e62ad6a93d3a5"})
-      await listingCollectionScript({strapi, address: "0x7bb6ffa55aac5c58b8150635eb078230d8adde4a"})
-      
-      // await nft_retry_metadata({strapi})
-      
-      // await getNFTsAndUpdateOwnerOfNFTs({strapi})d
-      // await nft_retry_metadata({strapi})
-
       
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {

@@ -30,10 +30,6 @@ const listing_cancel_detector_expiration = async ({ strapi }) => {
           },
         },
       });
-
-      console.log(333,willDeleteOrders.length );
-
-
     
       for (let i = 0; i < willDeleteOrders.length; i++) {
         const order = willDeleteOrders[i];

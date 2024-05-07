@@ -28,7 +28,7 @@ const listingCollectionScript = async ({address, strapi}) => {
       const name = metadataInfo.name;
       const total_supply = metadataInfo.total_supply;
       const token_type = metadataInfo.isERC721 ? "ERC721" : "ERC1155";
-      return createCollection({
+      collection = await createCollection({
         strapi,
         contract_address: address,
         creator_address,
@@ -70,10 +70,33 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id }) =
     console.log(`Start Create NFT at Mint`);
     const dm = DiscordManager.getInstance();
     try {
+
+      // 1.1 check exist nft
+      const existNFT = await strapi.db.query("api::nft.nft").findOne({
+        where: {
+          $and: [
+            {
+              collection: {
+                id: collection.id
+              },
+            },
+            {
+              token_id,
+            },
+          ]
+        }
+      })
+      if (existNFT) {
+        console.log(`${existNFT.name} NFT already exist`);
+        return 
+      }
+
+      
       // 1. fetch metadata
       let metadata = await fetchMetadata({
         collectionContract,
-        tokenId: token_id
+        tokenId: token_id,
+        timeout: 10 * 1000
       });
       const owner = await collectionContract.ownerOf(token_id).catch(null);
       if (!owner) throw new Error("invalid owner");
@@ -84,37 +107,12 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id }) =
           name: `${collection.name} #${token_id}`,
           image_url: "",
           traits: null,
-          
+          try_count: 1
         }
         console.log(`${metadata.name} NFT at Mint (invalid metadata)`);
 
       } else {
         console.log(`${metadata.name} NFT at Mint (valid metadata)`);
-      }
-      
-       // 1.1 check exist nft
-       const existNFT = await strapi.db.query("api::nft.nft").findOne({
-        populate: {
-          collection: true
-        },
-        where: {
-          $and: [
-            {
-              collection: collection.id,
-            },
-            {
-              token_id: metadata.token_id,
-            }
-          ]
-          
-       
-        }
-      })
-      if (existNFT) {
-        dm.logListingNFTError({ collection, tokenId:existNFT.token_id, error: new Error(`${existNFT.name} NFT already exist`)  }).catch(
-          (err) => console.error(err.message)
-        );
-        return 
       }
 
       // 2. create NFT
@@ -127,44 +125,13 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id }) =
         }
       })
 
-      try {
-        await collectionContract
-          .totalSupply()
-          .then((_total_supply) => {
-            const total_supply = _total_supply.toNumber();
-            if (
-              !Number.isNaN(total_supply) &&
-              total_supply > 0 &&
-              collection.total_supply !== total_supply
-            ) {
-              return strapi.db.query("api::collection.collection")
-              .update({
-                where: {
-                  id: collection.id,
-                },
-                data: {
-                  total_supply
-                }
-              })
-            }
-          })
-          .catch();
-      } catch (error) {
-        console.error(`${collection.name} don't have totalSupply() - ${error.message}`)
-      }
 
-
-      dm.logNFTMinting({ collection, createdNFT }).catch(
+      dm.logNFTMinting({ contract_address: collection.contract_address, createdNFT }).catch(
         (err) => console.error(err.message)
       );
-
-
-
-      // publish
       // publish
       if (
-        !collection.publishedAt &&
-        collection.token_type === "ERC721"
+        !collection.publishedAt 
       ) {
         const updatedCollection = await strapi.db.query("api::collection.collection")
         .update({

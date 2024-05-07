@@ -29,13 +29,7 @@ const listing_cancel_detector_expiration = async ({ strapi }) => {
             $lt: current,
           },
         },
-        populate: {
-          nft: true,
-          collection: true
-        },
       });
-
-
     
       for (let i = 0; i < willDeleteOrders.length; i++) {
         const order = willDeleteOrders[i];
@@ -46,8 +40,12 @@ const listing_cancel_detector_expiration = async ({ strapi }) => {
             id: order.id,
           },
           populate: {
-            nft: true,
-            collection: true
+            nft: {
+              select: ["id","token_id"]
+            },
+            collection: {
+              select: ["contract_address"]
+            },
           },
         })
         if (deletedOrder) {
@@ -64,7 +62,7 @@ const listing_cancel_detector_expiration = async ({ strapi }) => {
         await updateListingPoint(
           true,
           deletedOrder.maker,
-          order.collection.contract_address,
+          deletedOrder.collection.contract_address,
           deletedOrder.nft.token_id,
           0,
           0,
@@ -72,12 +70,12 @@ const listing_cancel_detector_expiration = async ({ strapi }) => {
         )
         await updateFloorPrice(
           { strapi },
-          order.collection.contract_address
+          deletedOrder.collection.contract_address
         )
 
         await updateOrdersCount(
           { strapi },
-          order.collection.contract_address
+          deletedOrder.collection.contract_address
         );
         }
         

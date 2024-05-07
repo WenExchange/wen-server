@@ -20,6 +20,10 @@ var timezone = require("dayjs/plugin/timezone"); // dependent on utc plugin
 const DiscordManager = require("./discord/DiscordManager");
 const ExchangeContractQueueManager = require("./queue-manager/ExchangeContractQueueManager");
 const NFTMintingQueueManager = require("./queue-manager/NFTMintingQueueManager");
+const { listingCollectionScript } = require("./utils/listing-script");
+const { nft_retry_metadata } = require("./cron/nft_retry");
+const { getNFTsAndUpdateOwnerOfNFTs } = require("./utils/updateOwner");
+const { listing_cancel_detector_expiration } = require("./cron/listing_cancel_detector");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -39,6 +43,8 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
+      const ccm = CollectionCacheManager.getInstance(strapi);
+      
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
         const nmqm = NFTMintingQueueManager.getInstance(strapi);
@@ -46,7 +52,6 @@ module.exports = {
         const excqm = ExchangeContractQueueManager.getInstance(strapi);
         const ecqm = ElementContractQueueManager.getInstance(strapi);
         const wcqm = WenContractQueueManager.getInstance(strapi);
-        const ccm = CollectionCacheManager.getInstance(strapi);
         wenETHContractQueueManager.getInstance(strapi)
 
         createTransferListener({ strapi }).catch((e) => {

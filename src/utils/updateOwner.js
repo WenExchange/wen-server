@@ -7,10 +7,10 @@ const dayjs = require("dayjs");
 const getNFTsAndUpdateOwnerOfNFTs = async ({strapi}) => {
   const seconds_1h = 60 * 60
   const seconds_1d = seconds_1h * 24
-  const unit = 20
+  const unit = 10
 
   let totalUpdatedCount = 0
-  for (let i = 0; i < 150000 / 20; i++) {
+  for (let i = 0; i < 200000 / unit; i++) {
       console.log(`${i} start`);
       const start = i * unit
       const end = unit * (i+1)

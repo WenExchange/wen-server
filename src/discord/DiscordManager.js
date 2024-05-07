@@ -194,7 +194,7 @@ module.exports = class DiscordManager {
     trackerChannel.send({ embeds: [embed] });
   }
 
-  async logNFTMinting({ collection, createdNFT }) {
+  async logNFTMinting({ contract_address, createdNFT }) {
     const guild = await this.getGuild(DISCORD_INFO.GUILD_ID);
     const channelId = DISCORD_INFO.CHANNEL.LISTING_NFT;
 
@@ -203,7 +203,7 @@ module.exports = class DiscordManager {
       channelId
     });
     trackerChannel.send(
-      `[Minting of New NFT] ${collection.name} - ${createdNFT.name} - ${createdNFT.token_id} | owner: ${createdNFT.owner}`
+      `[Minting of New NFT] collection address: ${contract_address} - ${createdNFT.name} - ${createdNFT.token_id} | owner: ${createdNFT.owner}`
     );
   }
 

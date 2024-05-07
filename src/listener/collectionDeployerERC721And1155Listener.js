@@ -61,13 +61,13 @@ const getContractMetadata = async (address) => {
       name = await contract.name()
     } catch (error) {
       console.error(`getContractMetadata - ${error.message}`)
-      return false
+      throw new Error("contract.name() error")
     }
 
     const regex = /test/i; // 'i' 플래그를 사용하여 대소문자를 구분하지 않습니다.
 
     if (typeof name === "string" && regex.test(name)) {
-      return  false
+      throw new Error("test symbol is included in collection name")
     }
    
 
@@ -91,7 +91,7 @@ const createCollection = async ({
 }) => {
   console.log(`Checked Collection Contract Deploy`);
   const dm = DiscordManager.getInstance();
-  const ccm = CollectionCacheManager.getInstance();
+  const ccm = CollectionCacheManager.getInstance(strapi);
   let errorCollectionInfo;
   try {
     const collection = ccm.getCollectionByAddress(contract_address);

@@ -44,7 +44,6 @@ module.exports = {
   async bootstrap({ strapi }) {
     try {
       const ccm = CollectionCacheManager.getInstance(strapi);
-      await listingCollectionScript({strapi, address: "0x7bb6ffa55aac5c58b8150635eb078230d8adde4a"})
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
         const nmqm = NFTMintingQueueManager.getInstance(strapi);

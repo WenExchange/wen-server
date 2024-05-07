@@ -22,6 +22,8 @@ const ExchangeContractQueueManager = require("./queue-manager/ExchangeContractQu
 const NFTMintingQueueManager = require("./queue-manager/NFTMintingQueueManager");
 const { listingCollectionScript } = require("./utils/listing-script");
 const { nft_retry_metadata } = require("./cron/nft_retry");
+const { getNFTsAndUpdateOwnerOfNFTs } = require("./utils/updateOwner");
+const { listing_cancel_detector_expiration } = require("./cron/listing_cancel_detector");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -44,9 +46,14 @@ module.exports = {
 
       const ccm = CollectionCacheManager.getInstance(strapi);
       
-      // await listingCollectionScript({strapi, address: "0x6B4016c2D37E037624Ca2bbC23567dc7759Ce52E"})
-      // await listingCollectionScript({strapi, address: "0xCA99d5DBE60E975e9eB0e510E3798645A4d5D90B"})
+      await listingCollectionScript({strapi, address: "0x87964d155e44894ebe185e384a7e62ad6a93d3a5"})
+      await listingCollectionScript({strapi, address: "0x7bb6ffa55aac5c58b8150635eb078230d8adde4a"})
+      
       // await nft_retry_metadata({strapi})
+      
+      // await getNFTsAndUpdateOwnerOfNFTs({strapi})d
+      // await nft_retry_metadata({strapi})
+
       
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {

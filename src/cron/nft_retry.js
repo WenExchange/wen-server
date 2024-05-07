@@ -14,41 +14,58 @@ const { fetchMetadata } = require("../listener/listingAtMint");
 
 const nft_retry_metadata = async ({ strapi }) => {
   strapi.log.info("[CRON TASK] - START | NFT RETRY - Metadata");
+  let count = 0
   try {
-   
-    const count = await strapi.db.query("api::nft.nft").count({
+    count = await strapi.db.query("api::nft.nft").count({
       where: {
-        try_count: {
-          $gte: 1
-        },
+        try_count: 1,
+        // try_count: {
+        //   $gte: 1
+        // },
+        // try_count: {
+        //   $lte: 3
+        // },
         collection: {
           publishedAt :{
             $notNull: true
           }
         },
         image_url: "",
-        collection: {
-          contract_address: "0x41951c1a94d068e1da124f63d5e99ee2a0acdaac"
-        }
+        // collection: {
+        //   contract_address: "0x6B4016c2D37E037624Ca2bbC23567dc7759Ce52E"
+        // }
       }
     })
 
     
+
+  } catch (error) {
+    strapi.log.error(`nft_retry_metadata error- ${error.message}`);
+  }
+
+  try {
+    console.log(`nft_retry_metadata will update count ${count}`);
+    
     for (let i = 0; i < count; i++) {
+      // const nft = nfts[i];
       const nft = await strapi.db.query("api::nft.nft").findOne({
         where: {
-          try_count: {
-            $gte: 1
-          },
+          try_count: 1,
+          // try_count: {
+          //   $gte: 1
+          // },
+          // try_count: {
+          //   $lte: 3
+          // },
           collection: {
             publishedAt :{
               $notNull: true
             }
           },
           image_url: "",
-          collection: {
-            contract_address: "0x41951c1a94d068e1da124f63d5e99ee2a0acdaac"
-          }
+          // collection: {
+          //   contract_address: "0x6B4016c2D37E037624Ca2bbC23567dc7759Ce52E"
+          // }
         },
         populate: {
           collection: {
@@ -57,7 +74,7 @@ const nft_retry_metadata = async ({ strapi }) => {
         },
       })
 
-      // const nft = nfts[i];
+
       const collectionContract = new ethers.Contract(
         nft.collection.contract_address,
         ERC721,
@@ -68,17 +85,17 @@ const nft_retry_metadata = async ({ strapi }) => {
         let metadata = await fetchMetadata({
           collectionContract,
           tokenId: nft.token_id,
-          timeout: 10 * 1000
+          timeout: 20 * 1000
         });
         if (!metadata) throw new Error("invalid metadata")
         const owner = await collectionContract.ownerOf(nft.token_id).catch(null);
         if (!owner) throw new Error("invalid owner");
   
-        let retry_count = Number(nft.retry_count)
-        if (Number.isNaN(retry_count)) retry_count = 1
+        let try_count = Number(nft.try_count)
+        if (Number.isNaN(try_count)) try_count = 1
         const data = {
           ...metadata,
-          retry_count: retry_count + 1
+          try_count: try_count + 1
         }
   
         if (nft.owner.toLowerCase() !== owner.toLowerCase()) {
@@ -95,7 +112,23 @@ const nft_retry_metadata = async ({ strapi }) => {
   
         console.log(`${i} - data`, data);
       } catch (error) {
-        strapi.log.error(`nft_retry_metadata error- ${error.message}`);
+        strapi.log.error(`nft_retry_metadata error- ${nft.id} ${nft.name} ${error.message}`);
+        let try_count = Number(nft.try_count)
+        if (Number.isNaN(try_count)) try_count = 1
+        try {
+          await strapi.db.query("api::nft.nft").update({
+            where: {
+              id: nft.id
+            },
+            data: {
+              try_count: try_count + 1
+            }
+          })
+        } catch (error) {
+          console.error(error.message)
+        }
+        
+
         continue
       }
       
@@ -107,7 +140,10 @@ const nft_retry_metadata = async ({ strapi }) => {
   } catch (error) {
     // const dm = DiscordManager.getInstance()
     // dm.logError({error, identifier: "Cron - nft_retry_metadata"})
-    strapi.log.error(`nft_retry_metadata error- ${error.message}`);
+    strapi.log.error(`nft_retry_metadata error- ${nft.id} ${nft.name} ${error.message}`);
+
+    
+
   }
 };
 

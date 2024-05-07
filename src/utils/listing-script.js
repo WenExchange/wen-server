@@ -12,7 +12,7 @@ const ERC721 = require("../web3/abis/ERC721.json");
 const DiscordManager = require("../discord/DiscordManager");
 const { fetchMetadata } = require("../listener/listingAtMint");
 
-const listingCollectionScript = async ({address, strapi}) => {
+const listingCollectionScript = async ({address, strapi, timeout = 3*1000}) => {
 
   let collection = await strapi.db.query("api::collection.collection").findOne({
     where: {
@@ -60,11 +60,11 @@ const listingCollectionScript = async ({address, strapi}) => {
 
   for (let i = 0; i < token_id_list.length; i++) {
     const token_id = token_id_list[i];
-    await createNFT({ strapi, collection, collectionContract, token_id });
+    await createNFT({ strapi, collection, collectionContract, token_id, timeout });
   }
 };
 
-const createNFT = async ({ strapi, collection, collectionContract, token_id }) => {
+const createNFT = async ({ strapi, collection, collectionContract, token_id, timeout }) => {
   try {
 
     console.log(`Start Create NFT at Mint`);
@@ -96,7 +96,7 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id }) =
       let metadata = await fetchMetadata({
         collectionContract,
         tokenId: token_id,
-        timeout: 10 * 1000
+        timeout
       });
       const owner = await collectionContract.ownerOf(token_id).catch(null);
       if (!owner) throw new Error("invalid owner");

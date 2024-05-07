@@ -24,7 +24,18 @@ const createNFTAtMint = async ({ log, strapi }) => {
     const contract_address = log.address;
     const ccm = CollectionCacheManager.getInstance(strapi)
     const existedCollection = ccm.getCollectionByAddress(contract_address)
-  if (!existedCollection) return;
+  if (!existedCollection) {
+    const collection = await strapi.db.query("api::collection.collection").findOne({
+      where: {
+        contract_address
+      }
+    })
+
+    if (!collection) {
+      // TODO: check metadata and create collection
+      return 
+    }
+  }
     console.log(`Start Create NFT at Mint`);
     const dm = DiscordManager.getInstance();
     try {
@@ -151,6 +162,9 @@ const createNFTAtMint = async ({ log, strapi }) => {
           console.error(err.message)
         );
       }
+
+
+      // TODO: try_count 에 따라 name , total supply 업데이트 시켜주기
 
     } catch (error) {
       console.error(`Create NFT Error - ${error.message}`);

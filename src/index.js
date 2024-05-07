@@ -1,7 +1,7 @@
 "use strict";
 require("dotenv").config();
 const axios = require("axios");
-
+const {ethers} = require("ethers");
 const {
   SERVER_TYPE,
   jsonRpcProvider,
@@ -24,6 +24,7 @@ const { listingCollectionScript } = require("./utils/listing-script");
 const { nft_retry_metadata } = require("./cron/nft_retry");
 const { getNFTsAndUpdateOwnerOfNFTs } = require("./utils/updateOwner");
 const { listing_cancel_detector_expiration } = require("./cron/listing_cancel_detector");
+const { collectionDeployerERC721And1155Listener } = require("./listener/collectionDeployerERC721And1155Listener");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -43,8 +44,8 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
+
       const ccm = CollectionCacheManager.getInstance(strapi);
-      
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
         const nmqm = NFTMintingQueueManager.getInstance(strapi);

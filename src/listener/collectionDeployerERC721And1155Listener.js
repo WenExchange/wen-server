@@ -169,10 +169,10 @@ const createCollection = async ({
   }
 };
 
-const collectionDeployerERC721And1155Listener = async ({blockNumber, strapi, provider}) => {
+const collectionDeployerERC721And1155Listener = async ({blockNumber, strapi}) => {
   // // exit early if it's not our NFTs
   try {
-    const block = await provider.getBlockWithTransactions(blockNumber);
+    const block = await jsonRpcProvider_cron.getBlockWithTransactions(blockNumber);
     for (const tx of block.transactions) {
       if (tx.to === null) {
         const contract_address = tx.creates;

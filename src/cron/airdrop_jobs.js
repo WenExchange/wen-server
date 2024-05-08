@@ -62,7 +62,7 @@ const updateCollectionAirdrop = async ({ strapi }) => {
 
   for (let i = 20; i < collectionData.length; i++) {
     const collection = collectionData[i];
-    if (collection.airdrop_multiplier != 1) {
+    if (collection.airdrop_multiplier !== 1) {
       await strapi.entityService.update(
         "api::collection.collection",
         collection.id,
@@ -74,6 +74,45 @@ const updateCollectionAirdrop = async ({ strapi }) => {
       );
     }
   }
+
+  
+  try {
+    // og pass update
+  await strapi.db.query("api::collection.collection").update({
+    where: {
+      slug: "wen-og-pass"
+    },
+    data: {
+      airdrop_multiplier: 4
+    }
+  })
+
+  // launchpad update
+  const launchpadCollections = await strapi.db.query("api::collection.collection").findMany({
+    where: {
+      is_launchpad: true
+    },
+  })
+
+  for (let j = 0; j < launchpadCollections.length; j++) {
+    const launchpadCollection = launchpadCollections[j];
+    await strapi.db.query("api::collection.collection").update({
+      where: {
+        id: launchpadCollection.id
+      },
+      data: {
+        airdrop_multiplier: Number(launchpadCollection.airdrop_multiplier) < 2 ? 2 : 4
+      }
+    })
+
+    
+  }
+
+  } catch (error) {
+    strapi.log.error(`og, launchpad collection update error - ${error.message}`)
+  }
+  
+  
 };
 
 const updateUserMultiplier = async ({ strapi }) => {

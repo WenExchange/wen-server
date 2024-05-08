@@ -1,9 +1,11 @@
-const { jsonRpcProvider, jsonRpcProvider_cron, DISCORD_INFO } = require("./constants");
+const { jsonRpcProvider, jsonRpcProvider_cron, DISCORD_INFO, NFT_LOG_TYPE } = require("./constants");
 const { ethers } = require("ethers");
 const IERC721 = require("../api/sdk/controllers/IERC721");
 const { getISOString } = require("./helpers");
 const dayjs = require("dayjs");
 const DiscordManager = require("../discord/DiscordManager");
+const { updateListingPoint } = require("./airdropPrePointHelper");
+const { updateFloorPrice, updateOrdersCount } = require("../listener/collectionStats");
 
 const getNFTsAndUpdateOwnerOfNFTs = async ({ strapi, isGT = true }) => {
   const seconds_1h = 60 * 60
@@ -73,11 +75,6 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({ strapi, isGT = true }) => {
       where: {
         $and
       },
-      // orderBy: {
-      //   collection: {
-      //     airdrop_multiplier: "DESC"
-      //   }
-      // },
       offset: start,
       limit: unit
     })
@@ -92,53 +89,70 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({ strapi, isGT = true }) => {
 
 
   }
-
-  console.log(333, "totalUpdatedCount", totalUpdatedCount);
 }
 
 
 const updateOwnerOfNFTs = async ({ strapi, nfts }) => {
   const dm = DiscordManager.getInstance(strapi)
-  const willUpdateOwnerPromises = nfts.map((nft) => {
+  for (let i = 0; i < nfts.length; i++) {
+    const nft = nfts[i];
     const collectionContract = new ethers.Contract(
       nft.collection.contract_address,
       IERC721.abi,
       jsonRpcProvider_cron
     );
-    return collectionContract
-      .ownerOf(nft.token_id)
-      .then((realOwner) => {
-        try {
-          if (realOwner.toLowerCase() !== nft.owner.toLowerCase()) {
-            dm.logError({ error: new Error(`name:${nft.name} | token id: ${nft.token_id} | prev:${nft.owner} | real:${realOwner}`), identifier: `updateOwnerOfNFTs`, channelId: DISCORD_INFO.CHANNEL.ERROR_LOG }).catch()
-            if (nft.sell_order) {
-              return strapi.entityService
-                .delete("api::order.order", nft.sell_order.id)
-                .then((_) =>
-                  strapi.entityService.update("api::nft.nft", nft.id, {
-                    data: {
-                      owner: realOwner,
-                    },
-                  })
-                );
+
+    const realOwner = await collectionContract.ownerOf(nft.token_id)
+    try {
+      if (realOwner.toLowerCase() !== nft.owner.toLowerCase()) {
+        dm.logError({ error: new Error(`name:${nft.name} | token id: ${nft.token_id} | prev:${nft.owner} | real:${realOwner}`), identifier: `updateOwnerOfNFTs`, channelId: DISCORD_INFO.CHANNEL.ERROR_LOG }).catch()
+        strapi.log.info(`collection: ${nft.collection.contract_address} | token id: ${nft.token_id} | prev:${nft.owner} -> real:${realOwner}`)
+        await strapi.entityService.update("api::nft.nft", nft.id, {
+          data: {
+            owner: realOwner,
+          },
+        });
+
+
+        if (nft.sell_order) {
+          const deletedOrder = await strapi.entityService
+            .delete("api::order.order", nft.sell_order.id)
+
+          if (deletedOrder) {
+            strapi.entityService
+              .create("api::nft-trade-log.nft-trade-log", {
+                data: {
+                  type: NFT_LOG_TYPE.LOG_TYPE_AUTO_CANCEL_LISTING,
+                  from: deletedOrder.maker,
+                  nft: nft.id,
+                  timestamp: dayjs().unix(),
+                },
+              }).catch((e) => console.error(e.message));
+            try {
+              await updateListingPoint(
+                true,
+                deletedOrder.maker,
+                nft.collection.contract_address,
+                nft.token_id,
+                0,
+                0,
+                { strapi }
+              )
+              await updateFloorPrice({ strapi }, nft.collection.contract_address)
+              await updateOrdersCount({ strapi }, nft.collection.contract_address);
+            } catch (error) {
+              strapi.log.error(`updateOwnerOfNFTs - ${error.message}`)
             }
-            return strapi.entityService.update("api::nft.nft", nft.id, {
-              data: {
-                owner: realOwner,
-              },
-            });
           }
-          return null;
-        } catch (error) {
-          console.error(`${nft.id} error - ${error.message}`);
-          return null;
         }
-      })
-      .catch((e) => null);
-  });
-  let result = await Promise.all(willUpdateOwnerPromises);
-  result = result.filter((_) => _ !== null);
-  console.log(`${result.length} NFTs are updated to real owner`);
+      }
+      return null;
+    } catch (error) {
+      console.error(`${nft.id} error - ${error.message}`);
+      return null;
+    }
+
+  }
 };
 
 

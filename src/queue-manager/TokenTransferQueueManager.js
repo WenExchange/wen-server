@@ -135,16 +135,17 @@ const checkValidationAndConnectWithDB = async ({ strapi, log }) => {
         owner: transferTo,
       },
     })
+    await updateOwnerCount({ strapi }, log.address);
   } catch (error) {
     dm.logError({ error, identifier: `checkValidationAndConnectWithDB | update NFT`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG })
     throw new Error(error)
   }
 
-  try {
-    await updateOwnerCount({ strapi }, log.address);
-  } catch (error) {
-    dm.logError({ error, identifier: `checkValidationAndConnectWithDB | updateOwnerCount`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG })
+  // 리스팅 되있는 상황에서 transfer
+  if (nftData.sell_order) {
+    await deleteSellOrderProcess({ strapi, nftData, log, transferFrom, dm })
   }
+
 
   try {
     const existTrasferLog = await strapi.db.query
@@ -178,10 +179,7 @@ const checkValidationAndConnectWithDB = async ({ strapi, log }) => {
   }
 
 
-  // 리스팅 되있는 상황에서 transfer
-  if (nftData.sell_order) {
-    await deleteSellOrderProcess({ strapi, nftData, log, transferFrom, dm })
-  }
+  
 };
 
 const checkReceiptTopicsForEventTypes = (receiptTopics) => {

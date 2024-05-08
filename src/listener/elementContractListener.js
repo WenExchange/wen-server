@@ -166,6 +166,7 @@ const elementContractListener = async ({ event, strapi }) => {
     }
   } catch (error) {
     dm.logError({ error, identifier: `elementContractListener`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG }).catch()
+    strapi.log.error(`elementContractListener - ${error.message}`)
   }
 };
 

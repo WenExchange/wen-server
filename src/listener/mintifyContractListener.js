@@ -78,6 +78,7 @@ const mintifyContractListener = async ({ event, strapi, ex_type }) => {
     }
   } catch (error) {
     dm.logError({ error, identifier: `mintifyContractListener`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG }).catch()
+    strapi.log.error(`mintifyContractListener - ${error.message}`)
   }
   
 };

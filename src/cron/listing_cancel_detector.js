@@ -30,10 +30,10 @@ const listing_cancel_detector_expiration = async ({ strapi }) => {
           },
         },
       });
-    
-      for (let i = 0; i < willDeleteOrders.length; i++) {
-        const order = willDeleteOrders[i];
-        const deletedOrder = await strapi.db
+
+    for (let i = 0; i < willDeleteOrders.length; i++) {
+      const order = willDeleteOrders[i];
+      const deletedOrder = await strapi.db
         .query("api::order.order")
         .delete({
           where: {
@@ -41,24 +41,23 @@ const listing_cancel_detector_expiration = async ({ strapi }) => {
           },
           populate: {
             nft: {
-              select: ["id","token_id"]
+              select: ["id", "token_id"]
             },
             collection: {
               select: ["contract_address"]
             },
           },
         })
-        if (deletedOrder) {
-          await strapi.entityService
-        .create("api::nft-trade-log.nft-trade-log", {
-          data: {
-            ex_type: EX_TYPE.WEN,
-            type: NFT_LOG_TYPE.LOG_TYPE_AUTO_CANCEL_LISTING,
-            from: deletedOrder.maker,
-            nft: deletedOrder.nft.id,
-            timestamp: dayjs().unix(),
-          },
-        })
+      if (deletedOrder) {
+        await strapi.entityService
+          .create("api::nft-trade-log.nft-trade-log", {
+            data: {
+              type: NFT_LOG_TYPE.LOG_TYPE_AUTO_CANCEL_LISTING,
+              from: deletedOrder.maker,
+              nft: deletedOrder.nft.id,
+              timestamp: dayjs().unix(),
+            },
+          })
         await updateListingPoint(
           true,
           deletedOrder.maker,
@@ -77,13 +76,13 @@ const listing_cancel_detector_expiration = async ({ strapi }) => {
           { strapi },
           deletedOrder.collection.contract_address
         );
-        }
-        
       }
+
+    }
     strapi.log.info("[CRON TASK] - COMPLETE | LISTING CANCEL DETECTOR - Expirtation");
   } catch (error) {
     const dm = DiscordManager.getInstance()
-    dm.logError({error, identifier: "Cron - listing_cancel_detector_expiration"})
+    dm.logError({ error, identifier: "Cron - listing_cancel_detector_expiration" })
     strapi.log.error(`listing_cancel_detector_expiration error- ${error.message}`);
   }
 };
@@ -107,7 +106,7 @@ const listing_cancel_detector_approve = async ({ strapi }) => {
     strapi.log.info("[CRON TASK] - COMPLETE | LISTING CANCEL DETECTOR - isApprovedForAll");
   } catch (error) {
     const dm = DiscordManager.getInstance()
-    dm.logError({error, identifier: "Cron - listing_cancel_detector_approve"})
+    dm.logError({ error, identifier: "Cron - listing_cancel_detector_approve" })
     strapi.log.error(`listing_cancel_detector_approve error- ${error.message}`);
   }
 };
@@ -172,7 +171,7 @@ const checkIsApprovedForAllAndDelete = async ({ strapi, orders }) => {
       });
 
   }
- 
+
 };
 
 module.exports = {

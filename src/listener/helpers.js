@@ -1,4 +1,5 @@
 const DiscordManager = require("../discord/DiscordManager");
+const dayjs = require("dayjs");
 const { updateListingPoint } = require("../utils/airdropPrePointHelper");
 const {
     NFT_LOG_TYPE,

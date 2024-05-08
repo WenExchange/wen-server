@@ -127,13 +127,13 @@ const wenContractListener = async ({ event, strapi }) => {
           await buyOrderSaleProcessInWen({ data, strapi })
           console.log(`wenContractListener - ERC721BuyOrderFilled`, data)
         } catch (error) {
-
+          strapi.log.error(`wenContractListener - ${error.message}`)
           const errorDetail =
             "[Error] wenContractListener - EVENT_TYPE.ERC721BuyOrderFilled \n" +
             "data : " +
             data.toString() +
             "error message" +
-            e.message;
+            error.message;
           strapi.entityService
             .create("api::error-log.error-log", {
               data: {
@@ -255,6 +255,7 @@ const wenContractListener = async ({ event, strapi }) => {
     }
   } catch (error) {
     dm.logError({ error, identifier: `wenContractListener`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG }).catch()
+    strapi.log.error(`wenContractListener - ${error.message}`)
   }
 };
 
@@ -354,6 +355,7 @@ const buyOrderSaleProcessInWen = async ({ data, strapi }) => {
     } catch (error) {
       const dm = DiscordManager.getInstance(strapi)
       dm.logError({ error, identifier: `buyOrderSaleProcessInWen`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG }).catch()
+      strapi.log.error(`buyOrderSaleProcessInWen - ${error.message}`)
     }
 
   }

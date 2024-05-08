@@ -1,8 +1,10 @@
 const DiscordManager = require("../discord/DiscordManager");
+const { updateListingPoint } = require("../utils/airdropPrePointHelper");
 const {
     NFT_LOG_TYPE,
     DISCORD_INFO,
   } = require("../utils/constants");
+const { updateOwnerCount, updateFloorPrice, updateOrdersCount } = require("./collectionStats");
   const {
     LOG_TYPE_SALE,
     LOG_TYPE_AUTO_CANCEL_LISTING,
@@ -140,7 +142,7 @@ const deleteSellOrderAtTradeListener = async ({ strapi, data, nftData, isListing
 const createSaleLogAtTradeListener = async ({ strapi, data, nftData, isOffer= false }) => {
     const tradeLog = await getTradeLogAtTradeListener({ strapi, data, nftData })
     if (!tradeLog) {
-        const data = {
+        const createData = {
             ex_type: data.ex_type,
             sale_type: data.sale_type,
             payment_token: data.payment_token,
@@ -157,7 +159,7 @@ const createSaleLogAtTradeListener = async ({ strapi, data, nftData, isOffer= fa
         }
         strapi.entityService
             .create("api::nft-trade-log.nft-trade-log", {
-                data
+                data: createData
             })
             .catch((e) => console.error(e.message));
     }

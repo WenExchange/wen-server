@@ -42,12 +42,12 @@ const transferListener = async ({ log, strapi }) => {
     const transferTo = `0x${log.topics[2].slice(-40)}`;
     const bigIntTokenId = BigInt(log.topics[3]);
 
-    const isValidTokenId = validInteger(bigIntTokenId);
-    if (!isValidTokenId) {
-      throw new Error(
-        `Token id is overflow - from: ${transferFrom} to: ${transferTo} token_idx: ${bigIntTokenId.toString()}`
-      );
-    }
+    // const isValidTokenId = validInteger(bigIntTokenId);
+    // if (!isValidTokenId) {
+    //   throw new Error(
+    //     `Token id is overflow - from: ${transferFrom} to: ${transferTo} token_idx: ${bigIntTokenId.toString()}`
+    //   );
+    // }
 
     if (transferFrom === "0x0000000000000000000000000000000000000000") {
       const nmqm = NFTMintingQueueManager.getInstance(strapi)

@@ -145,8 +145,8 @@ const updateOwnerOfNFTs = async ({ strapi, nfts }) => {
                 0,
                 { strapi }
               )
-              await updateFloorPrice({ strapi }, data.contract_address)
-              await updateOrdersCount({ strapi }, data.contract_address);
+              await updateFloorPrice({ strapi }, nft.collection.contract_address)
+              await updateOrdersCount({ strapi }, nft.collection.contract_address);
             } catch (error) {
               strapi.log.error(`updateOwnerOfNFTs - ${error.message}`)
             }

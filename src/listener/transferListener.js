@@ -1,36 +1,9 @@
 const { ethers } = require("ethers");
 const dayjs = require("dayjs");
 const DiscordManager = require("../discord/DiscordManager");
-const {
-  jsonRpcProvider,
-  NFT_LOG_TYPE,
-  PROTOCOL_FEE,
-  EVENT_TYPE,
-  EX_TYPE,
-  CONTRACT_ADDRESSES,
-  DISCORD_INFO,
-} = require("../utils/constants");
-const {
-  updateFloorPrice,
-  updateOrdersCount,
-  updateOwnerCount,
-} = require("./collectionStats");
 const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
-const { validInteger } = require("../utils/helpers");
-const { updateListingPoint } = require("../utils/airdropPrePointHelper");
 const NFTMintingQueueManager = require("../queue-manager/NFTMintingQueueManager");
 const TokenTransferQueueManager = require("../queue-manager/TokenTransferQueueManager");
-const {
-  LOG_TYPE_SALE,
-  LOG_TYPE_TRANSFER,
-  LOG_TYPE_LISTING,
-  LOG_TYPE_OFFER,
-  LOG_TYPE_COLLECTION_OFFER,
-  LOG_TYPE_CANCEL_LISTING,
-  LOG_TYPE_AUTO_CANCEL_LISTING,
-  LOG_TYPE_CANCEL_OFFER,
-  LOG_TYPE_MINT,
-} = NFT_LOG_TYPE;
 
 const transferListener = async ({ log, strapi }) => {
   try {

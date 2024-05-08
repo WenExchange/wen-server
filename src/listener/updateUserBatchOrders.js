@@ -13,18 +13,6 @@ const { updateBestOffer } = require("./collectionStats");
 const { WEN_ETH_ADDRESS } = require("../utils/constants");
 
 const updateUserBatchOrderStatus = async ({ strapi, user }) => {
-  // 1. Check if the user is wen exchange user
-  const userCheck = await strapi.db.query("api::exchange-user.exchange-user").findOne({
-    where: {
-      address: user,
-    },
-  });
-
-
-  if (!userCheck) {
-    console.log(`address ${user} doesn't exist on db`);
-    return;
-  }
 
   // 1. Get User's current wenETH Balance
   const wenETHBalance = BigNumber.from(
@@ -82,7 +70,6 @@ const updateUserBatchOrderStatus = async ({ strapi, user }) => {
 
       if (showingOrders.length > maxShowingCount) {
         let difference = showingOrders.length - maxShowingCount;
-        console.log("줄여줘야함. current count2 ", difference);
 
         for (let i = 0; i < difference; i++) {
           const changingOrder = showingOrders[i];
@@ -101,15 +88,6 @@ const updateUserBatchOrderStatus = async ({ strapi, user }) => {
         let d1 = maxShowingCount - showingOrders.length;
         let d2 = hiddenOrders.length;
         let difference = Math.min(d1, d2);
-        console.log(
-          "늘려줘야함. current count: ",
-          "showingOrders : ",
-          showingOrders.length,
-          "hiddenOrders : ",
-          hiddenOrders.length,
-          "maxShowingCount : ",
-          maxShowingCount.toString()
-        );
         for (let i = 0; i < difference; i++) {
           const changingOrder = hiddenOrders[i];
           const changed = await strapi.entityService.update(
@@ -125,14 +103,6 @@ const updateUserBatchOrderStatus = async ({ strapi, user }) => {
         }
       }
 
-      console.log(
-        "stateChangedToShowingOrderIds: ",
-        stateChangedToShowingOrderIds
-      );
-      console.log(
-        "stateChangedToHiddenOrderIds: ",
-        stateChangedToHiddenOrderIds
-      );
 
       if (
         stateChangedToShowingOrderIds.length > 0 ||
@@ -146,19 +116,6 @@ const updateUserBatchOrderStatus = async ({ strapi, user }) => {
 };
 
 const updateUserBatchOrderStatusWithoutUpdateBestOffer = async ({ strapi, user }) => {
-  // 1. Check if the user is wen exchange user
-  const userCheck = await strapi.db.query("api::exchange-user.exchange-user").findOne({
-    where: {
-      address: user,
-    },
-  });
-
-
-  if (!userCheck) {
-    console.log(`address ${user} doesn't exist on db`);
-    return;
-  }
-
   // 1. Get User's current wenETH Balance
   const wenETHBalance = BigNumber.from(
     (await getERC20Balance(WEN_ETH_ADDRESS, user)).toString()
@@ -215,7 +172,6 @@ const updateUserBatchOrderStatusWithoutUpdateBestOffer = async ({ strapi, user }
 
       if (showingOrders.length > maxShowingCount) {
         let difference = showingOrders.length - maxShowingCount;
-        console.log("줄여줘야함. current count2 ", difference);
 
         for (let i = 0; i < difference; i++) {
           const changingOrder = showingOrders[i];
@@ -234,15 +190,6 @@ const updateUserBatchOrderStatusWithoutUpdateBestOffer = async ({ strapi, user }
         let d1 = maxShowingCount - showingOrders.length;
         let d2 = hiddenOrders.length;
         let difference = Math.min(d1, d2);
-        console.log(
-          "늘려줘야함. current count: ",
-          "showingOrders : ",
-          showingOrders.length,
-          "hiddenOrders : ",
-          hiddenOrders.length,
-          "maxShowingCount : ",
-          maxShowingCount.toString()
-        );
         for (let i = 0; i < difference; i++) {
           const changingOrder = hiddenOrders[i];
           const changed = await strapi.entityService.update(
@@ -257,23 +204,6 @@ const updateUserBatchOrderStatusWithoutUpdateBestOffer = async ({ strapi, user }
           stateChangedToShowingOrderIds.push(changed.id);
         }
       }
-
-      console.log(
-        "stateChangedToShowingOrderIds: ",
-        stateChangedToShowingOrderIds
-      );
-      console.log(
-        "stateChangedToHiddenOrderIds: ",
-        stateChangedToHiddenOrderIds
-      );
-
-      // if (
-      //   stateChangedToShowingOrderIds.length > 0 ||
-      //   stateChangedToHiddenOrderIds.length > 0
-      // ) {
-      //   const collectionAddress = batchBuyOrder.collection.contract_address;
-      //  await updateBestOffer({strapi, contractAddress :collectionAddress })
-      // }
     }
   }
 };

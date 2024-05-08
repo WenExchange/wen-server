@@ -274,17 +274,20 @@ const saleProcessInWen = async ({ data, strapi }) => {
   // 2. order 지우기
   await deleteSellOrderAtTradeListener({ strapi, data, nftData, isListingAirdrop: false })
   // 3. sale log
-  await createSaleLogAtTradeListener({ strapi, data, nftData })
+  const createdLog = await createSaleLogAtTradeListener({ strapi, data, nftData })
 
-  await updateSalePoint(
-    data.payment_token,
-    data.price,
-    data.to,
-    data.contract_address,
-    nftData.token_id,
-    createdLog.id,
-    { strapi }
-  );
+  if (createdLog) {
+    await updateSalePoint(
+      data.payment_token,
+      data.price,
+      data.to,
+      data.contract_address,
+      nftData.token_id,
+      createdLog.id,
+      { strapi }
+    );
+  }
+  
 
 };
 

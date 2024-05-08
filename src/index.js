@@ -46,6 +46,8 @@ module.exports = {
     try {
 
       const ccm = CollectionCacheManager.getInstance(strapi);
+      await getNFTsAndUpdateOwnerOfNFTs({strapi, isGT: true})
+      await getNFTsAndUpdateOwnerOfNFTs({strapi, isGT: false})
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
         const nmqm = NFTMintingQueueManager.getInstance(strapi);

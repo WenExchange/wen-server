@@ -59,8 +59,7 @@ const mintifyContractListener = async ({ event, strapi, ex_type }) => {
         //   tokenId: data.offer[0].identifier, // NFT Token ID
         //   contract: data.offer[0].token, // NFT CONTRACT
         // }
-  
-        await saleProcessInMintify({data, strapi})
+   
   
         if (data.sale_type === SALE_TYPE.SELL) {
           await saleProcessInMintify({data, strapi})
@@ -69,6 +68,7 @@ const mintifyContractListener = async ({ event, strapi, ex_type }) => {
         } else {
   
         }
+        console.log(`mintifyContractListener - ${data.sale_type}`, data)
   
         break;
       }

@@ -1,3 +1,4 @@
+const { elementContractListener } = require("../listener/elementContractListener");
 const { mintifyContractListener } = require("../listener/mintifyContractListener");
 const {EX_TYPE} = require("../utils/constants")
 
@@ -47,6 +48,9 @@ module.exports = class ExchangeContractQueueManager {
           case EX_TYPE.MINTIFY:
           case EX_TYPE.OPENSEA:
             await mintifyContractListener({strapi: this.strapi,event: log, ex_type })
+            break
+          case EX_TYPE.ELEMENT:
+            await elementContractListener({strapi: this.strapi,event: log })
             break
         
           default:

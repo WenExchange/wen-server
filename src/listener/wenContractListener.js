@@ -80,6 +80,7 @@ const wenContractListener = async ({ event, strapi }) => {
 
 
         await saleProcessInWen({ data, strapi })
+        console.log(`wenContractListener - ERC721SellOrderFilled`, data)
         break;
       }
 
@@ -124,6 +125,7 @@ const wenContractListener = async ({ event, strapi }) => {
 
         try {
           await buyOrderSaleProcessInWen({ data, strapi })
+          console.log(`wenContractListener - ERC721BuyOrderFilled`, data)
         } catch (error) {
 
           const errorDetail =
@@ -166,7 +168,7 @@ const wenContractListener = async ({ event, strapi }) => {
         };
 
         await cancelProcessInWen({ data, strapi })
-
+        console.log(`wenContractListener - ERC721OrderCancelled`, data)
         break;
       }
 
@@ -201,7 +203,8 @@ const wenContractListener = async ({ event, strapi }) => {
               hash_nonce: newHashNonce,
             },
           });
-
+        
+          console.log(`wenContractListener - IncrementHashNonce`, data)
         break;
       }
 

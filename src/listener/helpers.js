@@ -1,8 +1,10 @@
 const DiscordManager = require("../discord/DiscordManager");
+const { updateListingPoint } = require("../utils/airdropPrePointHelper");
 const {
     NFT_LOG_TYPE,
     DISCORD_INFO,
   } = require("../utils/constants");
+const { updateOwnerCount, updateFloorPrice, updateOrdersCount } = require("./collectionStats");
   const {
     LOG_TYPE_SALE,
     LOG_TYPE_AUTO_CANCEL_LISTING,

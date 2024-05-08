@@ -68,7 +68,7 @@ const mintifyContractListener = async ({ event, strapi, ex_type }) => {
         } else {
   
         }
-        console.log(`mintifyContractListener - ${data.sale_type}`, data)
+        // console.log(`${data.ex_type} | mintifyContractListener - ${data.sale_type}`, data)
   
         break;
       }

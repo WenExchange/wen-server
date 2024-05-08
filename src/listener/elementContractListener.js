@@ -50,7 +50,7 @@ const elementContractListener = async ({ event, strapi }) => {
         };
 
         await saleProcessInElement({ data, strapi })
-        console.log(`elementContractListener - ERC721SellOrderFilled`, data)
+        // console.log(`elementContractListener - ERC721SellOrderFilled`, data)
         break;
       }
 
@@ -91,7 +91,7 @@ const elementContractListener = async ({ event, strapi }) => {
         };
 
         await saleProcessInElement({ data, strapi })
-        console.log(`elementContractListener - ERC721BuyOrderFilled`, data)
+        // console.log(`elementContractListener - ERC721BuyOrderFilled`, data)
         break;
       }
 

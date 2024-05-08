@@ -10,7 +10,7 @@ const {
 const { createTransferListener } = require("./listener/blockchainListener");
 const CollectionCacheManager = require("./cache-managers/CollectionCacheManager");
 const TokenTransferQueueManager = require("./queue-manager/TokenTransferQueueManager");
-const ElementContractQueueManager = require("./queue-manager/ElementContractQueueManager");
+// const ElementContractQueueManager = require("./queue-manager/ElementContractQueueManager");
 const WenContractQueueManager = require("./queue-manager/WenContractQueueManager");
 const wenETHContractQueueManager = require("./queue-manager/wenETHContractQueueManager");
 
@@ -51,7 +51,7 @@ module.exports = {
         const nmqm = NFTMintingQueueManager.getInstance(strapi);
         const tqm = TokenTransferQueueManager.getInstance(strapi);
         const excqm = ExchangeContractQueueManager.getInstance(strapi);
-        const ecqm = ElementContractQueueManager.getInstance(strapi);
+        // const ecqm = ElementContractQueueManager.getInstance(strapi);
         const wcqm = WenContractQueueManager.getInstance(strapi);
         wenETHContractQueueManager.getInstance(strapi)
 

@@ -2,7 +2,6 @@ const {ethers} = require("ethers");
 const ExchangeContractABI = require("../web3/abis/ExchangeContractABI.json")
 const SeportABI = require("../web3/abis/Seaport.json");
 const { transferListener } = require("./transferListener");
-// const ElementContractQueueManager = require("../queue-manager/ElementContractQueueManager");
 const WenContractQueueManager = require("../queue-manager/WenContractQueueManager");
 const ExchangeContractQueueManager = require("../queue-manager/ExchangeContractQueueManager");
 const wenETHContractQueueManager = require("../queue-manager/wenETHContractQueueManager")
@@ -67,7 +66,6 @@ async function createTransferListener({ strapi }) {
     ExchangeContractABI.abi,
     jsonRpcProvider
   );
-  // const ecqm = ElementContractQueueManager.getInstance(strapi)
   elementContract.on("*", async event => {
     excqm.addQueue({
       ex_type: EX_TYPE.ELEMENT,

@@ -123,7 +123,6 @@ async function updateBestOffer({ strapi, contractAddress }) {
       let currentBestOffer = Number(orderData?.single_price_eth)
       if (Number.isNaN(currentBestOffer)) currentBestOffer = 0
 
-      console.log("update best offer : ", prevBestOffer, currentBestOffer);
 
       if (prevBestOffer !== currentBestOffer) {
         await strapi.db.query("api::collection.collection").update({

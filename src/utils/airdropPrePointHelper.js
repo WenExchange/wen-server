@@ -227,7 +227,7 @@ const updateSalePoint = async (
         ],
       },
     });
-  if (!collection || !collection.publishedAt) return;
+  if (!collection) return;
 
   const user = await strapi.db
     .query("api::exchange-user.exchange-user")

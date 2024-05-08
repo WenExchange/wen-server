@@ -5,7 +5,7 @@ const { transferListener } = require("./transferListener");
 const ElementContractQueueManager = require("../queue-manager/ElementContractQueueManager");
 const WenContractQueueManager = require("../queue-manager/WenContractQueueManager");
 const ExchangeContractQueueManager = require("../queue-manager/ExchangeContractQueueManager");
-
+const wenETHContractQueueManager = require("../queue-manager/wenETHContractQueueManager")
 //TODO: change it to mainnet
 const {
   jsonRpcProvider,
@@ -83,18 +83,6 @@ async function createTransferListener({ strapi }) {
     wcqm.addQueue(event)
   });
 
-  /** wenETH Contract Listener */
-  const wenETHContract = new ethers.Contract(
-    WEN_ETH_ADDRESS,
-    wenETH.abi,
-    jsonRpcProvider
-  );
-
-  const wecqm = wenETHContractQueueManager.getInstance(strapi);
-  wenETHContract.on("*", async (event) => {
-    wecqm.addQueue(event);
-  });
-  
   /** Collection Deploy Listener */
   jsonRpcProvider_cron.on("block", async blockNumber => {
     try {
@@ -104,6 +92,21 @@ async function createTransferListener({ strapi }) {
     }
     
   });
+  
+
+  /** wenETH Contract Listener */
+  const wenETHContract = new ethers.Contract(
+    WEN_ETH_ADDRESS,
+    wenETH.abi,
+    jsonRpcProvider_cron
+  );
+
+  const wecqm = wenETHContractQueueManager.getInstance(strapi);
+  wenETHContract.on("*", async (event) => {
+    wecqm.addQueue(event);
+  });
+  
+  
 
 
   

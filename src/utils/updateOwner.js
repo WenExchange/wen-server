@@ -75,11 +75,6 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({ strapi, isGT = true }) => {
       where: {
         $and
       },
-      // orderBy: {
-      //   collection: {
-      //     airdrop_multiplier: "DESC"
-      //   }
-      // },
       offset: start,
       limit: unit
     })
@@ -94,8 +89,6 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({ strapi, isGT = true }) => {
 
 
   }
-
-  console.log(333, "totalUpdatedCount", totalUpdatedCount);
 }
 
 
@@ -113,7 +106,7 @@ const updateOwnerOfNFTs = async ({ strapi, nfts }) => {
     try {
       if (realOwner.toLowerCase() !== nft.owner.toLowerCase()) {
         dm.logError({ error: new Error(`name:${nft.name} | token id: ${nft.token_id} | prev:${nft.owner} | real:${realOwner}`), identifier: `updateOwnerOfNFTs`, channelId: DISCORD_INFO.CHANNEL.ERROR_LOG }).catch()
-
+        strapi.log.info(`collection: ${nft.collection.contract_address} | token id: ${nft.token_id} | prev:${nft.owner} -> real:${realOwner}`)
         await strapi.entityService.update("api::nft.nft", nft.id, {
           data: {
             owner: realOwner,

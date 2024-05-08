@@ -29,8 +29,17 @@ const listing_cancel_detector_expiration = async ({ strapi }) => {
             $lt: current,
           },
         },
+        populate: {
+          nft: {
+            select: ["id", "token_id"]
+          },
+          collection: {
+            select: ["contract_address"]
+          },
+        },
       });
 
+    if (!willDeleteOrders || willDeleteOrders.length <= 0) return
     for (let i = 0; i < willDeleteOrders.length; i++) {
       const order = willDeleteOrders[i];
       const deletedOrder = await strapi.db
@@ -39,43 +48,38 @@ const listing_cancel_detector_expiration = async ({ strapi }) => {
           where: {
             id: order.id,
           },
-          populate: {
-            nft: {
-              select: ["id", "token_id"]
-            },
-            collection: {
-              select: ["contract_address"]
-            },
-          },
         })
       if (deletedOrder) {
-        await strapi.entityService
+        strapi.entityService
           .create("api::nft-trade-log.nft-trade-log", {
             data: {
               type: NFT_LOG_TYPE.LOG_TYPE_AUTO_CANCEL_LISTING,
-              from: deletedOrder.maker,
-              nft: deletedOrder.nft.id,
+              from: order.maker,
+              nft: order.nft.id,
               timestamp: dayjs().unix(),
             },
-          })
+          }).catch()
         await updateListingPoint(
           true,
-          deletedOrder.maker,
-          deletedOrder.collection.contract_address,
-          deletedOrder.nft.token_id,
+          order.maker,
+          order.collection.contract_address,
+          order.nft.token_id,
           0,
           0,
           { strapi }
         )
         await updateFloorPrice(
           { strapi },
-          deletedOrder.collection.contract_address
+          order.collection.contract_address
         )
 
         await updateOrdersCount(
           { strapi },
-          deletedOrder.collection.contract_address
+          order.collection.contract_address
         );
+
+
+
       }
 
     }

@@ -68,42 +68,38 @@ const checkValidationAndConnectWithDB = async ({ strapi, log }) => {
   const transferFrom = `0x${log.topics[1].slice(-40)}`;
   const transferTo = `0x${log.topics[2].slice(-40)}`;
   const bigIntTokenId = BigInt(log.topics[3]);
-  const tokenId = Number(bigIntTokenId);
-
-  /** Mint */
-  // if (transferFrom === "0x0000000000000000000000000000000000000000") {
-  //   await createNFTAtMint({ log, strapi });
-  //   return;
-  // }
+  const tokenId = bigIntTokenId.toString()
 
   // Buy Event 제외
-  const tx = await jsonRpcProvider.getTransaction(log.transactionHash);
-  const receipt = await tx.wait();
-  const receiptLogs = receipt.logs;
-  if (!Array.isArray(receiptLogs)) throw new Error("Invalid receiptLogs");
-  const receiptTopics = receiptLogs.map((log) => {
-    if (Array.isArray(log.topics) && log.topics.length > 0)
-      return log.topics[0];
-    return "";
-  });
-  const isIncludeBuyEventType = checkReceiptTopicsForEventTypes(receiptTopics);
+  // const tx = await jsonRpcProvider.getTransaction(log.transactionHash);
+  // const receipt = await tx.wait();
+  // const receiptLogs = receipt.logs;
+  // if (!Array.isArray(receiptLogs)) throw new Error("Invalid receiptLogs");
+  // const receiptTopics = receiptLogs.map((log) => {
+  //   if (Array.isArray(log.topics) && log.topics.length > 0)
+  //     return log.topics[0];
+  //   return "";
+  // });
+  // const isIncludeBuyEventType = checkReceiptTopicsForEventTypes(receiptTopics);
 
-  if (isIncludeBuyEventType) {
-    const exchangeAddresses = Object.keys(CONTRACT_ADDRESSES).map((key) =>
-      CONTRACT_ADDRESSES[key].toLowerCase()
-    );
-    const isIncludeWenOrElExchange = exchangeAddresses.includes(
-      tx.to.toLowerCase()
-    );
-    if (isIncludeWenOrElExchange) {
-      return;
-    }
-  }
+  // if (isIncludeBuyEventType) {
+  //   const exchangeAddresses = Object.keys(CONTRACT_ADDRESSES).map((key) =>
+  //     CONTRACT_ADDRESSES[key].toLowerCase()
+  //   );
+  //   const isIncludeWenOrElExchange = exchangeAddresses.includes(
+  //     tx.to.toLowerCase()
+  //   );
+  //   if (isIncludeWenOrElExchange) {
+  //     return;
+  //   }
+  // }
 
   // 1. Get NFT
   const nftData = await strapi.db.query("api::nft.nft").findOne({
     populate: {
-      sell_order: true
+      sell_order: {
+        select: ["id"]
+      }
     },
     where: {
       $and: [
@@ -119,13 +115,9 @@ const checkValidationAndConnectWithDB = async ({ strapi, log }) => {
     },
   });
 
-  // 1-1. If nft doesn't exist, return
-  if (!nftData) {
-    console.log(
-      `transferListener - There is no NFT DATA contract_address: ${log.address} | token_id: ${tokenId}`
-    );
-    return;
-  }
+  // 1-1. nftdata validation
+  if (!nftData) return 
+
 
   const existTrasferLog = await strapi.db.query
   ("api::nft-trade-log.nft-trade-log").findOne({
@@ -140,10 +132,13 @@ const checkValidationAndConnectWithDB = async ({ strapi, log }) => {
 
   if (existTrasferLog) return
 
+  // 업데이트 직전에
+  if (nftData.owner.toLowerCase() === transferTo.toLowerCase()) return 
   /** Common Tasks */
   const dm = DiscordManager.getInstance()
   // update NFT
   try {
+    
     await strapi.db.query("api::nft.nft").update({
       where: {
         id: nftData.id
@@ -204,14 +199,11 @@ const checkReceiptTopicsForEventTypes = (receiptTopics) => {
 const deleteSellOrderProcess = async ({ nftData, transferFrom, log, strapi, dm }) => {
   try {
     const deletedOrder = await strapi.entityService
-      .delete("api::order.order", nftData.sell_order.id, {
-        populate: { nft: true },
-      })
+      .delete("api::order.order", nftData.sell_order.id)
     if (deletedOrder) {
       await strapi.entityService
         .create("api::nft-trade-log.nft-trade-log", {
           data: {
-            ex_type: EX_TYPE.WEN,
             type: LOG_TYPE_AUTO_CANCEL_LISTING,
             from: transferFrom,
             nft: nftData.id,
@@ -223,7 +215,7 @@ const deleteSellOrderProcess = async ({ nftData, transferFrom, log, strapi, dm }
         true,
         deletedOrder.maker,
         deletedOrder.contract_address,
-        deletedOrder.nft.token_id,
+        nftData.token_id,
         0,
         0,
         { strapi }

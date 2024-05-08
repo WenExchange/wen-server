@@ -22,7 +22,9 @@ async function updateFloorPrice({ strapi }, contractAddress) {
       price_eth: "asc",
     },
     populate: {
-      collection: true,
+      collection: {
+        select: ["id", "floor_price"]
+      },
     },
   });
 

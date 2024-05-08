@@ -92,7 +92,7 @@ async function createTransferListener({ strapi }) {
     }
     
   });
-  
+
 
   /** wenETH Contract Listener */
   const wenETHContract = new ethers.Contract(
@@ -105,11 +105,6 @@ async function createTransferListener({ strapi }) {
   wenETHContract.on("*", async (event) => {
     wecqm.addQueue(event);
   });
-  
-  
-
-
-  
 }
 
 

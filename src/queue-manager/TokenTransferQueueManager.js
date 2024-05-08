@@ -95,6 +95,9 @@ const checkValidationAndConnectWithDB = async ({ strapi, log }) => {
   // }
 
   // 1. Get NFT
+
+
+  // 업데이트 직전에
   const nftData = await strapi.db.query("api::nft.nft").findOne({
     populate: {
       sell_order: {
@@ -118,21 +121,6 @@ const checkValidationAndConnectWithDB = async ({ strapi, log }) => {
   // 1-1. nftdata validation
   if (!nftData) return 
 
-
-  const existTrasferLog = await strapi.db.query
-  ("api::nft-trade-log.nft-trade-log").findOne({
-    where: {
-      type: LOG_TYPE_TRANSFER,
-      from: transferFrom,
-      to: transferTo,
-      nft: nftData.id,
-      tx_hash: log.transactionHash,
-    }
-  })
-
-  if (existTrasferLog) return
-
-  // 업데이트 직전에
   if (nftData.owner.toLowerCase() === transferTo.toLowerCase()) return 
   /** Common Tasks */
   const dm = DiscordManager.getInstance()
@@ -159,17 +147,32 @@ const checkValidationAndConnectWithDB = async ({ strapi, log }) => {
   }
 
   try {
+    const existTrasferLog = await strapi.db.query
+  ("api::nft-trade-log.nft-trade-log").findOne({
+    where: {
+      type: LOG_TYPE_TRANSFER,
+      from: transferFrom,
+      to: transferTo,
+      nft: nftData.id,
+      tx_hash: log.transactionHash,
+    }
+  })
+
+  if (!existTrasferLog) {
     await strapi.entityService
-      .create("api::nft-trade-log.nft-trade-log", {
-        data: {
-          type: LOG_TYPE_TRANSFER,
-          from: transferFrom,
-          to: transferTo,
-          nft: nftData.id,
-          tx_hash: log.transactionHash,
-          timestamp: dayjs().unix(),
-        },
-      })
+    .create("api::nft-trade-log.nft-trade-log", {
+      data: {
+        type: LOG_TYPE_TRANSFER,
+        from: transferFrom,
+        to: transferTo,
+        nft: nftData.id,
+        tx_hash: log.transactionHash,
+        timestamp: dayjs().unix(),
+      },
+    })
+  }
+
+    
   } catch (error) {
     dm.logError({ error, identifier: `checkValidationAndConnectWithDB | create nft trade log`, channelId: DISCORD_INFO.CHANNEL.LISTENER_ERROR_LOG })
   }

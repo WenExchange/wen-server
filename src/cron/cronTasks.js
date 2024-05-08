@@ -4,6 +4,7 @@ const {
   listing_cancel_detector_expiration,
   listing_cancel_detector_approve,
 } = require("./listing_cancel_detector");
+const {offer_cancel_detector} = require("./offer_cancel_detector")
 const { update_ether_price } = require("./update_ether_price");
 const {
   claimAllBlastYieldFromWenTradePool,
@@ -37,6 +38,12 @@ module.exports = {
 
   listing_cancel_detector_expiration: {
     task: listing_cancel_detector_expiration,
+    options: {
+      rule: `*/1 * * * *`,
+    },
+  },
+  offer_cancel_detector: {
+    task: offer_cancel_detector,
     options: {
       rule: `*/1 * * * *`,
     },

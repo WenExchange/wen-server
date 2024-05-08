@@ -40,10 +40,11 @@ module.exports = {
     if (isBOTServer) {
     }
   },
+  
+  
 
   async bootstrap({ strapi }) {
     try {
-
       const ccm = CollectionCacheManager.getInstance(strapi);
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {

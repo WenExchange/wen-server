@@ -142,7 +142,7 @@ const deleteSellOrderAtTradeListener = async ({ strapi, data, nftData, isListing
 const createSaleLogAtTradeListener = async ({ strapi, data, nftData, isOffer= false }) => {
     const tradeLog = await getTradeLogAtTradeListener({ strapi, data, nftData })
     if (!tradeLog) {
-        const data = {
+        const createData = {
             ex_type: data.ex_type,
             sale_type: data.sale_type,
             payment_token: data.payment_token,
@@ -159,7 +159,7 @@ const createSaleLogAtTradeListener = async ({ strapi, data, nftData, isOffer= fa
         }
         strapi.entityService
             .create("api::nft-trade-log.nft-trade-log", {
-                data
+                data: createData
             })
             .catch((e) => console.error(e.message));
     }

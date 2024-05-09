@@ -24,8 +24,6 @@ const createNFTAtMint = async ({ log, strapi }) => {
     const tokenId = bigIntTokenId.toString()
 
     const contract_address = log.address;
-
-    strapi.log.info(`createNFTAtMint - ${tokenId} | ${transferTo}`)
     const ccm = CollectionCacheManager.getInstance(strapi)
     let existedCollection = ccm.getCollectionByAddress(contract_address)
     if (!existedCollection) {
@@ -41,13 +39,11 @@ const createNFTAtMint = async ({ log, strapi }) => {
           existedCollection = await checkAndCreateCollection({ strapi, contract_address })
           
         } catch (error) {
-          strapi.log.error(`createNFTAtMint - There is no collection ${error.message}`);
           return
         }
       } else {
         await ccm.fetchAndUpdateCollections({strapi})
       }
-      strapi.log.error(`!!! createNFTAtMint - There is no collection!!`);
       return 
     }
     strapi.log.info(`createNFTAtMint - Start Create NFT at Mint`);
@@ -78,8 +74,6 @@ const createNFTAtMint = async ({ log, strapi }) => {
         }
       })
 
-      console.log(`createNFTAtMint - existNFT`, existNFT)
-
       if (existNFT) {
         // Update NFT
         if (existNFT.owner.toLowerCase() !== transferTo.toLowerCase()) {
@@ -102,7 +96,6 @@ const createNFTAtMint = async ({ log, strapi }) => {
               }
             })
         }
-        strapi.log.error(`createNFTAtMint - Already exist nft`);
         return
       }
 

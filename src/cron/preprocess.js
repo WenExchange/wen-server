@@ -10,7 +10,7 @@ const {
 const { ethers } = require("ethers");
 
 const DiscordManager = require("../discord/DiscordManager");
-const PreprocessQueueManager = require("queue-manager/PreprocessQueueManager");
+const PreprocessQueueManager = require("../queue-manager/PreprocessQueueManager");
 
 
 const preprocess = async ({ strapi }) => {

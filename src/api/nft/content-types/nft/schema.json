@@ -76,6 +76,9 @@
     "try_count": {
       "type": "integer",
       "default": 1
+    },
+    "token_uri": {
+      "type": "string"
     }
   }
 }

@@ -1,9 +1,9 @@
 
-const { PREPROCESS_TYPE, jsonRpcProvider, jsonRpcProvider_cron, DISCORD_INFO } = require("utils/constants");
+const { PREPROCESS_TYPE, jsonRpcProvider, jsonRpcProvider_cron, DISCORD_INFO } = require("../utils/constants");
 const { createNFTAtMint, fetchMetadata } = require("../listener/listingAtMint");
 const { ethers } = require("ethers");
 const ERC721 = require("../web3/abis/ERC721.json");
-const DiscordManager = require("discord/DiscordManager");
+const DiscordManager = require("../discord/DiscordManager");
 
 let instance = null;
 module.exports = class PreprocessQueueManager {
@@ -76,6 +76,7 @@ module.exports = class PreprocessQueueManager {
 
 const fetchMetadataAndUpdateNFT = async ({ strapi, process }) => {
   try {
+    strapi.log.info(`fetchMetadataAndUpdateNFT - start`, process)
     const { nft, id, try_count } = process
   const collectionContract = new ethers.Contract(
     nft.collection.contract_address,
@@ -83,6 +84,7 @@ const fetchMetadataAndUpdateNFT = async ({ strapi, process }) => {
     jsonRpcProvider_cron
   );
   const metadata = await fetchMetadata({ collectionContract, tokenId: nft.token_id, timeout: 20 * 1000 });
+  strapi.log.info(`fetchMetadataAndUpdateNFT metadata`, metadata)
   if (metadata) {
     // update nft
     await strapi.db.query("api::nft.nft")

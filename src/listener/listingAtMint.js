@@ -24,23 +24,36 @@ const createNFTAtMint = async ({ log, strapi }) => {
     const tokenId = bigIntTokenId.toString()
 
     const contract_address = log.address;
+
+    // TODO: TEMP
+    if (contract_address.toLowerCase() !== "0x399BcFa4bAaAcD4b05A711799a8140d2094DA207".toLowerCase()) {
+      return 
+    }
+
+    strapi.log.info(`createNFTAtMint - ${tokenId} | ${transferTo}`)
     const ccm = CollectionCacheManager.getInstance(strapi)
     let existedCollection = ccm.getCollectionByAddress(contract_address)
     if (!existedCollection) {
-      const collection = await strapi.db.query("api::collection.collection").findOne({
+      existedCollection = await strapi.db.query("api::collection.collection").findOne({
         where: {
           contract_address
         }
       })
-      if (!collection) {
+
+      if (!existedCollection) {
         // TODO: check metadata and create collection
         try {
           existedCollection = await checkAndCreateCollection({ strapi, contract_address })
+          
         } catch (error) {
           strapi.log.error(`createNFTAtMint - There is no collection ${error.message}`);
           return
         }
+      } else {
+        await ccm.fetchAndUpdateCollections({strapi})
       }
+      strapi.log.error(`!!! createNFTAtMint - There is no collection!!`);
+      return 
     }
     strapi.log.info(`createNFTAtMint - Start Create NFT at Mint`);
     const dm = DiscordManager.getInstance();
@@ -69,6 +82,8 @@ const createNFTAtMint = async ({ log, strapi }) => {
 
         }
       })
+
+      console.log(`createNFTAtMint - existNFT`, existNFT)
 
       if (existNFT) {
         // Update NFT
@@ -122,7 +137,8 @@ const createNFTAtMint = async ({ log, strapi }) => {
         token_id: tokenId,
         name: `${existedCollection.name} #${tokenId}`,
         image_url: "",
-        traits: null
+        traits: null,
+        token_uri: null
       }
       if (!existedCollection.logo_url && (Number(tokenId) === 0 || Number(tokenId) === 1)) {
         try {
@@ -201,29 +217,29 @@ const createNFTAtMint = async ({ log, strapi }) => {
         );
       }
 
+      strapi.log.info(`createNFTAtMint - complete`)
 
       // TODO: try_count 에 따라 name , total supply 업데이트 시켜주기
 
     } catch (error) {
-      console.error(`Create NFT Error - ${error.message}`);
+      strapi.log.error(`Create NFT Error - ${error.message}`);
       dm.logListingNFTError({
         collection: existedCollection,
         error,
         tokenId
-      }).catch((err) => console.error(err.message));
+      }).catch();
     }
   } catch (error) {
-    console.log(`createNFTAtMint error - ${error.message}`);
+    strapi.log.error(`createNFTAtMint error - ${error.message}`);
   }
 };
 
 const fetchMetadata = async ({ collectionContract, tokenId, timeout = 3 * 1000 }) => {
   try {
     let tokenURI = await collectionContract.tokenURI(tokenId);
-    if (tokenURI.startsWith("ipfs://"))
-      tokenURI = tokenURI.replace("ipfs://", IPFS.GATEWAY_URL);
+    const requestURI = tokenURI.startsWith("ipfs://") ? tokenURI.replace("ipfs://", IPFS.GATEWAY_URL) : tokenURI
 
-    let metadata = await axios.get(tokenURI, {
+    let metadata = await axios.get(requestURI, {
       timeout
     }).then((res) => res.data);
     if (Buffer.isBuffer(metadata)) {
@@ -246,6 +262,7 @@ const fetchMetadata = async ({ collectionContract, tokenId, timeout = 3 * 1000 }
       image_url,
       token_id: tokenId,
       traits: attributes,
+      token_uri: tokenURI
     };
   } catch (error) {
     console.log(`fetchMetadata error - ${error.message}`);

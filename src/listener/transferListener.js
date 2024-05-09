@@ -4,16 +4,23 @@ const DiscordManager = require("../discord/DiscordManager");
 const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
 const NFTMintingQueueManager = require("../queue-manager/NFTMintingQueueManager");
 const TokenTransferQueueManager = require("../queue-manager/TokenTransferQueueManager");
+const { validInteger } = require("../utils/helpers");
 
 const transferListener = async ({ log, strapi }) => {
   try {
-    const ccm = CollectionCacheManager.getInstance(strapi);
-    const myCollections = ccm.getCollectionAddresses();
-    if (!myCollections.includes(log.address.toLowerCase())) return;
+    // const ccm = CollectionCacheManager.getInstance(strapi);
+    // const myCollections = ccm.getCollectionAddresses();
+    // if (!myCollections.includes(log.address.toLowerCase())) return;
 
     const transferFrom = `0x${log.topics[1].slice(-40)}`;
-    const transferTo = `0x${log.topics[2].slice(-40)}`;
-    const bigIntTokenId = BigInt(log.topics[3]);
+    // const transferTo = `0x${log.topics[2].slice(-40)}`;
+    try {
+      const bigIntTokenId = BigInt(log.topics[3]);
+    } catch (error) {
+      // strapi.log.error("transferListener - BigInt error", error.message);
+      return 
+    }
+    
 
     // const isValidTokenId = validInteger(bigIntTokenId);
     // if (!isValidTokenId) {
@@ -31,7 +38,7 @@ const transferListener = async ({ log, strapi }) => {
     }
     // Mint 제외
   } catch (error) {
-    console.error("transferListener - error", error);
+    console.error("transferListener - error", error.message);
   }
 };
 

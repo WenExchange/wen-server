@@ -1410,6 +1410,7 @@ export interface ApiNftNft extends Schema.CollectionType {
     >;
     is_valid_metadata: Attribute.Boolean & Attribute.DefaultTo<true>;
     try_count: Attribute.Integer & Attribute.DefaultTo<1>;
+    token_uri: Attribute.String;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<'api::nft.nft', 'oneToOne', 'admin::user'> &

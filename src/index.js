@@ -25,8 +25,6 @@ const { getNFTsAndUpdateOwnerOfNFTs } = require("./utils/updateOwner");
 const { listing_cancel_detector_expiration } = require("./cron/listing_cancel_detector");
 const { collectionDeployerERC721And1155Listener } = require("./listener/collectionDeployerERC721And1155Listener");
 const PreprocessMintQueueManager = require("./queue-manager/PreprocessMintQueueManager");
-const { transferListener } = require("./listener/transferListener");
-const { preprocess } = require("./cron/preprocess");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -38,7 +36,6 @@ module.exports = {
    * This gives you an opportunity to extend code.
    */
   register({ strapi }) {
-
     const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
     if (isBOTServer) {
     }
@@ -48,26 +45,6 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
-      
-      /** TEST */
-      PreprocessMintQueueManager.getInstance(strapi)
-      let filter = {
-        topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId
-      };
-
-      jsonRpcProvider.on(filter, async (log, _) => {
-        await transferListener({log, strapi})
-      });
-
-      // mint 10
-      // process
-      setInterval(() => {
-        preprocess({strapi})
-      }, 1000 * 60);
-      
-
-       /** TEST */
-
       const ccm = CollectionCacheManager.getInstance(strapi);
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {

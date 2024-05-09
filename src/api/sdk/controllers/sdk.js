@@ -15,7 +15,7 @@ const {
 const {
   updateListingPoint,
 } = require("../../../utils/airdropPrePointHelper.js");
-const { SDK, EX_TYPE, WEN_ETH_ADDRESS } = require("../../../utils/constants");
+const { SDK, EX_TYPE, WEN_ETH_ADDRESS, CONTRACT_ADDRESSES } = require("../../../utils/constants");
 
 /**
  * A set of functions called "actions" for `sdk`
@@ -45,8 +45,6 @@ const ORDERSIDE_SELL = 1;
 
 //From Wen
 const WEN_STANDARD = "wen-ex-v1";
-// TODO: NEED TO CHAGNE TO REAL ADDRESS
-const CONTRACT_ADDRESS_WEN_EX = "0x5958dC6cdc5df14b92699eABf17c7a19A1B22712";
 const LOG_TYPE_SALE = "SALE";
 const LOG_TYPE_TRANSFER = "TRANSFER";
 const LOG_TYPE_LISTING = "LISTING";
@@ -904,7 +902,6 @@ module.exports = {
       }
 
       /// 3. get token data
-      // TODO change to wenETH
       const token = await getTokenData("eth");
 
       /// 4. get response data
@@ -1192,7 +1189,7 @@ module.exports = {
 
     ctx.body = {
       data: {
-        to: CONTRACT_ADDRESS_WEN_EX,
+        to: CONTRACT_ADDRESSES.WEN_EX,
         value: txValue.toString(),
         data: txData,
       },

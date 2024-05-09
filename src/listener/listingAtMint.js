@@ -25,11 +25,6 @@ const createNFTAtMint = async ({ log, strapi }) => {
 
     const contract_address = log.address;
 
-    // TODO: TEMP
-    if (contract_address.toLowerCase() !== "0x399BcFa4bAaAcD4b05A711799a8140d2094DA207".toLowerCase()) {
-      return 
-    }
-
     strapi.log.info(`createNFTAtMint - ${tokenId} | ${transferTo}`)
     const ccm = CollectionCacheManager.getInstance(strapi)
     let existedCollection = ccm.getCollectionByAddress(contract_address)

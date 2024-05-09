@@ -1,6 +1,6 @@
 
 const { PREPROCESS_TYPE, jsonRpcProvider, jsonRpcProvider_cron, DISCORD_INFO } = require("../utils/constants");
-const { createNFTAtMint, fetchMetadata } = require("../listener/listingAtMint");
+const {  fetchMetadata } = require("../listener/listingAtMint");
 const { ethers } = require("ethers");
 const ERC721 = require("../web3/abis/ERC721.json");
 const DiscordManager = require("../discord/DiscordManager");

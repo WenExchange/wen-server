@@ -5,7 +5,7 @@
     "lib": ["ES2020"],
     "module": "ESNext",
     "skipLibCheck": true,
-    "baseUrl": "./src",
+    // "baseUrl": "./src",
     "checkJs": true,
     "declaration": true,
     "esModuleInterop": true,

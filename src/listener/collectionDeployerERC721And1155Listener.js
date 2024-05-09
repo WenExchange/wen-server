@@ -17,7 +17,7 @@ const getContractMetadata = async (address) => {
   try {
     const isERC721 = await contract
       .supportsInterface("0x80ac58cd")
-      .catch((err) => false);
+    if (isERC721 !== true) return false
     const isERC1155 = await contract
       .supportsInterface("0xd9b67a26")
       .catch((err) => false);
@@ -154,7 +154,7 @@ const createCollection = async ({
       }
     })
     
-    ccm.fetchAndUpdateCollections({strapi}).catch()
+    await ccm.fetchAndUpdateCollections({strapi})
 
     dm.logDetectingCollection(createdCollection).catch((err) =>
       console.error(err.message)

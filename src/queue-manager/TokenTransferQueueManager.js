@@ -4,6 +4,7 @@ const DiscordManager = require("../discord/DiscordManager");
 const { updateOwnerCount, updateFloorPrice, updateOrdersCount } = require("../listener/collectionStats");
 const { jsonRpcProvider, CONTRACT_ADDRESSES,NFT_LOG_TYPE, EVENT_TYPE, DISCORD_INFO, EX_TYPE } = require("../utils/constants");
 const { updateListingPoint } = require("../utils/airdropPrePointHelper");
+const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
 
 const {
   LOG_TYPE_SALE,
@@ -69,6 +70,13 @@ const checkValidationAndConnectWithDB = async ({ strapi, log }) => {
   const transferTo = `0x${log.topics[2].slice(-40)}`;
   const bigIntTokenId = BigInt(log.topics[3]);
   const tokenId = bigIntTokenId.toString()
+
+  const ccm = CollectionCacheManager.getInstance(strapi);
+  const myCollections = ccm.getCollectionAddresses();
+  if (!myCollections.includes(log.address.toLowerCase())) {
+    
+    return 
+  }
 
   // Buy Event 제외
   // const tx = await jsonRpcProvider.getTransaction(log.transactionHash);

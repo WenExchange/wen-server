@@ -3,10 +3,10 @@
 let instance = null;
 module.exports = class CollectionCacheManager {
   CACHE_COLLECTIONS = [];
-  CACHE_COLLECTION_ADDRESSES = [];
+  CACHE_CONTRACT_ADDRESSES = []
   constructor(strapi) {
     this.strapi = strapi;
-    this.fetchAndUpdateCollections({strapi})
+    this.fetchAndUpdateCollections({ strapi })
   }
 
   static getInstance(strapi) {
@@ -16,10 +16,13 @@ module.exports = class CollectionCacheManager {
     return instance;
   }
 
-  async fetchAndUpdateCollections({strapi}) {
+  async fetchAndUpdateCollections({ strapi }) {
     try {
       // collelction update
-      const colllections = await strapi.db.query("api::collection.collection").findMany();
+      const colllections = await strapi.db.query("api::collection.collection").findMany({
+        select: ["id", "name", "slug", "contract_address", "publishedAt", "logo_url", "banner_url"]
+      });
+      if (!Array.isArray(colllections)) return 
       this.setCollections(colllections);
     } catch (error) {
       throw error;
@@ -34,15 +37,21 @@ module.exports = class CollectionCacheManager {
   };
   setCollections = (collections) => {
     this.CACHE_COLLECTIONS = collections;
+    try {
+      const collectionAddresses = collections.map((_) =>
+        _.contract_address.toLowerCase()
+      );
+      this.CACHE_CONTRACT_ADDRESSES = collectionAddresses
+    } catch (error) {
+      this.strapi.log.error(`setCollections - ${error.message}`)
+    }
+
   };
 
   /** Helpers */
 
   getCollectionAddresses = () => {
-    const collectionAddresses = this.CACHE_COLLECTIONS.map((_) =>
-      _.contract_address.toLowerCase()
-    );
-    return collectionAddresses;
+    return this.CACHE_CONTRACT_ADDRESSES;
   };
 
   getCollectionByAddress = (_contract_address) => {

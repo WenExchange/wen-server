@@ -107,7 +107,6 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id, tim
           name: `${collection.name} #${token_id}`,
           image_url: "",
           traits: null,
-          try_count: 1
         }
         console.log(`${metadata.name} NFT at Mint (invalid metadata)`);
 

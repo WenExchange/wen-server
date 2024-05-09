@@ -5,11 +5,13 @@ const DiscordManager = require("../discord/DiscordManager");
 const {
   jsonRpcProvider,
   NFT_LOG_TYPE,
-  IPFS
+  IPFS,
+  jsonRpcProvider_cron,
+  PREPROCESS_TYPE
 } = require("../utils/constants");
 const ERC721 = require("../web3/abis/ERC721.json");
 const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
-const { wait, validInteger } = require("../utils/helpers");
+const { getContractMetadata, createCollection } = require("./collectionDeployerERC721And1155Listener");
 const { LOG_TYPE_MINT } = NFT_LOG_TYPE;
 
 
@@ -23,23 +25,30 @@ const createNFTAtMint = async ({ log, strapi }) => {
 
     const contract_address = log.address;
     const ccm = CollectionCacheManager.getInstance(strapi)
-    const existedCollection = ccm.getCollectionByAddress(contract_address)
-  if (!existedCollection) {
-    const collection = await strapi.db.query("api::collection.collection").findOne({
-      where: {
-        contract_address
-      }
-    })
+    let existedCollection = ccm.getCollectionByAddress(contract_address)
+    if (!existedCollection) {
+      existedCollection = await strapi.db.query("api::collection.collection").findOne({
+        where: {
+          contract_address
+        }
+      })
 
-    if (!collection) {
-      // TODO: check metadata and create collection
+      if (!existedCollection) {
+        // TODO: check metadata and create collection
+        try {
+          existedCollection = await checkAndCreateCollection({ strapi, contract_address })
+          
+        } catch (error) {
+          return
+        }
+      } else {
+        await ccm.fetchAndUpdateCollections({strapi})
+      }
       return 
     }
-  }
-    console.log(`Start Create NFT at Mint`);
+    strapi.log.info(`createNFTAtMint - Start Create NFT at Mint`);
     const dm = DiscordManager.getInstance();
     try {
-
       // 1.1 check exist nft
       const existNFT = await strapi.db.query("api::nft.nft").findOne({
         where: {
@@ -87,12 +96,19 @@ const createNFTAtMint = async ({ log, strapi }) => {
               }
             })
         }
-
         return
-
       }
 
-     
+      /**
+       * Listing Process
+       * 1. preprocess 에 type MINT 로 create
+       * 2. owner 만 조회해서 db 추가 (collection logo 가 없고 token_id 가 0 또는 1인 경우 fetching 한번 함.)
+       * 
+       * --
+       * Metadata Fetching Queue 
+       * 1. metadata 확인해서 넣어주기
+       * 2. 성공시 삭제, 실패시 try_count 업데이트
+       */
 
 
 
@@ -104,18 +120,36 @@ const createNFTAtMint = async ({ log, strapi }) => {
       );
 
       // Create NFT
-      let metadata = await fetchMetadata({ collectionContract, tokenId });
-      if (!metadata) {
-        metadata = {
-          token_id: tokenId,
-          name: `${existedCollection.name} #${tokenId}`,
-          image_url: "",
-          traits: null,
-          is_valid_metadata: false,
-          try_count: 1
-        }
-        console.log(`${metadata.name} NFT at Mint (invalid metadata)`);
+
+      let metadata = {
+        token_id: tokenId,
+        name: `${existedCollection.name} #${tokenId}`,
+        image_url: "",
+        traits: null,
+        token_uri: null
       }
+      if (!existedCollection.logo_url && (Number(tokenId) === 0 || Number(tokenId) === 1)) {
+        try {
+          const _metadata = await fetchMetadata({ collectionContract, tokenId, timeout: 10 * 1000 });
+        if (_metadata) {
+          metadata = _metadata
+          await strapi.db.query("api::collection.collection")
+            .update({
+              where: {
+                id: existedCollection.id,
+              },
+              data: {
+                logo_url: _metadata.image_url
+              }
+            })
+        }
+        } catch (error) {
+          strapi.log.error(`createNFTAtMint | update collection logo - ${error.message}`)
+        }
+        
+
+      }
+
 
       const createdNFT = await strapi.db.query("api::nft.nft")
         .create({
@@ -126,8 +160,15 @@ const createNFTAtMint = async ({ log, strapi }) => {
           }
         })
 
-      dm.logNFTMinting({ contract_address, createdNFT }).catch();
-
+      await strapi.db.query("api::preprocess.preprocess")
+        .create({
+          data: {
+            type: PREPROCESS_TYPE.MINT,
+            nft: createdNFT.id,
+            try_count: 1,
+            timestamp: dayjs().unix()
+          }
+        }).catch()
       strapi.db.query("api::nft-trade-log.nft-trade-log")
         .create({
           data: {
@@ -139,6 +180,8 @@ const createNFTAtMint = async ({ log, strapi }) => {
             timestamp: dayjs().unix()
           }
         }).catch()
+
+      dm.logNFTMinting({ contract_address, createdNFT }).catch();
 
 
 
@@ -153,7 +196,6 @@ const createNFTAtMint = async ({ log, strapi }) => {
             },
             data: {
               publishedAt: new Date(),
-              logo_url: createdNFT?.image_url || ""
             }
           })
 
@@ -163,29 +205,29 @@ const createNFTAtMint = async ({ log, strapi }) => {
         );
       }
 
+      strapi.log.info(`createNFTAtMint - complete`)
 
       // TODO: try_count 에 따라 name , total supply 업데이트 시켜주기
 
     } catch (error) {
-      console.error(`Create NFT Error - ${error.message}`);
+      strapi.log.error(`Create NFT Error - ${error.message}`);
       dm.logListingNFTError({
         collection: existedCollection,
         error,
         tokenId
-      }).catch((err) => console.error(err.message));
+      }).catch();
     }
   } catch (error) {
-    console.log(`createNFTAtMint error - ${error.message}`);
+    strapi.log.error(`createNFTAtMint error - ${error.message}`);
   }
 };
 
 const fetchMetadata = async ({ collectionContract, tokenId, timeout = 3 * 1000 }) => {
   try {
     let tokenURI = await collectionContract.tokenURI(tokenId);
-    if (tokenURI.startsWith("ipfs://"))
-      tokenURI = tokenURI.replace("ipfs://", IPFS.GATEWAY_URL);
+    const requestURI = tokenURI.startsWith("ipfs://") ? tokenURI.replace("ipfs://", IPFS.GATEWAY_URL) : tokenURI
 
-    let metadata = await axios.get(tokenURI, {
+    let metadata = await axios.get(requestURI, {
       timeout
     }).then((res) => res.data);
     if (Buffer.isBuffer(metadata)) {
@@ -208,13 +250,39 @@ const fetchMetadata = async ({ collectionContract, tokenId, timeout = 3 * 1000 }
       image_url,
       token_id: tokenId,
       traits: attributes,
-      try_count: null
+      token_uri: tokenURI
     };
   } catch (error) {
     console.log(`fetchMetadata error - ${error.message}`);
     return null;
   }
 };
+
+const checkAndCreateCollection = async ({ strapi, contract_address }) => {
+  try {
+    let metadataInfo = await getContractMetadata(contract_address);
+    if (typeof metadataInfo === "boolean") throw new Error("invalid metadata");
+    if (!metadataInfo.isERC721) throw new Error("invalid metadata");
+    const name = metadataInfo.name;
+    const total_supply = metadataInfo.total_supply;
+    const token_type = metadataInfo.isERC721 ? "ERC721" : "ERC1155";
+    const contract = new ethers.Contract(contract_address, ERC721, jsonRpcProvider_cron);
+    const creator_address = await contract.owner()
+    const collection = await createCollection({
+      strapi,
+      contract_address,
+      creator_address,
+      name,
+      token_type,
+      total_supply
+    });
+    return collection
+  } catch (error) {
+    strapi.log.error(`createNFTAtMint | createCollection - ${error.message}`)
+    throw new Error(error)
+  }
+}
+
 
 module.exports = {
   createNFTAtMint,

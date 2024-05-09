@@ -12,6 +12,7 @@ const {
 } = require("./stats_24h_contract");
 
 const { airdropStatCombined } = require("./airdrop_jobs");
+const { preprocess_mint } = require("./preprocess");
 
 module.exports = {
   cacheCollection: {
@@ -25,7 +26,7 @@ module.exports = {
       }
     },
     options: {
-      rule: `*/1 * * * *`,
+      rule: `*/5 * * * *`,
     },
   },
   stats_1h_collection: {
@@ -44,6 +45,12 @@ module.exports = {
   },
   offer_cancel_detector: {
     task: offer_cancel_detector,
+    options: {
+      rule: `*/1 * * * *`,
+    },
+  },
+  preprocess: {
+    task: preprocess_mint,
     options: {
       rule: `*/1 * * * *`,
     },

@@ -24,7 +24,7 @@ const { nft_retry_metadata } = require("./cron/nft_retry");
 const { getNFTsAndUpdateOwnerOfNFTs } = require("./utils/updateOwner");
 const { listing_cancel_detector_expiration } = require("./cron/listing_cancel_detector");
 const { collectionDeployerERC721And1155Listener } = require("./listener/collectionDeployerERC721And1155Listener");
-const PreprocessQueueManager = require("./queue-manager/PreprocessQueueManager");
+const PreprocessMintQueueManager = require("./queue-manager/PreprocessMintQueueManager");
 const { transferListener } = require("./listener/transferListener");
 const { preprocess } = require("./cron/preprocess");
 dayjs.extend(utc);
@@ -50,7 +50,7 @@ module.exports = {
     try {
       
       /** TEST */
-      PreprocessQueueManager.getInstance(strapi)
+      PreprocessMintQueueManager.getInstance(strapi)
       let filter = {
         topics: [ethers.utils.id("Transfer(address,address,uint256)")], //from, to, tokenId
       };
@@ -76,7 +76,7 @@ module.exports = {
         const excqm = ExchangeContractQueueManager.getInstance(strapi);
         const wcqm = WenContractQueueManager.getInstance(strapi);
         wenETHContractQueueManager.getInstance(strapi)
-        PreprocessQueueManager.getInstance(strapi)
+        PreprocessMintQueueManager.getInstance(strapi)
 
         createTransferListener({ strapi }).catch((e) => {
           strapi.log.error(`createTransferListener error - ${e.message}`);

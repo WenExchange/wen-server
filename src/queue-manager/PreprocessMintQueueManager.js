@@ -6,7 +6,7 @@ const ERC721 = require("../web3/abis/ERC721.json");
 const DiscordManager = require("../discord/DiscordManager");
 
 let instance = null;
-module.exports = class PreprocessQueueManager {
+module.exports = class PreprocessMintQueueManager {
   PROCESS_QUEUE = [];
   isProcessing = false
   constructor(strapi) {
@@ -15,7 +15,7 @@ module.exports = class PreprocessQueueManager {
 
   static getInstance(strapi) {
     if (!instance) {
-      instance = new PreprocessQueueManager(strapi);
+      instance = new PreprocessMintQueueManager(strapi);
     }
     return instance;
   }
@@ -37,7 +37,7 @@ module.exports = class PreprocessQueueManager {
 
   // addQueue = (process) => {
   //   this.PROCESS_QUEUE.push(process)
-  //   console.log(`[PreprocessQueueManager] - ${this.PROCESS_QUEUE.length -1} -> ${this.PROCESS_QUEUE.length}`);
+  //   console.log(`[PreprocessMintQueueManager] - ${this.PROCESS_QUEUE.length -1} -> ${this.PROCESS_QUEUE.length}`);
   //   this.executeQueue()
   // }
 
@@ -51,7 +51,7 @@ module.exports = class PreprocessQueueManager {
     this.isProcessing = true
 
     while (this.PROCESS_QUEUE.length > 0) {
-      console.log(`[PreprocessQueueManager] Processing Queue Start - ${this.PROCESS_QUEUE.length} -> ${this.PROCESS_QUEUE.length - 1}`);
+      console.log(`[PreprocessMintQueueManager] Processing Queue Start - ${this.PROCESS_QUEUE.length} -> ${this.PROCESS_QUEUE.length - 1}`);
       const process = this.PROCESS_QUEUE.shift();
       if (!process || !process.type) return
       switch (process.type) {

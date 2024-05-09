@@ -10,22 +10,22 @@ const {
 const { ethers } = require("ethers");
 
 const DiscordManager = require("../discord/DiscordManager");
-const PreprocessQueueManager = require("../queue-manager/PreprocessQueueManager");
+const PreprocessMintQueueManager = require("../queue-manager/PreprocessMintQueueManager");
 
 
-const preprocess = async ({ strapi }) => {
+const preprocess_mint = async ({ strapi }) => {
   strapi.log.info("[CRON TASK] - START | preprocess");
 
   try {
-    const pqm = PreprocessQueueManager.getInstance(strapi)
+    const pqm = PreprocessMintQueueManager.getInstance(strapi)
     if (!pqm.isValidAddingQueue) return
     
     const preprocesses = await strapi.db.query("api::preprocess.preprocess").findMany({
       where: {
         $and: [
-          // {
-          //   type: PREPROCESS_TYPE.MINT
-          // },
+          {
+            type: PREPROCESS_TYPE.MINT
+          },
           {
             try_count: {
               $gte: 1
@@ -64,5 +64,5 @@ const preprocess = async ({ strapi }) => {
 };
 
 module.exports = {
-  preprocess
+  preprocess_mint
 };

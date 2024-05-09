@@ -31,7 +31,7 @@ const elementContractListener = async ({ event, strapi }) => {
         // 3. ERC 721 컨트랙트 어드레스
         const ERC721ContractAddress = eventData["7"].toLowerCase();
         // 4. ERC 721 토큰 ID
-        const ERC721TokenId = eventData["8"].toNumber();
+        const ERC721TokenId = eventData["8"].toString();
 
         const maker = eventData["1"];
         const taker = eventData["2"];
@@ -69,7 +69,7 @@ const elementContractListener = async ({ event, strapi }) => {
         // 3. ERC 721 컨트랙트 어드레스
         const ERC721ContractAddress = eventData["7"].toLowerCase();
         // 4. ERC 721 토큰 ID
-        const ERC721TokenId = eventData["8"].toNumber();
+        const ERC721TokenId = eventData["8"].toString();
 
         const maker = eventData["1"];
         const taker = eventData["2"];

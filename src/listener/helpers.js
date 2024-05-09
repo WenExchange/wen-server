@@ -9,6 +9,7 @@ const { updateOwnerCount, updateFloorPrice, updateOrdersCount } = require("./col
   const {
     LOG_TYPE_SALE,
     LOG_TYPE_AUTO_CANCEL_LISTING,
+    LOG_TYPE_COLLECTION_SALE
   } = NFT_LOG_TYPE;
 
 

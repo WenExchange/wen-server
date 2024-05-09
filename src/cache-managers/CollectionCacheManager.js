@@ -22,6 +22,7 @@ module.exports = class CollectionCacheManager {
       const colllections = await strapi.db.query("api::collection.collection").findMany({
         select: ["id", "name", "slug", "contract_address", "publishedAt", "logo_url", "banner_url"]
       });
+      if (!Array.isArray(colllections)) return 
       this.setCollections(colllections);
     } catch (error) {
       throw error;

@@ -83,7 +83,10 @@ const fetchMetadataAndUpdateNFT = async ({ strapi, process }) => {
     ERC721,
     jsonRpcProvider_cron
   );
-  const metadata = await fetchMetadata({ collectionContract, tokenId: nft.token_id, timeout: 20 * 1000 });
+  let timeout = 5 * 1000 
+  if (Number(try_count) === 2) timeout = 10 * 1000
+  if (Number(try_count) >= 3) timeout = 20 * 1000
+  const metadata = await fetchMetadata({ collectionContract, tokenId: nft.token_id, timeout });
   strapi.log.info(`fetchMetadataAndUpdateNFT metadata`, metadata)
   if (metadata) {
     // update nft

@@ -3,7 +3,6 @@ const path = require('path');
 module.exports = ({ env }) => {
   const isProduction = env("NODE_ENV") !== "development"
   console.log("isProduction",env("NODE_ENV"));
-  console.log("database env",env("DATABASE_HOST"),env.int("DATABASE_PORT", 3306),env("DATABASE_NAME"),  env("DATABASE_USERNAME"),env("DATABASE_PASSWORD", "Mckdtlr12!@"),env.bool("DATABASE_SSL", true) );
   return {
     connection: {
       client: "mysql",

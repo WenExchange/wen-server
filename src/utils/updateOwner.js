@@ -13,7 +13,7 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({ strapi, isGT = true }) => {
   const unit = 10
 
   let totalUpdatedCount = 0
-  for (let i = 0; i < 150000 / unit; i++) {
+  for (let i = 0; i < 300000 / unit; i++) {
     console.log(`${i} start`);
     const start = i * unit
     const end = unit * (i + 1)

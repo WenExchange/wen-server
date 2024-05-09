@@ -24,6 +24,7 @@ const { nft_retry_metadata } = require("./cron/nft_retry");
 const { getNFTsAndUpdateOwnerOfNFTs } = require("./utils/updateOwner");
 const { listing_cancel_detector_expiration } = require("./cron/listing_cancel_detector");
 const { collectionDeployerERC721And1155Listener } = require("./listener/collectionDeployerERC721And1155Listener");
+const PreprocessQueueManager = require("queue-manager/PreprocessQueueManager");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -54,6 +55,7 @@ module.exports = {
         const excqm = ExchangeContractQueueManager.getInstance(strapi);
         const wcqm = WenContractQueueManager.getInstance(strapi);
         wenETHContractQueueManager.getInstance(strapi)
+        PreprocessQueueManager.getInstance(strapi)
 
         createTransferListener({ strapi }).catch((e) => {
           strapi.log.error(`createTransferListener error - ${e.message}`);

@@ -1531,6 +1531,47 @@ export interface ApiOrderOrder extends Schema.CollectionType {
   };
 }
 
+export interface ApiPreprocessPreprocess extends Schema.CollectionType {
+  collectionName: 'preprocesses';
+  info: {
+    singularName: 'preprocess';
+    pluralName: 'preprocesses';
+    displayName: 'Preprocess';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    type: Attribute.String & Attribute.Required;
+    nft: Attribute.Relation<
+      'api::preprocess.preprocess',
+      'oneToOne',
+      'api::nft.nft'
+    >;
+    collection: Attribute.Relation<
+      'api::preprocess.preprocess',
+      'oneToOne',
+      'api::collection.collection'
+    >;
+    try_count: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<1>;
+    timestamp: Attribute.BigInteger & Attribute.Required;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::preprocess.preprocess',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::preprocess.preprocess',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiRequestLogRequestLog extends Schema.CollectionType {
   collectionName: 'request_logs';
   info: {
@@ -1742,6 +1783,7 @@ declare module '@strapi/types' {
       'api::nft.nft': ApiNftNft;
       'api::nft-trade-log.nft-trade-log': ApiNftTradeLogNftTradeLog;
       'api::order.order': ApiOrderOrder;
+      'api::preprocess.preprocess': ApiPreprocessPreprocess;
       'api::request-log.request-log': ApiRequestLogRequestLog;
       'api::token.token': ApiTokenToken;
       'api::wen-eth-balance-change-log.wen-eth-balance-change-log': ApiWenEthBalanceChangeLogWenEthBalanceChangeLog;

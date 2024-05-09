@@ -154,7 +154,7 @@ const createCollection = async ({
       }
     })
     
-    ccm.fetchAndUpdateCollections({strapi}).catch()
+    await ccm.fetchAndUpdateCollections({strapi})
 
     dm.logDetectingCollection(createdCollection).catch((err) =>
       console.error(err.message)

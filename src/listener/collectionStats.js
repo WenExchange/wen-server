@@ -17,16 +17,7 @@ async function updateFloorPrice({ strapi }, contractAddress) {
   
   const orderData = await strapi.db.query("api::order.order").findOne({
     where: {
-      $and: [
-        {
-          publishedAt: {
-            $notNull: true
-          }
-        },
-        {
-          contract_address: contractAddress,
-        }
-      ]
+      contract_address: contractAddress,
       
     },
     orderBy: {

@@ -14,9 +14,20 @@ async function batchUpdateFloorPrice({ strapi, addressList }) {
 }
 
 async function updateFloorPrice({ strapi }, contractAddress) {
+  
   const orderData = await strapi.db.query("api::order.order").findOne({
     where: {
-      contract_address: contractAddress,
+      $and: [
+        {
+          publishedAt: {
+            $notNull: true
+          }
+        },
+        {
+          contract_address: contractAddress,
+        }
+      ]
+      
     },
     orderBy: {
       price_eth: "asc",
@@ -29,6 +40,7 @@ async function updateFloorPrice({ strapi }, contractAddress) {
   });
 
   if (orderData) {
+    if (!orderData.collection) throw new Error("No collection in orderData")
     let currentCollectionFP;
     if (orderData.collection.floor_price) {
       currentCollectionFP = orderData.collection.floor_price;

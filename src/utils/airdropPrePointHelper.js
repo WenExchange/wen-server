@@ -95,7 +95,7 @@ const updateListingPoint = async (
           ],
         },
       });
-    if (!collection || !collection.publishedAt) return;
+    if (!collection) return;
 
     const user = await strapi.db
       .query("api::exchange-user.exchange-user")
@@ -108,7 +108,7 @@ const updateListingPoint = async (
 
     let fp = 0;
     // 2. Check prepoint
-    if (!collection.floor_price || collection.floor_price == 0) {
+    if (!collection.floor_price || Number(collection.floor_price) === 0) {
       prePoint = 0;
     } else {
       fp = parseFloat(collection.floor_price);

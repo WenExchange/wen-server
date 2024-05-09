@@ -24,6 +24,7 @@ const { nft_retry_metadata } = require("./cron/nft_retry");
 const { getNFTsAndUpdateOwnerOfNFTs } = require("./utils/updateOwner");
 const { listing_cancel_detector_expiration } = require("./cron/listing_cancel_detector");
 const { collectionDeployerERC721And1155Listener } = require("./listener/collectionDeployerERC721And1155Listener");
+const PreprocessMintQueueManager = require("./queue-manager/PreprocessMintQueueManager");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -35,7 +36,6 @@ module.exports = {
    * This gives you an opportunity to extend code.
    */
   register({ strapi }) {
-
     const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
     if (isBOTServer) {
     }
@@ -45,7 +45,6 @@ module.exports = {
 
   async bootstrap({ strapi }) {
     try {
-      
       const ccm = CollectionCacheManager.getInstance(strapi);
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
@@ -54,6 +53,7 @@ module.exports = {
         const excqm = ExchangeContractQueueManager.getInstance(strapi);
         const wcqm = WenContractQueueManager.getInstance(strapi);
         wenETHContractQueueManager.getInstance(strapi)
+        PreprocessMintQueueManager.getInstance(strapi)
 
         createTransferListener({ strapi }).catch((e) => {
           strapi.log.error(`createTransferListener error - ${e.message}`);

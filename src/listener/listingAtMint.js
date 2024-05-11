@@ -165,6 +165,7 @@ const createNFTAtMint = async ({ log, strapi }) => {
           data: {
             type: PREPROCESS_TYPE.MINT,
             nft: createdNFT.id,
+            collection: existedCollection.id,
             try_count: 1,
             timestamp: dayjs().unix()
           }

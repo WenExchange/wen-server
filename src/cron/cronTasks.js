@@ -12,7 +12,7 @@ const {
 } = require("./stats_24h_contract");
 
 const { airdropStatCombined } = require("./airdrop_jobs");
-const { preprocess_mint } = require("./preprocess");
+const { preprocess_mint, preprocess_mint_second } = require("./preprocess");
 
 module.exports = {
   cacheCollection: {
@@ -53,6 +53,13 @@ module.exports = {
     task: preprocess_mint,
     options: {
       rule: `*/1 * * * *`,
+    },
+  },
+
+  preprocess_second: {
+    task: preprocess_mint_second,
+    options: {
+      rule: `*/10 * * * *`,
     },
   },
 

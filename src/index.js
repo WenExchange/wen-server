@@ -47,6 +47,11 @@ module.exports = {
     try {
       const ccm = CollectionCacheManager.getInstance(strapi);
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
+      // await listingCollectionScript({strapi, address: "0xd285f0dc83123cbbbfe52c79cb26e3bdd1450510",timeout: 5 * 1000 })
+      await listingCollectionScript({strapi, address: "0xa3df6E247133AF7B0268051577B5DF643756fb51",timeout: 5 * 1000 })
+      await nft_retry_metadata({strapi, contract_address: "0xf3a4c9ce8ae7ca1505c72a393b302870dd40b754"})
+      await nft_retry_metadata({strapi, contract_address: "0x4e06c956cc25b90698ed913aed4c80e5797f9e8f"})
+
       if (isBOTServer) {
         const nmqm = NFTMintingQueueManager.getInstance(strapi);
         const tqm = TokenTransferQueueManager.getInstance(strapi);

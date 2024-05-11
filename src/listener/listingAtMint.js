@@ -168,7 +168,7 @@ const createNFTAtMint = async ({ log, strapi }) => {
             try_count: 1,
             timestamp: dayjs().unix()
           }
-        }).catch()
+        })
       strapi.db.query("api::nft-trade-log.nft-trade-log")
         .create({
           data: {

@@ -12,7 +12,7 @@ const ERC721 = require("../web3/abis/ERC721.json");
 const { fetchMetadata } = require("../listener/listingAtMint");
 
 
-const nft_retry_metadata = async ({ strapi }) => {
+const nft_retry_metadata = async ({ strapi, contract_address }) => {
   strapi.log.info("[CRON TASK] - START | NFT RETRY - Metadata");
   let count = 0
   try {
@@ -39,7 +39,7 @@ const nft_retry_metadata = async ({ strapi }) => {
           { image_url: "" },
           {
             collection: {
-              contract_address: "0x7bb6ffa55aac5c58b8150635eb078230d8adde4a"
+              contract_address
             }
           }
         ]
@@ -81,7 +81,7 @@ const nft_retry_metadata = async ({ strapi }) => {
             { image_url: "" },
             {
               collection: {
-                contract_address: "0x7bb6ffa55aac5c58b8150635eb078230d8adde4a"
+                contract_address
               }
             }
           ]

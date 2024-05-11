@@ -12,6 +12,7 @@ module.exports = class PreprocessMintQueueManager {
 
   SECOND_PROCESS_QUEUE = [];
   isSecondProcessing = false
+  
   constructor(strapi) {
     this.strapi = strapi;
   }

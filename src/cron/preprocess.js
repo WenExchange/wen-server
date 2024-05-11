@@ -61,7 +61,7 @@ const preprocess_mint_second = async ({ strapi }) => {
 
   try {
     const pqm = PreprocessMintQueueManager.getInstance(strapi)
-    if (!pqm.isValidAddingQueue()) return
+    if (!pqm.isValidSecondAddingQueue()) return
     
     const preprocesses = await strapi.db.query("api::preprocess.preprocess").findMany({
       where: {

@@ -133,6 +133,7 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id, tim
           data: {
             type: PREPROCESS_TYPE.MINT,
             nft: createdNFT.id,
+            collection: collection.id,
             try_count: 2,
             timestamp: dayjs().unix()
           }

@@ -3,10 +3,12 @@ const {
   createCollection
 } = require("../listener/collectionDeployerERC721And1155Listener");
 const { ethers } = require("ethers");
+const dayjs = require("dayjs");
 const {
   jsonRpcProvider,
   NFT_LOG_TYPE,
-  IPFS
+  IPFS,
+  PREPROCESS_TYPE
 } = require("./constants");
 const ERC721 = require("../web3/abis/ERC721.json");
 const DiscordManager = require("../discord/DiscordManager");
@@ -108,6 +110,7 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id, tim
           image_url: "",
           traits: null,
         }
+        
         console.log(`${metadata.name} NFT at Mint (invalid metadata)`);
 
       } else {
@@ -123,6 +126,20 @@ const createNFT = async ({ strapi, collection, collectionContract, token_id, tim
           owner
         }
       })
+
+      if (!metadata.image_url) {
+        await strapi.db.query("api::preprocess.preprocess")
+        .create({
+          data: {
+            type: PREPROCESS_TYPE.MINT,
+            nft: createdNFT.id,
+            try_count: 2,
+            timestamp: dayjs().unix()
+          }
+        })
+      }
+      
+      
 
 
       dm.logNFTMinting({ contract_address: collection.contract_address, createdNFT }).catch(

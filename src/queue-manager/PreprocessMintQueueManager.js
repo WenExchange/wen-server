@@ -1,6 +1,6 @@
 
 const { PREPROCESS_TYPE, jsonRpcProvider, jsonRpcProvider_cron, DISCORD_INFO } = require("../utils/constants");
-const {  fetchMetadata } = require("../listener/listingAtMint");
+const { fetchMetadata } = require("../listener/listingAtMint");
 const { ethers } = require("ethers");
 const ERC721 = require("../web3/abis/ERC721.json");
 const DiscordManager = require("../discord/DiscordManager");
@@ -56,7 +56,7 @@ module.exports = class PreprocessMintQueueManager {
       if (!process || !process.type) return
       switch (process.type) {
         case PREPROCESS_TYPE.MINT:
-          await fetchMetadataAndUpdateNFT({strapi: this.strapi, process })
+          await fetchMetadataAndUpdateNFT({ strapi: this.strapi, process })
           break;
         case PREPROCESS_TYPE.DEPLOYING_COLLECTION:
           break
@@ -78,48 +78,55 @@ const fetchMetadataAndUpdateNFT = async ({ strapi, process }) => {
   try {
     strapi.log.info(`fetchMetadataAndUpdateNFT - start`, process)
     const { nft, id, try_count } = process
-  const collectionContract = new ethers.Contract(
-    nft.collection.contract_address,
-    ERC721,
-    jsonRpcProvider_cron
-  );
-  let timeout = 5 * 1000 
-  if (Number(try_count) === 2) timeout = 10 * 1000
-  if (Number(try_count) >= 3) timeout = 20 * 1000
-  const metadata = await fetchMetadata({ collectionContract, tokenId: nft.token_id, timeout });
-  strapi.log.info(`fetchMetadataAndUpdateNFT metadata`, metadata)
-  if (metadata) {
-    // update nft
-    await strapi.db.query("api::nft.nft")
-      .update({
+    const existPreprocess = await strapi.db.query("api::preprocess.preprocess")
+      .findOne({
         where: {
-          id: nft.id
-        },
-        data: {
-          ...metadata
+          id
         }
       })
-    // delete preprocess
-    await strapi.db.query("api::preprocess.preprocess").delete({
-      where: {
-        id: id
-      },
-    })
+    if (!existPreprocess) return
+    const collectionContract = new ethers.Contract(
+      nft.collection.contract_address,
+      ERC721,
+      jsonRpcProvider_cron
+    );
+    let timeout = 5 * 1000
+    if (Number(try_count) === 2) timeout = 10 * 1000
+    if (Number(try_count) >= 3) timeout = 20 * 1000
+    const metadata = await fetchMetadata({ collectionContract, tokenId: nft.token_id, timeout });
+    strapi.log.info(`fetchMetadataAndUpdateNFT metadata`, metadata)
+    if (metadata) {
+      // update nft
+      await strapi.db.query("api::nft.nft")
+        .update({
+          where: {
+            id: nft.id
+          },
+          data: {
+            ...metadata
+          }
+        })
+      // delete preprocess
+      await strapi.db.query("api::preprocess.preprocess").delete({
+        where: {
+          id: id
+        },
+      })
 
-  } else {
-    // update preprocess try count 
-    await strapi.db.query("api::preprocess.preprocess").update({
-      where: {
-        id: id
-      },
-      data: {
-        try_count: Number(try_count) + 1
-      }
-    })
-  }
+    } else {
+      // update preprocess try count 
+      await strapi.db.query("api::preprocess.preprocess").update({
+        where: {
+          id: id
+        },
+        data: {
+          try_count: Number(try_count) + 1
+        }
+      })
+    }
 
   } catch (error) {
     const dm = DiscordManager.getInstance(strapi)
-    dm.logError({error, identifier: "Cron - preprocess", channelId: DISCORD_INFO.CHANNEL.PREPROCESS_ERROR_LOG})
+    dm.logError({ error, identifier: "Cron - preprocess", channelId: DISCORD_INFO.CHANNEL.PREPROCESS_ERROR_LOG })
   }
 }

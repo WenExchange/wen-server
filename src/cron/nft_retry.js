@@ -12,87 +12,49 @@ const ERC721 = require("../web3/abis/ERC721.json");
 const { fetchMetadata } = require("../listener/listingAtMint");
 
 
-const nft_retry_metadata = async ({ strapi }) => {
+const nft_retry_metadata = async ({ strapi, contract_address }) => {
   strapi.log.info("[CRON TASK] - START | NFT RETRY - Metadata");
-  let count = 0
-  try {
-    count = await strapi.db.query("api::nft.nft").count({
-      where: {
-        $and: [
-          {
-            try_count: {
-              $gte: 1
-            },
-          },
-          {
-            try_count: {
-              $lte: 3
-            },
-          },
-          {
-            collection: {
-              publishedAt: {
-                $notNull: true
-              }
-            },
-          },
-          { image_url: "" },
-          {
-            collection: {
-              contract_address: "0x7bb6ffa55aac5c58b8150635eb078230d8adde4a"
-            }
-          }
-        ]
-
-      }
-    })
-
-
-
-  } catch (error) {
-    strapi.log.error(`nft_retry_metadata error- ${error.message}`);
-  }
-
-  try {
-    console.log(`nft_retry_metadata will update count ${count}`);
-
-    for (let i = 0; i < count; i++) {
-      // const nft = nfts[i];
-      const nft = await strapi.db.query("api::nft.nft").findOne({
-        where: {
-          $and: [
-            {
-              try_count: {
-                $gte: 1
-              },
-            },
-            {
-              try_count: {
-                $lte: 3
-              },
-            },
-            {
-              collection: {
-                publishedAt: {
-                  $notNull: true
-                }
-              },
-            },
-            { image_url: "" },
-            {
-              collection: {
-                contract_address: "0x7bb6ffa55aac5c58b8150635eb078230d8adde4a"
-              }
-            }
-          ]
-  
-        },
-        populate: {
+  const nfts = await strapi.db.query("api::nft.nft").findMany({
+    where: {
+      $and: [
+        // {
+        //   try_count: {
+        //     $gte: 1
+        //   },
+        // },
+        // {
+        //   try_count: {
+        //     $lte: 3
+        //   },
+        // },
+        {
           collection: {
-            select: ["contract_address"]
-          }
+            publishedAt: {
+              $notNull: true
+            }
+          },
         },
-      })
+        // { image_url: "" },
+        {
+          collection: {
+            contract_address
+          }
+        }
+      ]
+
+    },
+    populate: {
+      collection: {
+        select: ["contract_address"]
+      }
+    }
+  })
+
+  try {
+    console.log(`nft_retry_metadata will update count ${nfts.lnegth}`);
+
+    for (let i = 0; i < nfts.length; i++) {
+      const nft = nfts[i];
 
 
       const collectionContract = new ethers.Contract(
@@ -118,9 +80,10 @@ const nft_retry_metadata = async ({ strapi }) => {
           try_count: try_count + 1
         }
 
-        if (nft.owner.toLowerCase() !== owner.toLowerCase()) {
-          data.owner = owner
-        }
+        // if (nft.owner.toLowerCase() !== owner.toLowerCase()) {
+        //   data.owner = owner
+
+        // }
 
 
         await strapi.db.query("api::nft.nft").update({
@@ -160,7 +123,7 @@ const nft_retry_metadata = async ({ strapi }) => {
   } catch (error) {
     // const dm = DiscordManager.getInstance()
     // dm.logError({error, identifier: "Cron - nft_retry_metadata"})
-    strapi.log.error(`nft_retry_metadata error- ${nft.id} ${nft.name} ${error.message}`);
+    strapi.log.error(`nft_retry_metadata error-  ${error.message}`);
 
 
 

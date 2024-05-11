@@ -27,18 +27,11 @@ const preprocess_mint = async ({ strapi }) => {
             type: PREPROCESS_TYPE.MINT
           },
           {
-            try_count: {
-              $gte: 1
-            }
+            try_count: 1
           },
-          {
-            try_count: {
-              $lte: 3 
-            }
-          }
         ]
       },
-       orderBy: [{ try_count: 'asc' },{ id: 'asc' }],
+       orderBy: [{ id: 'asc' }],
        populate: {
         nft: {
           populate: {

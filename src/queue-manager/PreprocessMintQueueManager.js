@@ -9,6 +9,10 @@ let instance = null;
 module.exports = class PreprocessMintQueueManager {
   PROCESS_QUEUE = [];
   isProcessing = false
+
+  SECOND_PROCESS_QUEUE = [];
+  isSecondProcessing = false
+  
   constructor(strapi) {
     this.strapi = strapi;
   }
@@ -27,6 +31,7 @@ module.exports = class PreprocessMintQueueManager {
     return this.PROCESS_QUEUE.length === 0
   }
 
+
   addQueueWithArray = (preprocesses) => {
     if (!Array.isArray(preprocesses)) return
     if (preprocesses.length <= 0) return
@@ -34,12 +39,6 @@ module.exports = class PreprocessMintQueueManager {
     this.PROCESS_QUEUE = preprocesses
     this.executeQueue()
   }
-
-  // addQueue = (process) => {
-  //   this.PROCESS_QUEUE.push(process)
-  //   console.log(`[PreprocessMintQueueManager] - ${this.PROCESS_QUEUE.length -1} -> ${this.PROCESS_QUEUE.length}`);
-  //   this.executeQueue()
-  // }
 
   executeQueue = () => {
     if (!this.isProcessing) {
@@ -69,6 +68,50 @@ module.exports = class PreprocessMintQueueManager {
     this.isProcessing = false;
   }
 
+  /** Second */
+
+  isValidSecondAddingQueue = () => {
+    return this.SECOND_PROCESS_QUEUE.length === 0
+  }
+
+
+  addSecondQueueWithArray = (preprocesses) => {
+    if (!Array.isArray(preprocesses)) return
+    if (preprocesses.length <= 0) return
+    if (!preprocesses[0].type) return
+    this.SECOND_PROCESS_QUEUE = preprocesses
+    this.executeSecondQueue()
+  }
+
+  executeSecondQueue = () => {
+    if (!this.isSecondProcessing) {
+      this.processSecondQueue();
+    }
+  }
+
+  processSecondQueue = async () => {
+    this.isSecondProcessing = true
+
+    while (this.SECOND_PROCESS_QUEUE.length > 0) {
+      console.log(`[PreprocessMintQueueManager] Second Processing Queue Start - ${this.SECOND_PROCESS_QUEUE.length} -> ${this.SECOND_PROCESS_QUEUE.length - 1}`);
+      const process = this.SECOND_PROCESS_QUEUE.shift();
+      if (!process || !process.type) return
+      switch (process.type) {
+        case PREPROCESS_TYPE.MINT:
+          await fetchMetadataAndUpdateNFT({ strapi: this.strapi, process })
+          break;
+        case PREPROCESS_TYPE.DEPLOYING_COLLECTION:
+          break
+
+        default:
+          break;
+      }
+
+    }
+    this.isSecondProcessing = false;
+  }
+
+
 
 
 };
@@ -76,7 +119,7 @@ module.exports = class PreprocessMintQueueManager {
 
 const fetchMetadataAndUpdateNFT = async ({ strapi, process }) => {
   try {
-    strapi.log.info(`fetchMetadataAndUpdateNFT - start`, process)
+    strapi.log.info(`fetchMetadataAndUpdateNFT - start`)
     const { nft, id, try_count } = process
     const existPreprocess = await strapi.db.query("api::preprocess.preprocess")
       .findOne({
@@ -91,10 +134,9 @@ const fetchMetadataAndUpdateNFT = async ({ strapi, process }) => {
       jsonRpcProvider_cron
     );
     let timeout = 5 * 1000
-    if (Number(try_count) === 2) timeout = 10 * 1000
-    if (Number(try_count) >= 3) timeout = 20 * 1000
+    const isSecondTry = Number(try_count) === 2
+    if (isSecondTry) timeout = 15 * 1000
     const metadata = await fetchMetadata({ collectionContract, tokenId: nft.token_id, timeout });
-    strapi.log.info(`fetchMetadataAndUpdateNFT metadata`, metadata)
     if (metadata) {
       // update nft
       await strapi.db.query("api::nft.nft")
@@ -114,15 +156,34 @@ const fetchMetadataAndUpdateNFT = async ({ strapi, process }) => {
       })
 
     } else {
-      // update preprocess try count 
-      await strapi.db.query("api::preprocess.preprocess").update({
-        where: {
-          id: id
-        },
-        data: {
-          try_count: Number(try_count) + 1
-        }
-      })
+      if (isSecondTry) {
+        // delete preprocess
+        await strapi.db.query("api::preprocess.preprocess").delete({
+          where: {
+            id: id
+          },
+        })
+        await strapi.db.query("api::nft.nft")
+        .update({
+          where: {
+            id: nft.id
+          },
+          data: {
+            is_valid_metadata: false
+          }
+        })
+      } else {
+        // update preprocess try count 
+        await strapi.db.query("api::preprocess.preprocess").update({
+          where: {
+            id: id
+          },
+          data: {
+            try_count: Number(try_count) + 1
+          }
+        })
+      }
+
     }
 
   } catch (error) {
@@ -130,3 +191,4 @@ const fetchMetadataAndUpdateNFT = async ({ strapi, process }) => {
     dm.logError({ error, identifier: "Cron - preprocess", channelId: DISCORD_INFO.CHANNEL.PREPROCESS_ERROR_LOG })
   }
 }
+

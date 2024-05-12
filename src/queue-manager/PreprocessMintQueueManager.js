@@ -12,7 +12,7 @@ module.exports = class PreprocessMintQueueManager {
 
   SECOND_PROCESS_QUEUE = [];
   isSecondProcessing = false
-  
+
   constructor(strapi) {
     this.strapi = strapi;
   }
@@ -155,7 +155,10 @@ const fetchMetadataAndUpdateNFT = async ({ strapi, process }) => {
         },
       })
 
+      strapi.log.info(`fetchMetadataAndUpdateNFT - complete - ${metadata.name}`)
+
     } else {
+      strapi.log.info(`fetchMetadataAndUpdateNFT - fail - ${nft.name}`)
       if (isSecondTry) {
         // delete preprocess
         await strapi.db.query("api::preprocess.preprocess").delete({

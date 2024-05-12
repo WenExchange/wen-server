@@ -29,6 +29,20 @@ module.exports = {
       rule: `*/5 * * * *`,
     },
   },
+  // cachePreprocessBlacklist: {
+  //   task: async ({ strapi }) => {
+  //     strapi.log.info("[CRON TASK] cache collection address");
+  //     try {
+  //       const ccm = CollectionCacheManager.getInstance(strapi);
+  //       await ccm.fetchAndUpdateCollections({ strapi });
+  //     } catch (error) {
+  //       console.error(error.message);
+  //     }
+  //   },
+  //   options: {
+  //     rule: `*/5 * * * *`,
+  //   },
+  // },
   stats_1h_collection: {
     task: stats_1h_collection,
     options: {

@@ -40,7 +40,9 @@ const preprocess_mint = async ({ strapi }) => {
             }
           }
         },
-       }
+       },
+       offset: 0,
+       limit: 1000
     })
 
     pqm.addQueueWithArray(preprocesses)
@@ -83,7 +85,9 @@ const preprocess_mint_second = async ({ strapi }) => {
             }
           }
         },
-       }
+       },
+       offset: 0,
+       limit: 1000
     })
 
     pqm.addSecondQueueWithArray(preprocesses)
@@ -99,7 +103,39 @@ const preprocess_mint_second = async ({ strapi }) => {
   }
 };
 
+const deleteBlacklistOnPreprocess = async ({strapi}) => {
+  const blacklist = ["0x0AAADCf421A3143E5cB2dDB8452c03ae595B0734", "0xe91a42e3078c6ad358417299e4300683de87f971","0x65621a6a2cdB2180d3fF89D5dD28b19BB7Dd200a", "0x1195cf65f83b3a5768f3c496d3a05ad6412c64b7", "0x73A0469348BcD7AAF70D9E34BBFa794deF56081F" ]
+  const preprocesses = await strapi.db.query("api::preprocess.preprocess").findMany({
+    where: {
+      $or: blacklist.map(contract_address => {
+        return {
+          nft: {
+            collection: {
+              contract_address
+            }
+          }
+        }
+      })
+      
+      
+    }
+  })
+
+  for (let i = 0; i < preprocesses.length; i++) {
+    const preprocess = preprocesses[i];
+    console.log(i);
+    await strapi.db.query("api::preprocess.preprocess").delete({
+      where: {
+        id: preprocess.id
+      }
+    })
+    
+  }
+}
+
 module.exports = {
   preprocess_mint,
-  preprocess_mint_second
+  preprocess_mint_second,
+  deleteBlacklistOnPreprocess
+  
 };

@@ -37,14 +37,14 @@ const createNFTAtMint = async ({ log, strapi }) => {
         // TODO: check metadata and create collection
         try {
           existedCollection = await checkAndCreateCollection({ strapi, contract_address })
-          
+
         } catch (error) {
           return
         }
       } else {
-        await ccm.fetchAndUpdateCollections({strapi})
+        await ccm.fetchAndUpdateCollections({ strapi })
       }
-      return 
+      return
     }
     strapi.log.info(`createNFTAtMint - Start Create NFT at Mint`);
     const dm = DiscordManager.getInstance();
@@ -131,22 +131,22 @@ const createNFTAtMint = async ({ log, strapi }) => {
       if (!existedCollection.logo_url && (Number(tokenId) === 0 || Number(tokenId) === 1)) {
         try {
           const _metadata = await fetchMetadata({ collectionContract, tokenId, timeout: 10 * 1000 });
-        if (_metadata) {
-          metadata = _metadata
-          await strapi.db.query("api::collection.collection")
-            .update({
-              where: {
-                id: existedCollection.id,
-              },
-              data: {
-                logo_url: _metadata.image_url
-              }
-            })
-        }
+          if (_metadata) {
+            metadata = _metadata
+            await strapi.db.query("api::collection.collection")
+              .update({
+                where: {
+                  id: existedCollection.id,
+                },
+                data: {
+                  logo_url: _metadata.image_url
+                }
+              })
+          }
         } catch (error) {
           strapi.log.error(`createNFTAtMint | update collection logo - ${error.message}`)
         }
-        
+
 
       }
 
@@ -159,7 +159,21 @@ const createNFTAtMint = async ({ log, strapi }) => {
             owner: transferTo
           }
         })
-        
+      const blacklist = ["0x0AAADCf421A3143E5cB2dDB8452c03ae595B0734", "0xe91a42e3078c6ad358417299e4300683de87f971", "0x65621a6a2cdB2180d3fF89D5dD28b19BB7Dd200a", "0x1195cf65f83b3a5768f3c496d3a05ad6412c64b7", "0x73A0469348BcD7AAF70D9E34BBFa794deF56081F"]
+      if (!blacklist.map(b => b.toLowerCase()).includes(existedCollection.contract_address.toLowerCase())) {
+        await strapi.db.query("api::preprocess.preprocess")
+          .create({
+            data: {
+              type: PREPROCESS_TYPE.MINT,
+              nft: createdNFT.id,
+              collection: existedCollection.id,
+              try_count: 1,
+              timestamp: dayjs().unix()
+            }
+          })
+      }
+
+
       strapi.db.query("api::nft-trade-log.nft-trade-log")
         .create({
           data: {
@@ -174,7 +188,7 @@ const createNFTAtMint = async ({ log, strapi }) => {
 
       dm.logNFTMinting({ contract_address, createdNFT }).catch();
 
-  
+
       // publish
       if (
         !existedCollection.publishedAt
@@ -195,20 +209,7 @@ const createNFTAtMint = async ({ log, strapi }) => {
         );
       }
 
-      const blacklist = ["0x0AAADCf421A3143E5cB2dDB8452c03ae595B0734", "0xe91a42e3078c6ad358417299e4300683de87f971","0x65621a6a2cdB2180d3fF89D5dD28b19BB7Dd200a", "0x1195cf65f83b3a5768f3c496d3a05ad6412c64b7", "0x73A0469348BcD7AAF70D9E34BBFa794deF56081F" ]
-        if (blacklist.map(b => b.toLowerCase()).includes(existedCollection.contract_address.toLowerCase())) return 
-      await strapi.db.query("api::preprocess.preprocess")
-        .create({
-          data: {
-            type: PREPROCESS_TYPE.MINT,
-            nft: createdNFT.id,
-            collection: existedCollection.id,
-            try_count: 1,
-            timestamp: dayjs().unix()
-          }
-        })
-        
-        
+
       strapi.log.info(`createNFTAtMint - complete`)
 
       // TODO: try_count 에 따라 name , total supply 업데이트 시켜주기

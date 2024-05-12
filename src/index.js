@@ -26,6 +26,7 @@ const { listing_cancel_detector_expiration } = require("./cron/listing_cancel_de
 const { collectionDeployerERC721And1155Listener } = require("./listener/collectionDeployerERC721And1155Listener");
 const PreprocessMintQueueManager = require("./queue-manager/PreprocessMintQueueManager");
 const { preprocess_mint_second, preprocess_mint, deleteBlacklistOnPreprocess } = require("./cron/preprocess");
+const { updateUserBatchOrderStatus } = require("./listener/updateUserBatchOrders");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 

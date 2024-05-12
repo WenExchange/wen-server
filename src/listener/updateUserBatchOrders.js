@@ -34,7 +34,9 @@ const updateUserBatchOrderStatus = async ({ strapi, user }) => {
       },
       orderBy: { single_price_in_eth: "DESC" },
       populate: {
-        collection: true,
+        collection: {
+          select: ["contract_address"]
+        },
         buy_orders: true,
       },
     });

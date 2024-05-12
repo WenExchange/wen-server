@@ -41,8 +41,8 @@ const preprocess_mint = async ({ strapi }) => {
           }
         },
        },
-       offset: 20000,
-       limit: 20000
+       offset: 0,
+       limit: 1000
     })
 
     pqm.addQueueWithArray(preprocesses)
@@ -86,8 +86,8 @@ const preprocess_mint_second = async ({ strapi }) => {
           }
         },
        },
-      //  offset: 0,
-      //  limit: 20000
+       offset: 0,
+       limit: 1000
     })
 
     pqm.addSecondQueueWithArray(preprocesses)
@@ -120,8 +120,6 @@ const deleteBlacklistOnPreprocess = async ({strapi}) => {
       
     }
   })
-
-  console.log(333,"will delete count", preprocesses.length);
 
   for (let i = 0; i < preprocesses.length; i++) {
     const preprocess = preprocesses[i];

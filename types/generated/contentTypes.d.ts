@@ -1371,6 +1371,49 @@ export interface ApiFeaturedItemFeaturedItem extends Schema.CollectionType {
   };
 }
 
+export interface ApiLaunchpadLaunchpad extends Schema.CollectionType {
+  collectionName: 'launchpads';
+  info: {
+    singularName: 'launchpad';
+    pluralName: 'launchpads';
+    displayName: 'Launchpad';
+    description: '';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    name: Attribute.String & Attribute.Required;
+    description: Attribute.Text;
+    preview_image: Attribute.Media & Attribute.Required;
+    banner_image: Attribute.Media;
+    twitter: Attribute.String;
+    website: Attribute.String;
+    discord: Attribute.String;
+    supply: Attribute.Integer & Attribute.Required & Attribute.DefaultTo<0>;
+    groups: Attribute.JSON;
+    main_color: Attribute.String;
+    is_end: Attribute.Boolean & Attribute.Required & Attribute.DefaultTo<false>;
+    start_timestamp: Attribute.BigInteger &
+      Attribute.Required &
+      Attribute.DefaultTo<'0'>;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::launchpad.launchpad',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::launchpad.launchpad',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiNftNft extends Schema.CollectionType {
   collectionName: 'nfts';
   info: {
@@ -1781,6 +1824,7 @@ declare module '@strapi/types' {
       'api::error-log.error-log': ApiErrorLogErrorLog;
       'api::exchange-user.exchange-user': ApiExchangeUserExchangeUser;
       'api::featured-item.featured-item': ApiFeaturedItemFeaturedItem;
+      'api::launchpad.launchpad': ApiLaunchpadLaunchpad;
       'api::nft.nft': ApiNftNft;
       'api::nft-trade-log.nft-trade-log': ApiNftTradeLogNftTradeLog;
       'api::order.order': ApiOrderOrder;

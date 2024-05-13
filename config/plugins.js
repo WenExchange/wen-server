@@ -97,7 +97,7 @@ module.exports = ({ env }) => ({
                   contentTypes: [
                       // list of Content-Types UID to cache
                     "api::collection.collection",
-
+                    "api::launchpad.launchpad",
                     "api::featured-item.featured-item",
 
                       {

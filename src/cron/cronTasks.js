@@ -13,6 +13,9 @@ const {
 
 const { airdropStatCombined } = require("./airdrop_jobs");
 const { preprocess_mint, preprocess_mint_second } = require("./preprocess");
+const PreprocessMintQueueManager = require("../queue-manager/PreprocessMintQueueManager");
+const PreprocessMintQueueManager2 = require("../queue-manager/PreprocessMintQueueManager2");
+const PreprocessMintQueueManager3 = require("../queue-manager/PreprocessMintQueueManager3");
 
 module.exports = {
   cacheCollection: {
@@ -64,9 +67,21 @@ module.exports = {
     },
   },
   preprocess: {
-    task: preprocess_mint,
+    task: async ({ strapi }) => {
+      try {
+        const pqm = PreprocessMintQueueManager.getInstance(strapi)
+      const pqm2 = PreprocessMintQueueManager2.getInstance(strapi)
+      const pqm3 = PreprocessMintQueueManager3.getInstance(strapi)
+
+      preprocess_mint({strapi,pqm })
+      preprocess_mint({strapi, pqm: pqm2, offset: 1000})
+      preprocess_mint({strapi, pqm: pqm3, offset: 2000})
+      } catch (error) {
+        console.error(error.message);
+      }
+    },
     options: {
-      rule: `*/1 * * * *`,
+      rule: `*/5 * * * *`,
     },
   },
 

@@ -25,8 +25,10 @@ const { getNFTsAndUpdateOwnerOfNFTs } = require("./utils/updateOwner");
 const { listing_cancel_detector_expiration } = require("./cron/listing_cancel_detector");
 const { collectionDeployerERC721And1155Listener } = require("./listener/collectionDeployerERC721And1155Listener");
 const PreprocessMintQueueManager = require("./queue-manager/PreprocessMintQueueManager");
-const { preprocess_mint_second, preprocess_mint, deleteBlacklistOnPreprocess } = require("./cron/preprocess");
+const { preprocess_mint_second, preprocess_mint, bulkDeleteBlacklistOnPreprocess, bulkDeleteBlacklistNFT } = require("./cron/preprocess");
 const { updateUserBatchOrderStatus } = require("./listener/updateUserBatchOrders");
+const PreprocessMintQueueManager3 = require("./queue-manager/PreprocessMintQueueManager3");
+const PreprocessMintQueueManager2 = require("./queue-manager/PreprocessMintQueueManager2");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -49,7 +51,7 @@ module.exports = {
     try {
       const ccm = CollectionCacheManager.getInstance(strapi);
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
-      
+
       if (isBOTServer) {
         const nmqm = NFTMintingQueueManager.getInstance(strapi);
         const tqm = TokenTransferQueueManager.getInstance(strapi);

@@ -1,0 +1,71 @@
+{
+  "kind": "collectionType",
+  "collectionName": "launchpads",
+  "info": {
+    "singularName": "launchpad",
+    "pluralName": "launchpads",
+    "displayName": "Launchpad",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text",
+      "required": false
+    },
+    "preview_image": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "banner_image": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "twitter": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "discord": {
+      "type": "string"
+    },
+    "supply": {
+      "type": "integer",
+      "required": true,
+      "default": 0
+    },
+    "groups": {
+      "type": "json",
+      "required": false
+    },
+    "main_color": {
+      "type": "string"
+    },
+    "is_end": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    },
+    "start_timestamp": {
+      "type": "biginteger",
+      "required": true,
+      "default": "0"
+    }
+  }
+}

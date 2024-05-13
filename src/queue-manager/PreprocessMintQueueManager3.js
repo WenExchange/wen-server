@@ -6,7 +6,7 @@ const ERC721 = require("../web3/abis/ERC721.json");
 const DiscordManager = require("../discord/DiscordManager");
 
 let instance = null;
-module.exports = class PreprocessMintQueueManager {
+module.exports = class PreprocessMintQueueManager3 {
   PROCESS_QUEUE = [];
   isProcessing = false
 
@@ -19,7 +19,7 @@ module.exports = class PreprocessMintQueueManager {
 
   static getInstance(strapi) {
     if (!instance) {
-      instance = new PreprocessMintQueueManager(strapi);
+      instance = new PreprocessMintQueueManager3(strapi);
     }
     return instance;
   }
@@ -50,7 +50,7 @@ module.exports = class PreprocessMintQueueManager {
     this.isProcessing = true
 
     while (this.PROCESS_QUEUE.length > 0) {
-      console.log(`[PreprocessMintQueueManager] Processing Queue Start - ${this.PROCESS_QUEUE.length} -> ${this.PROCESS_QUEUE.length - 1}`);
+      console.log(`[PreprocessMintQueueManager3] Processing Queue Start - ${this.PROCESS_QUEUE.length} -> ${this.PROCESS_QUEUE.length - 1}`);
       const process = this.PROCESS_QUEUE.shift();
       if (!process || !process.type) return
       switch (process.type) {
@@ -93,7 +93,7 @@ module.exports = class PreprocessMintQueueManager {
     this.isSecondProcessing = true
 
     while (this.SECOND_PROCESS_QUEUE.length > 0) {
-      console.log(`[PreprocessMintQueueManager] Second Processing Queue Start - ${this.SECOND_PROCESS_QUEUE.length} -> ${this.SECOND_PROCESS_QUEUE.length - 1}`);
+      console.log(`[PreprocessMintQueueManager3] Second Processing Queue Start - ${this.SECOND_PROCESS_QUEUE.length} -> ${this.SECOND_PROCESS_QUEUE.length - 1}`);
       const process = this.SECOND_PROCESS_QUEUE.shift();
       if (!process || !process.type) return
       switch (process.type) {
@@ -127,10 +127,7 @@ const fetchMetadataAndUpdateNFT = async ({ strapi, process }) => {
           id
         }
       })
-    if (!existPreprocess) {
-      strapi.log.warning("Already deleted")
-      return
-    }
+    if (!existPreprocess) return
     const collectionContract = new ethers.Contract(
       nft.collection.contract_address,
       ERC721,

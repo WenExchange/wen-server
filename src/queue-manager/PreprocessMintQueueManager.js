@@ -194,8 +194,8 @@ const fetchMetadataAndUpdateNFT = async ({ strapi, process }) => {
 
   } catch (error) {
     strapi.log.error(error.message)
-    // const dm = DiscordManager.getInstance(strapi)
-    // dm.logError({ error, identifier: "Cron - preprocess", channelId: DISCORD_INFO.CHANNEL.PREPROCESS_ERROR_LOG })
+    const dm = DiscordManager.getInstance(strapi)
+    dm.logError({ error, identifier: "Cron - preprocess", channelId: DISCORD_INFO.CHANNEL.PREPROCESS_ERROR_LOG })
   }
 }
 

@@ -62,8 +62,8 @@ module.exports = class BlacklistCacheManager {
     try {
       const contract_address = _contract_address.toLowerCase();
       return this.CACHE_BLACKLISTS.find(
-        (collection) =>
-          collection.contract_address.toLowerCase() === contract_address
+        (b) =>
+          b.collection.contract_address.toLowerCase() === contract_address
       );
     } catch (error) {
       return null;

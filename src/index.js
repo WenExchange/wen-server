@@ -29,6 +29,8 @@ const { preprocess_mint_second, preprocess_mint, bulkDeleteBlacklistOnPreprocess
 const { updateUserBatchOrderStatus } = require("./listener/updateUserBatchOrders");
 const PreprocessMintQueueManager3 = require("./queue-manager/PreprocessMintQueueManager3");
 const PreprocessMintQueueManager2 = require("./queue-manager/PreprocessMintQueueManager2");
+const BlacklistCacheManager = require("./cache-managers/BlacklistCacheManager");
+const { wait } = require("./utils/helpers");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -44,14 +46,12 @@ module.exports = {
     if (isBOTServer) {
     }
   },
-  
-  
 
   async bootstrap({ strapi }) {
     try {
       const ccm = CollectionCacheManager.getInstance(strapi);
+      const bcm = BlacklistCacheManager.getInstance(strapi)
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
-      
       if (isBOTServer) {
         const nmqm = NFTMintingQueueManager.getInstance(strapi);
         const tqm = TokenTransferQueueManager.getInstance(strapi);

@@ -968,6 +968,40 @@ export interface ApiBatchBuyOrderBatchBuyOrder extends Schema.CollectionType {
   };
 }
 
+export interface ApiBlacklistBlacklist extends Schema.CollectionType {
+  collectionName: 'blacklists';
+  info: {
+    singularName: 'blacklist';
+    pluralName: 'blacklists';
+    displayName: 'Blacklist';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    type: Attribute.String & Attribute.Required;
+    collection: Attribute.Relation<
+      'api::blacklist.blacklist',
+      'oneToOne',
+      'api::collection.collection'
+    >;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::blacklist.blacklist',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::blacklist.blacklist',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiBuyOrderBuyOrder extends Schema.CollectionType {
   collectionName: 'buy_orders';
   info: {
@@ -1123,6 +1157,7 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     best_offer: Attribute.Float & Attribute.DefaultTo<0>;
     is_launchpad: Attribute.Boolean & Attribute.DefaultTo<false>;
     try_count: Attribute.Integer & Attribute.DefaultTo<1>;
+    announcement: Attribute.Text;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;
@@ -1816,6 +1851,7 @@ declare module '@strapi/types' {
       'api::airdrop-history-log.airdrop-history-log': ApiAirdropHistoryLogAirdropHistoryLog;
       'api::airdrop-stat-log.airdrop-stat-log': ApiAirdropStatLogAirdropStatLog;
       'api::batch-buy-order.batch-buy-order': ApiBatchBuyOrderBatchBuyOrder;
+      'api::blacklist.blacklist': ApiBlacklistBlacklist;
       'api::buy-order.buy-order': ApiBuyOrderBuyOrder;
       'api::coin-price.coin-price': ApiCoinPriceCoinPrice;
       'api::collection.collection': ApiCollectionCollection;

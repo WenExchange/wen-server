@@ -16,6 +16,7 @@ const { preprocess_mint, preprocess_mint_second } = require("./preprocess");
 const PreprocessMintQueueManager = require("../queue-manager/PreprocessMintQueueManager");
 const PreprocessMintQueueManager2 = require("../queue-manager/PreprocessMintQueueManager2");
 const PreprocessMintQueueManager3 = require("../queue-manager/PreprocessMintQueueManager3");
+const BlacklistCacheManager = require("../cache-managers/BlacklistCacheManager");
 
 module.exports = {
   cacheCollection: {
@@ -32,20 +33,20 @@ module.exports = {
       rule: `*/5 * * * *`,
     },
   },
-  // cachePreprocessBlacklist: {
-  //   task: async ({ strapi }) => {
-  //     strapi.log.info("[CRON TASK] cache collection address");
-  //     try {
-  //       const ccm = CollectionCacheManager.getInstance(strapi);
-  //       await ccm.fetchAndUpdateCollections({ strapi });
-  //     } catch (error) {
-  //       console.error(error.message);
-  //     }
-  //   },
-  //   options: {
-  //     rule: `*/5 * * * *`,
-  //   },
-  // },
+  cacheBlacklist: {
+    task: async ({ strapi }) => {
+      strapi.log.info("[CRON TASK] cache blacklist");
+      try {
+        const bcm = BlacklistCacheManager.getInstance(strapi);
+        await bcm.fetchAndUpdateBlacklists({ strapi });
+      } catch (error) {
+        console.error(error.message);
+      }
+    },
+    options: {
+      rule: `*/1 * * * *`,
+    },
+  },
   stats_1h_collection: {
     task: stats_1h_collection,
     options: {

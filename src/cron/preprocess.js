@@ -12,6 +12,7 @@ const { ethers } = require("ethers");
 const DiscordManager = require("../discord/DiscordManager");
 const PreprocessMintQueueManager = require("../queue-manager/PreprocessMintQueueManager");
 const { wait } = require("../utils/helpers");
+const dayjs = require("dayjs");
 
 
 const preprocess_mint = async ({ strapi, pqm, offset = 0, limit = 1000 }) => {
@@ -214,10 +215,44 @@ const bulkDeleteBlacklistNFT = async ({ strapi }) => {
 
 }
 
+const addPreprocess = async ({strapi, contract_address}) => {
+  const collection =  await strapi.db.query("api::collection.collection").findOne({
+    where: {
+      contract_address
+    },
+  })
+
+  const nfts = await strapi.db.query("api::nft.nft").findMany({
+    where: {
+      collection: {
+        contract_address
+      }
+    },
+  })
+
+
+  for (let i = 0; i < nfts.length; i++) {
+    const nft = nfts[i];
+    await strapi.db.query("api::preprocess.preprocess")
+          .create({
+            data: {
+              type: PREPROCESS_TYPE.MINT,
+              nft: nft.id,
+              collection: collection.id,
+              try_count: 1,
+              timestamp: dayjs().unix()
+            }
+          })
+    
+  }
+  
+}
+
 module.exports = {
   preprocess_mint,
   preprocess_mint_second,
   bulkDeleteBlacklistOnPreprocess,
-  bulkDeleteBlacklistNFT
+  bulkDeleteBlacklistNFT,
+  addPreprocess
 
 };

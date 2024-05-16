@@ -133,27 +133,25 @@ const createNFTAtMint = async ({ log, strapi }) => {
       }
 
       
-      if (!existedCollection.logo_url && (Number(tokenId) === 0 || Number(tokenId) === 1)) {
-        try {
-          const _metadata = await fetchMetadata({ collectionContract, tokenId, timeout: 10 * 1000 });
-          if (_metadata) {
-            metadata = _metadata
-            await strapi.db.query("api::collection.collection")
-              .update({
-                where: {
-                  id: existedCollection.id,
-                },
-                data: {
-                  logo_url: _metadata.image_url
-                }
-              })
-          }
-        } catch (error) {
-          strapi.log.error(`createNFTAtMint | update collection logo - ${error.message}`)
-        }
-
-
-      }
+      // if (!existedCollection.logo_url && (Number(tokenId) === 0 || Number(tokenId) === 1)) {
+      //   try {
+      //     const _metadata = await fetchMetadata({ collectionContract, tokenId, timeout: 10 * 1000 });
+      //     if (_metadata) {
+      //       metadata = _metadata
+      //       await strapi.db.query("api::collection.collection")
+      //         .update({
+      //           where: {
+      //             id: existedCollection.id,
+      //           },
+      //           data: {
+      //             logo_url: _metadata.image_url
+      //           }
+      //         })
+      //     }
+      //   } catch (error) {
+      //     strapi.log.error(`createNFTAtMint | update collection logo - ${error.message}`)
+      //   }
+      // }
 
       const createdNFT = await strapi.db.query("api::nft.nft")
         .create({

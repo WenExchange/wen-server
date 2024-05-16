@@ -12,6 +12,8 @@ const { ethers } = require("ethers");
 const DiscordManager = require("../discord/DiscordManager");
 const PreprocessMintQueueManager = require("../queue-manager/PreprocessMintQueueManager");
 const { wait } = require("../utils/helpers");
+const dayjs = require("dayjs");
+const BlacklistCacheManager = require("../cache-managers/BlacklistCacheManager");
 
 
 const preprocess_mint = async ({ strapi, pqm, offset = 0, limit = 1000 }) => {
@@ -105,7 +107,8 @@ const preprocess_mint_second = async ({ strapi }) => {
 };
 
 const bulkDeleteBlacklistOnPreprocess = async ({ strapi }) => {
-  const blacklist = ["0x0c21c610acc756c9b1e157ac90a3e928e5b764a4","0x338BCe2590495B6DE6a7D7aC8514Ad73E7Be0FFB", "0x0AAADCf421A3143E5cB2dDB8452c03ae595B0734", "0xe91a42e3078c6ad358417299e4300683de87f971", "0x65621a6a2cdB2180d3fF89D5dD28b19BB7Dd200a", "0x73A0469348BcD7AAF70D9E34BBFa794deF56081F"]
+  const bcm = BlacklistCacheManager.getInstance(strapi)
+  const blacklist = bcm.getBlacklistAddresses()
   const preprocesses = await strapi.db.query("api::preprocess.preprocess").findMany({
     where: {
       $or: [
@@ -167,7 +170,8 @@ const bulkDeleteBlacklistOnPreprocess = async ({ strapi }) => {
 
 
 const bulkDeleteBlacklistNFT = async ({ strapi }) => {
-  const blacklist = ["0x0c21c610acc756c9b1e157ac90a3e928e5b764a4","0x338BCe2590495B6DE6a7D7aC8514Ad73E7Be0FFB", "0x0AAADCf421A3143E5cB2dDB8452c03ae595B0734", "0xe91a42e3078c6ad358417299e4300683de87f971", "0x65621a6a2cdB2180d3fF89D5dD28b19BB7Dd200a", "0x73A0469348BcD7AAF70D9E34BBFa794deF56081F"]
+  const bcm = BlacklistCacheManager.getInstance(strapi)
+  const blacklist = bcm.getBlacklistAddresses()
   const nfts = await strapi.db.query("api::nft.nft").findMany({
     where: {
       $or: blacklist.map(contract_address => {
@@ -214,10 +218,44 @@ const bulkDeleteBlacklistNFT = async ({ strapi }) => {
 
 }
 
+const addPreprocess = async ({strapi, contract_address}) => {
+  const collection =  await strapi.db.query("api::collection.collection").findOne({
+    where: {
+      contract_address
+    },
+  })
+
+  const nfts = await strapi.db.query("api::nft.nft").findMany({
+    where: {
+      collection: {
+        contract_address
+      }
+    },
+  })
+
+
+  for (let i = 0; i < nfts.length; i++) {
+    const nft = nfts[i];
+    await strapi.db.query("api::preprocess.preprocess")
+          .create({
+            data: {
+              type: PREPROCESS_TYPE.MINT,
+              nft: nft.id,
+              collection: collection.id,
+              try_count: 1,
+              timestamp: dayjs().unix()
+            }
+          })
+    
+  }
+  
+}
+
 module.exports = {
   preprocess_mint,
   preprocess_mint_second,
   bulkDeleteBlacklistOnPreprocess,
-  bulkDeleteBlacklistNFT
+  bulkDeleteBlacklistNFT,
+  addPreprocess
 
 };

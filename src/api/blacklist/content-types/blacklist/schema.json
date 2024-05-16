@@ -1,0 +1,24 @@
+{
+  "kind": "collectionType",
+  "collectionName": "blacklists",
+  "info": {
+    "singularName": "blacklist",
+    "pluralName": "blacklists",
+    "displayName": "Blacklist"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "type": {
+      "type": "string",
+      "required": true
+    },
+    "collection": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::collection.collection"
+    }
+  }
+}

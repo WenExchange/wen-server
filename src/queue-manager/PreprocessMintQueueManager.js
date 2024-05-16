@@ -128,7 +128,7 @@ const fetchMetadataAndUpdateNFT = async ({ strapi, process }) => {
         }
       })
     if (!existPreprocess) {
-      strapi.log.warning("Already deleted")
+      strapi.log.info("Already deleted")
       return
     }
     const collectionContract = new ethers.Contract(

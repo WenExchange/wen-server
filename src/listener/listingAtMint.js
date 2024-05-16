@@ -12,6 +12,7 @@ const {
 const ERC721 = require("../web3/abis/ERC721.json");
 const CollectionCacheManager = require("../cache-managers/CollectionCacheManager");
 const { getContractMetadata, createCollection } = require("./collectionDeployerERC721And1155Listener");
+const BlacklistCacheManager = require("../cache-managers/BlacklistCacheManager");
 const { LOG_TYPE_MINT } = NFT_LOG_TYPE;
 
 
@@ -132,29 +133,6 @@ const createNFTAtMint = async ({ log, strapi }) => {
         metadata.image_url = "https://wen-ex.myfilebase.com/ipfs/QmX86kXhup5WpYb5wy1v6gUB9wYLbaEvCHHhwyVuzFsxiy"
       }
 
-      
-      if (!existedCollection.logo_url && (Number(tokenId) === 0 || Number(tokenId) === 1)) {
-        try {
-          const _metadata = await fetchMetadata({ collectionContract, tokenId, timeout: 10 * 1000 });
-          if (_metadata) {
-            metadata = _metadata
-            await strapi.db.query("api::collection.collection")
-              .update({
-                where: {
-                  id: existedCollection.id,
-                },
-                data: {
-                  logo_url: _metadata.image_url
-                }
-              })
-          }
-        } catch (error) {
-          strapi.log.error(`createNFTAtMint | update collection logo - ${error.message}`)
-        }
-
-
-      }
-
       const createdNFT = await strapi.db.query("api::nft.nft")
         .create({
           data: {
@@ -163,8 +141,10 @@ const createNFTAtMint = async ({ log, strapi }) => {
             owner: transferTo
           }
         })
-      const blacklist = ["0x0c21c610acc756c9b1e157ac90a3e928e5b764a4","0x1195cf65f83b3a5768f3c496d3a05ad6412c64b7","0x0AAADCf421A3143E5cB2dDB8452c03ae595B0734", "0xe91a42e3078c6ad358417299e4300683de87f971", "0x65621a6a2cdB2180d3fF89D5dD28b19BB7Dd200a", "0x73A0469348BcD7AAF70D9E34BBFa794deF56081F"]
-      if (!blacklist.map(b => b.toLowerCase()).includes(existedCollection.contract_address.toLowerCase())) {
+      const bcm = BlacklistCacheManager.getInstance(strapi)
+      const blacklist = bcm.getBlacklistAddresses()
+      const isIncludesInBlacklist = blacklist.map(b => b.toLowerCase()).includes(existedCollection.contract_address.toLowerCase())
+      if (!isIncludesInBlacklist) {
         await strapi.db.query("api::preprocess.preprocess")
           .create({
             data: {
@@ -194,8 +174,10 @@ const createNFTAtMint = async ({ log, strapi }) => {
 
 
       // publish
+      const isBlacklist = bcm.getBlacklistByAddress(existedCollection.contract_address) ? true : false
       if (
-        !existedCollection.publishedAt
+        !existedCollection.publishedAt && !isBlacklist
+
       ) {
         const updatedCollection = await strapi.db.query("api::collection.collection")
           .update({

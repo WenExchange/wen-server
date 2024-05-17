@@ -142,9 +142,6 @@
     "try_count": {
       "type": "integer",
       "default": 1
-    },
-    "announcement": {
-      "type": "text"
     }
   }
 }

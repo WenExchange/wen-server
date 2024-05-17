@@ -1157,7 +1157,6 @@ export interface ApiCollectionCollection extends Schema.CollectionType {
     best_offer: Attribute.Float & Attribute.DefaultTo<0>;
     is_launchpad: Attribute.Boolean & Attribute.DefaultTo<false>;
     try_count: Attribute.Integer & Attribute.DefaultTo<1>;
-    announcement: Attribute.Text;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     publishedAt: Attribute.DateTime;

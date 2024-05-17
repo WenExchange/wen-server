@@ -5,19 +5,34 @@ const EXCHANGE_VOLUME_MULTIPLIER = 0;
 const { ethers } = require("ethers");
 const { jsonRpcProvider_cron, AIRDROP_TYPE } = require("../utils/constants");
 const DiscordManager = require("../discord/DiscordManager");
+const BlacklistCacheManager = require("../cache-managers/BlacklistCacheManager");
 const updateCollectionAirdrop = async ({ strapi }) => {
   //  TOP 11-20 : 1.5x
   //  TOP 4-10 : 2x
   //  TOP 1-3 : 4x
 
   // 1. Get All Collection by volume_24h
+
+  const bcm = BlacklistCacheManager.getInstance(strapi)
+  const blacklistAddresses = bcm.getBlacklistAddresses()
   const collectionData = await strapi.db
     .query("api::collection.collection")
     .findMany({
       where: {
-        publishedAt: {
-          $notNull: true,
-        },
+        $and: [
+          {
+            publishedAt: {
+              $notNull: true,
+            },
+          },
+          ...blacklistAddresses.map(contract_address => {
+            return {
+              contract_address: {
+                $nei: contract_address
+              }
+            }
+          })
+        ]
       },
       orderBy: {
         volume_24h: "desc",

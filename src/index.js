@@ -6,6 +6,7 @@ const {
   SERVER_TYPE,
   jsonRpcProvider,
   CONTRACT_ADDRESSES,
+  BLACKLIST_TYPE,
 } = require("./utils/constants");
 const { createTransferListener } = require("./listener/blockchainListener");
 const CollectionCacheManager = require("./cache-managers/CollectionCacheManager");

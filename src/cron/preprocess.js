@@ -108,6 +108,7 @@ const preprocess_mint_second = async ({ strapi }) => {
 
 const bulkDeleteBlacklistOnPreprocess = async ({ strapi }) => {
   const bcm = BlacklistCacheManager.getInstance(strapi)
+  await bcm.fetchAndUpdateBlacklists({strapi})
   const blacklist = bcm.getBlacklistAddresses()
   const preprocesses = await strapi.db.query("api::preprocess.preprocess").findMany({
     where: {
@@ -171,6 +172,7 @@ const bulkDeleteBlacklistOnPreprocess = async ({ strapi }) => {
 
 const bulkDeleteBlacklistNFT = async ({ strapi }) => {
   const bcm = BlacklistCacheManager.getInstance(strapi)
+  await bcm.fetchAndUpdateBlacklists({strapi})
   const blacklist = bcm.getBlacklistAddresses()
   const nfts = await strapi.db.query("api::nft.nft").findMany({
     where: {

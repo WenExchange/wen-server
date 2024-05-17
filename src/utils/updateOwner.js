@@ -10,58 +10,54 @@ const { updateFloorPrice, updateOrdersCount } = require("../listener/collectionS
 const getNFTsAndUpdateOwnerOfNFTs = async ({ strapi, isGT = true }) => {
   const seconds_1h = 60 * 60
   const seconds_1d = seconds_1h * 24
-  const unit = 10
 
-  let totalUpdatedCount = 0
-  for (let i = 0; i < 300000 / unit; i++) {
+
+  const collections = await strapi.db.query("api::collection.collection").findMany({
+      where: {
+        
+          $and: [
+            {
+              publishedAt: {
+                  $notNull: true
+                }
+            },
+            {
+              is_launchpad: false
+            }
+
+        ]
+        
+          
+      },
+      orderBy: [{"volume_24h": "desc"}],
+      offset: 0,
+      limit: 35,
+      select: ["contract_address", "name"],
+    
+  })
+
+  const launchpad_collections = await strapi.db.query("api::collection.collection").findMany({
+    where: {
+        is_launchpad: true
+        
+    },
+    select: ["contract_address", "name"],
+  
+})
+
+const batchCollections = [...collections, ...launchpad_collections]
+
+  console.log(batchCollections);
+
+  for (let j = 0; j < batchCollections.length; j++) {
+    const batchCollection = batchCollections[j];
+
+    let totalUpdatedCount = 0
+    const unit = 10
+  for (let i = 0; i < 100000 / unit; i++) {
     console.log(`${i} start`);
     const start = i * unit
     const end = unit * (i + 1)
-    const $and = [
-      {
-        collection: {
-          publishedAt: {
-            $notNull: true
-          }
-        },
-      },
-      //   {
-      //       collection: {
-      //           airdrop_multiplier: {
-      //               $gt: 1
-      //           }
-      //       }
-      //   },
-      //   {
-      //     collection: {
-      //         airdrop_multiplier: {
-      //             $lte: 1
-      //         }
-      //     }
-      // },
-      // {
-      //     collection: {
-      //         slug: "plutocats"
-      //     }
-      // }
-    ]
-
-    $and.push(isGT ?
-      {
-        collection: {
-          airdrop_multiplier: {
-            $gt: 1
-          }
-        }
-      } :
-      {
-        collection: {
-          airdrop_multiplier: {
-            $lte: 1
-          }
-        }
-      }
-    )
 
     const batchNFTs = await strapi.db.query("api::nft.nft").findMany({
       populate: {
@@ -73,7 +69,9 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({ strapi, isGT = true }) => {
         }
       },
       where: {
-        $and
+        collection: {
+          contract_address: batchCollection.contract_address
+        }
       },
       offset: start,
       limit: unit
@@ -89,6 +87,9 @@ const getNFTsAndUpdateOwnerOfNFTs = async ({ strapi, isGT = true }) => {
 
 
   }
+  
+  }
+  
 }
 
 

@@ -1,0 +1,23 @@
+{
+  "kind": "collectionType",
+  "collectionName": "admin_lists",
+  "info": {
+    "singularName": "admin-list",
+    "pluralName": "admin-lists",
+    "displayName": "AdminList"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "type": {
+      "type": "string",
+      "required": true
+    },
+    "address": {
+      "type": "string",
+      "required": true
+    }
+  }
+}

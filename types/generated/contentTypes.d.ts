@@ -781,6 +781,36 @@ export interface PluginI18NLocale extends Schema.CollectionType {
   };
 }
 
+export interface ApiAdminListAdminList extends Schema.CollectionType {
+  collectionName: 'admin_lists';
+  info: {
+    singularName: 'admin-list';
+    pluralName: 'admin-lists';
+    displayName: 'AdminList';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    type: Attribute.String & Attribute.Required;
+    address: Attribute.String & Attribute.Required;
+    createdAt: Attribute.DateTime;
+    updatedAt: Attribute.DateTime;
+    createdBy: Attribute.Relation<
+      'api::admin-list.admin-list',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+    updatedBy: Attribute.Relation<
+      'api::admin-list.admin-list',
+      'oneToOne',
+      'admin::user'
+    > &
+      Attribute.Private;
+  };
+}
+
 export interface ApiAirdropDistributionStatAirdropDistributionStat
   extends Schema.CollectionType {
   collectionName: 'airdrop_distribution_stats';
@@ -1847,6 +1877,7 @@ declare module '@strapi/types' {
       'plugin::users-permissions.role': PluginUsersPermissionsRole;
       'plugin::users-permissions.user': PluginUsersPermissionsUser;
       'plugin::i18n.locale': PluginI18NLocale;
+      'api::admin-list.admin-list': ApiAdminListAdminList;
       'api::airdrop-distribution-stat.airdrop-distribution-stat': ApiAirdropDistributionStatAirdropDistributionStat;
       'api::airdrop-history-log.airdrop-history-log': ApiAirdropHistoryLogAirdropHistoryLog;
       'api::airdrop-stat-log.airdrop-stat-log': ApiAirdropStatLogAirdropStatLog;

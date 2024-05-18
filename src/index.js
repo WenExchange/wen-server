@@ -1,12 +1,13 @@
 "use strict";
 require("dotenv").config();
 const axios = require("axios");
-const {ethers} = require("ethers");
+const { ethers } = require("ethers");
 const {
   SERVER_TYPE,
   jsonRpcProvider,
   CONTRACT_ADDRESSES,
   BLACKLIST_TYPE,
+  IPFS,
 } = require("./utils/constants");
 const { createTransferListener } = require("./listener/blockchainListener");
 const CollectionCacheManager = require("./cache-managers/CollectionCacheManager");
@@ -52,6 +53,9 @@ module.exports = {
     try {
       const ccm = CollectionCacheManager.getInstance(strapi);
       const bcm = BlacklistCacheManager.getInstance(strapi)
+      // await bulkDeleteBlacklistOnPreprocess({strapi})
+      // await bulkDeleteBlacklistNFT({strapi})
+
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
         const nmqm = NFTMintingQueueManager.getInstance(strapi);
@@ -75,6 +79,7 @@ module.exports = {
     const error = new Error("Server is closed");
     try {
       dm.logError({ error, identifier: "LifeCycle - Destory" });
-    } catch (error) {}
+    } catch (error) { }
   },
 };
+

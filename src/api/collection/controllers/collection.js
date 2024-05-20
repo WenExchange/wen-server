@@ -100,7 +100,6 @@ module.exports = createCoreController("api::collection.collection",
             message: "Not Found Collection",
           });
         }
-        console.log(333, "collection",collection);
         const AdminAddresses = ["0x94fe00c36c6B94f1CA31bc8cC28483248BB0B39A"].map(a => a.toLowerCase())
         const wl = [...AdminAddresses,collection.creator_address.toLowerCase() ]
         if (!wl.includes(address.toLowerCase())) {

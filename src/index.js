@@ -54,8 +54,6 @@ module.exports = {
     try {
       const ccm = CollectionCacheManager.getInstance(strapi);
       const bcm = BlacklistCacheManager.getInstance(strapi)
-      // await bulkDeleteBlacklistOnPreprocess({strapi})
-      // await bulkDeleteBlacklistNFT({strapi})
       const isBOTServer = process.env.SERVER_TYPE === SERVER_TYPE.BOT;
       if (isBOTServer) {
         const nmqm = NFTMintingQueueManager.getInstance(strapi);

@@ -71,8 +71,7 @@ module.exports = createCoreController("api::collection.collection",
           website,
           slug
         } = ctx.request.body.data;
-
-        console.log(333, ctx.request.body.data);
+        
         const recoveredAddress = ethers.utils.verifyMessage(
           message,
           signature
@@ -124,7 +123,9 @@ module.exports = createCoreController("api::collection.collection",
           count: 1,
           charset: "0123456789abcdefghijklmnopqrstuvwxyz"
         })[0];
-        const newSlug = `${slugName}-${slugId}`
+        
+
+        let newSlug = collection.name !== name ? `${slugName}-${slugId}` : null
 
         const isValidDescription = description.length <= 500 || description === ""
 
@@ -136,29 +137,33 @@ module.exports = createCoreController("api::collection.collection",
         const isValidDiscord = isDiscordLink(discord) || discord === ""
         const isValidWebsite = isLink(website) || website === ""
 
-        if (!isValidDescription || !isValidRoyaltyPoint || !isValidRoyaltyReceiver || !isValidTwitter || !isValidDiscord || !isValidWebsite) {
+        if (!isValidName || !isValidDescription || !isValidRoyaltyPoint || !isValidRoyaltyReceiver || !isValidTwitter || !isValidDiscord || !isValidWebsite) {
           return (ctx.body = {
             success: false,
             message: "Parameter Validation Error",
           });
         }
-        return
+
+        const data = {}
+        if (collection.name !== name) {
+          data.name = name
+          data.slug = newSlug
+        }
+
+        if (collection.description !== description) data.description = description
+        if (collection.logo_url !== logo_url) data.logo_url = logo_url
+        if (collection.banner_url !== banner_url) data.banner_url = banner_url
+        if (Number(collection.royalty_fee_point) !== Number(royalty_fee_point)) data.royalty_fee_point = Number(royalty_fee_point)
+        if (collection.royalty_fee_receiver !== royalty_fee_receiver) data.royalty_fee_receiver = royalty_fee_receiver
+        if (collection.twitter !== twitter) data.twitter = twitter
+        if (collection.discord !== discord) data.discord = discord
+        if (collection.website !== website) data.website = website
 
         const updatedCollection = await strapi.db.query("api::collection.collection").update({
           where: {
             slug
           },
-          data: {
-            name,
-            description,
-            logo_url,
-            banner_url,
-            royalty_fee_point,
-            royalty_fee_receiver,
-            twitter,
-            discord,
-            website,
-          }
+          data
         })
 
         if (!updatedCollection) {
@@ -166,6 +171,7 @@ module.exports = createCoreController("api::collection.collection",
         }
         return (ctx.body = {
           success: true,
+          collection: updatedCollection
         });
 
       } catch (error) {

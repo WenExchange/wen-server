@@ -8,5 +8,11 @@ module.exports = {
         path: '/collection/single',
         handler: 'collection.getFindOneCollection',
       },
+
+      {
+        method: 'POST',
+        path: '/collection/ownerupdate',
+        handler: 'collection.updateCollectionByOwner',
+      }
     ]
   }

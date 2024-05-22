@@ -133,18 +133,20 @@ const createNFTAtMint = async ({ log, strapi }) => {
         metadata.image_url = "https://wen-ex.myfilebase.com/ipfs/QmX86kXhup5WpYb5wy1v6gUB9wYLbaEvCHHhwyVuzFsxiy"
       }
 
-      const createdNFT = await strapi.db.query("api::nft.nft")
-        .create({
-          data: {
-            collection: existedCollection.id,
-            ...metadata,
-            owner: transferTo
-          }
-        })
+
       const bcm = BlacklistCacheManager.getInstance(strapi)
       const blacklist = bcm.getBlacklistAddresses()
       const isIncludesInBlacklist = blacklist.map(b => b.toLowerCase()).includes(existedCollection.contract_address.toLowerCase())
       if (!isIncludesInBlacklist) {
+        const createdNFT = await strapi.db.query("api::nft.nft")
+          .create({
+            data: {
+              collection: existedCollection.id,
+              ...metadata,
+              owner: transferTo
+            }
+          })
+
         await strapi.db.query("api::preprocess.preprocess")
           .create({
             data: {
@@ -155,45 +157,48 @@ const createNFTAtMint = async ({ log, strapi }) => {
               timestamp: dayjs().unix()
             }
           })
-      }
-
-
-      strapi.db.query("api::nft-trade-log.nft-trade-log")
-        .create({
-          data: {
-            type: LOG_TYPE_MINT,
-            from: transferFrom,
-            to: transferTo,
-            nft: createdNFT.id,
-            tx_hash: log.transactionHash,
-            timestamp: dayjs().unix()
-          }
-        }).catch()
-
-      dm.logNFTMinting({ contract_address, createdNFT }).catch();
-
-
-      // publish
-      const isBlacklist = bcm.getBlacklistByAddress(existedCollection.contract_address) ? true : false
-      if (
-        !existedCollection.publishedAt && !isBlacklist
-
-      ) {
-        const updatedCollection = await strapi.db.query("api::collection.collection")
-          .update({
-            where: {
-              id: existedCollection.id,
-            },
+        strapi.db.query("api::nft-trade-log.nft-trade-log")
+          .create({
             data: {
-              publishedAt: new Date(),
+              type: LOG_TYPE_MINT,
+              from: transferFrom,
+              to: transferTo,
+              nft: createdNFT.id,
+              tx_hash: log.transactionHash,
+              timestamp: dayjs().unix()
             }
-          })
+          }).catch()
+
+        dm.logNFTMinting({ contract_address, createdNFT }).catch();
+
+        if (
+          !existedCollection.publishedAt
+
+        ) {
+          const updatedCollection = await strapi.db.query("api::collection.collection")
+            .update({
+              where: {
+                id: existedCollection.id,
+              },
+              data: {
+                publishedAt: new Date(),
+              }
+            })
 
 
-        dm.logListingCollectionPublish(updatedCollection).catch((err) =>
-          console.error(err.message)
-        );
+          dm.logListingCollectionPublish(updatedCollection).catch((err) =>
+            console.error(err.message)
+          );
+        }
+
+
       }
+
+
+
+
+
+
 
 
       strapi.log.info(`createNFTAtMint - complete`)

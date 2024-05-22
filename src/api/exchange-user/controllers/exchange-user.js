@@ -7,6 +7,7 @@ const {
 } = require("../../../utils/constants");
 const ERC721 = require("../../../web3/abis/ERC721.json");
 const twitterEvent1 = require("../../../twitterEvent1.json")
+const bidders = require("../../../bidders.json")
 const {getSelect}  = require("../../../utils/querySelectHelpers")
 const schema = require("../content-types/exchange-user/schema.json")
 /**
@@ -447,6 +448,86 @@ module.exports = createCoreController(
               data: {
                 box_unrevealed,
                 is_event1: true
+              },
+              select: userSelect
+            });
+
+            return (ctx.body = {
+              success: true,
+              user
+            });
+          }
+
+          return (ctx.body = {
+            success: false,
+            message: "Your address was not included",
+          });
+          
+          
+        } catch (error) {
+          console.error(error.message);
+        }
+      }
+    },
+
+    async checkEligibilityAndClaimBox_Bidder(ctx) {
+      {
+        try {
+
+          const { signature, address, message } = ctx.request.body.data;
+          const recoveredAddress = ethers.utils.verifyMessage(
+            message,
+            signature
+          );
+
+          if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
+            return (ctx.body = {
+              success: false,
+              message: "Signature verification failed.",
+            });
+          }
+
+          const userSelect = getSelect({schema, filterSelect:["maker_nonce", "hash_nonce","signature" ]})
+
+          let user = await strapi.db
+            .query("api::exchange-user.exchange-user")
+            .findOne({
+              where: { address },
+            });
+
+          if (!user) {
+            return (ctx.body = {
+              success: false,
+              message: "Not found - user",
+            });
+          }
+
+          if (user.is_event2 === true) {
+            return (ctx.body = {
+              success: false,
+              message: "You have already received the box.",
+            });
+          }
+
+          const eventAddresses = bidders.map(a => a.toLowerCase())
+          if (eventAddresses.includes(user.address.toLowerCase())) {
+            let prevBox = Number(user.box_unrevealed)
+            if (Number.isNaN(prevBox))  prevBox = 0
+            
+            const box_unrevealed = prevBox + 1
+            user = await strapi.db
+            .query("api::exchange-user.exchange-user")
+            .update({
+              where: { $and:[
+                {
+                  id: user.id
+                }, {
+                  address
+                }
+              ] },
+              data: {
+                box_unrevealed,
+                is_event2: true
               },
               select: userSelect
             });

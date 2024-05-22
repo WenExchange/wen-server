@@ -1379,6 +1379,7 @@ export interface ApiExchangeUserExchangeUser extends Schema.CollectionType {
     total_bidding_point: Attribute.Float;
     total_listing_point: Attribute.Float;
     is_event1: Attribute.Boolean & Attribute.DefaultTo<false>;
+    is_event2: Attribute.Boolean & Attribute.DefaultTo<false>;
     createdAt: Attribute.DateTime;
     updatedAt: Attribute.DateTime;
     createdBy: Attribute.Relation<

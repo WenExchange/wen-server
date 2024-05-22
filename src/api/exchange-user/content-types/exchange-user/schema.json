@@ -94,6 +94,10 @@
     "is_event1": {
       "type": "boolean",
       "default": false
+    },
+    "is_event2": {
+      "type": "boolean",
+      "default": false
     }
   }
 }

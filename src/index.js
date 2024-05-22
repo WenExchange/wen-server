@@ -33,7 +33,7 @@ const PreprocessMintQueueManager3 = require("./queue-manager/PreprocessMintQueue
 const PreprocessMintQueueManager2 = require("./queue-manager/PreprocessMintQueueManager2");
 const BlacklistCacheManager = require("./cache-managers/BlacklistCacheManager");
 const { wait } = require("./utils/helpers");
-const { getHoldersAddress } = require("./utils/holderAddress");
+const { getHoldersAddress, getBidders } = require("./utils/holderAddress");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 

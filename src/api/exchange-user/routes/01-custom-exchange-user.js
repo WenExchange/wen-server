@@ -26,5 +26,14 @@ module.exports = {
         path: '/exchange-user/checkEligibilityAndClaimBox',
         handler: 'exchange-user.checkEligibilityAndClaimBox',
       },
+
+      { // Path defined with an URL parameter
+        method: 'POST',
+        path: '/exchange-user/checkEligibilityAndClaimBox_Bidder',
+        handler: 'exchange-user.checkEligibilityAndClaimBox_Bidder',
+      },
+
+
+      
     ]
   }

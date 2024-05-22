@@ -1,12 +1,13 @@
 "use strict";
 require("dotenv").config();
 const axios = require("axios");
-const {ethers} = require("ethers");
+const { ethers } = require("ethers");
 const {
   SERVER_TYPE,
   jsonRpcProvider,
   CONTRACT_ADDRESSES,
   BLACKLIST_TYPE,
+  IPFS,
 } = require("./utils/constants");
 const { createTransferListener } = require("./listener/blockchainListener");
 const CollectionCacheManager = require("./cache-managers/CollectionCacheManager");
@@ -32,6 +33,7 @@ const PreprocessMintQueueManager3 = require("./queue-manager/PreprocessMintQueue
 const PreprocessMintQueueManager2 = require("./queue-manager/PreprocessMintQueueManager2");
 const BlacklistCacheManager = require("./cache-managers/BlacklistCacheManager");
 const { wait } = require("./utils/helpers");
+const { getHoldersAddress } = require("./utils/holderAddress");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -75,6 +77,7 @@ module.exports = {
     const error = new Error("Server is closed");
     try {
       dm.logError({ error, identifier: "LifeCycle - Destory" });
-    } catch (error) {}
+    } catch (error) { }
   },
 };
+

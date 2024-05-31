@@ -62,17 +62,17 @@ module.exports = {
 
   jsonRpcProvider: new ethers.providers.JsonRpcProvider(
     isMainnet
-      ? "https://rpc.ankr.com/blast/d347c8e224d87a27991df14f8963b6b858f52617aec0cc0d1278bca0fcb0178c"
-      : "https://rpc.ankr.com/blast_testnet_sepolia/d347c8e224d87a27991df14f8963b6b858f52617aec0cc0d1278bca0fcb0178c"
+      ? "https://rpc.ankr.com/blast/4ac44f21a4dc229d8e80bff2e315bcd8be118025448333c67e2e3fbd1c47b4cd"
+      : "https://rpc.ankr.com/blast_testnet_sepolia/4ac44f21a4dc229d8e80bff2e315bcd8be118025448333c67e2e3fbd1c47b4cd"
   ),
   jsonRpcProvider_cron: new ethers.providers.JsonRpcProvider(
     isMainnet
-      ? "https://rpc.ankr.com/blast/73a9b5e44df22487ad7bab31df917958efd0f16bc7d83fcec50a565e1a0c1aee"
-      : "https://rpc.ankr.com/blast_testnet_sepolia/73a9b5e44df22487ad7bab31df917958efd0f16bc7d83fcec50a565e1a0c1aee"
+      ? "https://rpc.ankr.com/blast/72d81dae85aace0fa14c91ea0eedb41d47572c2c80111850f6a080c1bb03193c"
+      : "https://rpc.ankr.com/blast_testnet_sepolia/72d81dae85aace0fa14c91ea0eedb41d47572c2c80111850f6a080c1bb03193c"
   ),
   jsonRpcProvider_cron_url: isMainnet
-    ? "https://rpc.ankr.com/blast/73a9b5e44df22487ad7bab31df917958efd0f16bc7d83fcec50a565e1a0c1aee"
-    : "https://rpc.ankr.com/blast_testnet_sepolia/73a9b5e44df22487ad7bab31df917958efd0f16bc7d83fcec50a565e1a0c1aee",
+    ? "https://rpc.ankr.com/blast/72d81dae85aace0fa14c91ea0eedb41d47572c2c80111850f6a080c1bb03193c"
+    : "https://rpc.ankr.com/blast_testnet_sepolia/72d81dae85aace0fa14c91ea0eedb41d47572c2c80111850f6a080c1bb03193c",
   NFT_LOG_TYPE: {
     LOG_TYPE_SALE: "SALE",
     LOG_TYPE_TRANSFER: "TRANSFER",

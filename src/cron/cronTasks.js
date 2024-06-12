@@ -17,6 +17,7 @@ const PreprocessMintQueueManager = require("../queue-manager/PreprocessMintQueue
 const PreprocessMintQueueManager2 = require("../queue-manager/PreprocessMintQueueManager2");
 const PreprocessMintQueueManager3 = require("../queue-manager/PreprocessMintQueueManager3");
 const BlacklistCacheManager = require("../cache-managers/BlacklistCacheManager");
+const { capyJobs } = require("./capybara_jobs");
 
 module.exports = {
   cacheCollection: {
@@ -123,4 +124,12 @@ module.exports = {
       tz: "Asia/Seoul",
     },
   },
+
+  capybaraJobs: {
+    task: capyJobs,
+    options: {
+      rule: `* * * * *`, // FIXME: JOYCE 시간 바꿔주세요
+      tz: "Asia/Seoul",
+    },
+  }
 };

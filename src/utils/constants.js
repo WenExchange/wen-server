@@ -62,16 +62,16 @@ module.exports = {
 
   jsonRpcProvider: new ethers.providers.JsonRpcProvider(
     isMainnet
-      ? "https://rpc.ankr.com/blast/4ac44f21a4dc229d8e80bff2e315bcd8be118025448333c67e2e3fbd1c47b4cd"
+      ? "https://rpc.ankr.com/blast"
       : "https://rpc.ankr.com/blast_testnet_sepolia/4ac44f21a4dc229d8e80bff2e315bcd8be118025448333c67e2e3fbd1c47b4cd"
   ),
   jsonRpcProvider_cron: new ethers.providers.JsonRpcProvider(
     isMainnet
-      ? "https://rpc.ankr.com/blast/72d81dae85aace0fa14c91ea0eedb41d47572c2c80111850f6a080c1bb03193c"
+      ? "https://rpc.ankr.com/blast"
       : "https://rpc.ankr.com/blast_testnet_sepolia/72d81dae85aace0fa14c91ea0eedb41d47572c2c80111850f6a080c1bb03193c"
   ),
   jsonRpcProvider_cron_url: isMainnet
-    ? "https://rpc.ankr.com/blast/72d81dae85aace0fa14c91ea0eedb41d47572c2c80111850f6a080c1bb03193c"
+    ? "https://rpc.ankr.com/blast"
     : "https://rpc.ankr.com/blast_testnet_sepolia/72d81dae85aace0fa14c91ea0eedb41d47572c2c80111850f6a080c1bb03193c",
   NFT_LOG_TYPE: {
     LOG_TYPE_SALE: "SALE",
